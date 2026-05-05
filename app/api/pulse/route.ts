@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
   if (sessionTags.length >= 3 && now - last > SYNTHESIS_COOLDOWN_MS) {
     lastSynthesisTime[session_id] = now
     const session = SESSIONS.find(s => s.id === session_id)
-    if (session && process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'your_anthropic_api_key') {
+    if (session && process.env.POLZA_API_KEY && process.env.POLZA_API_KEY !== 'your_polza_api_key') {
       try {
         const text = await synthesizePulseTags(session.title, sessionTags)
         const synthEntry: SynthesisEntry = {

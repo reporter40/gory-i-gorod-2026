@@ -1,7 +1,12 @@
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { TagType, TAG_LABELS } from './types'
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const client = new OpenAI({
+  apiKey: process.env.POLZA_API_KEY,
+  baseURL: 'https://polza.ai/api/v1',
+})
+
+const MODEL = 'anthropic/claude-sonnet-4-5-20250929'
 
 interface TagEntry {
   tag_type: TagType
@@ -18,17 +23,17 @@ export async function synthesizePulseTags(
     return acc
   }, {})
 
+  const tagLines = Object.entries(tagSummary)
+    .map(([label, count]) => `${label}: ${count}`)
+    .join(', ')
+
   const comments = tags
     .filter(t => t.comment)
     .map(t => `• [${TAG_LABELS[t.tag_type]}] ${t.comment}`)
     .join('\n')
 
-  const tagLines = Object.entries(tagSummary)
-    .map(([label, count]) => `${label}: ${count}`)
-    .join(', ')
-
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
+  const response = await client.chat.completions.create({
+    model: MODEL,
     max_tokens: 200,
     messages: [
       {
@@ -48,7 +53,7 @@ ${comments ? `Комментарии:\n${comments}` : ''}
     ],
   })
 
-  return (message.content[0] as { type: string; text: string }).text
+  return response.choices[0].message.content ?? ''
 }
 
 export async function generateDayDigest(
@@ -59,8 +64,8 @@ export async function generateDayDigest(
     .map((s, i) => `${i + 1}. **${s.title}** (${s.tagCount} реакций)\n   ${s.synthesis}`)
     .join('\n\n')
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
+  const response = await client.chat.completions.create({
+    model: MODEL,
     max_tokens: 600,
     messages: [
       {
@@ -82,5 +87,5 @@ ${sessionsText}
     ],
   })
 
-  return (message.content[0] as { type: string; text: string }).text
+  return response.choices[0].message.content ?? ''
 }
