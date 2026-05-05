@@ -1,12 +1,14 @@
 import OpenAI from 'openai'
 import { TagType, TAG_LABELS } from './types'
 
-const client = new OpenAI({
-  apiKey: process.env.POLZA_API_KEY,
-  baseURL: 'https://polza.ai/api/v1',
-})
-
 const MODEL = 'anthropic/claude-sonnet-4-5-20250929'
+
+function getClient() {
+  return new OpenAI({
+    apiKey: process.env.POLZA_API_KEY || 'no-key',
+    baseURL: 'https://polza.ai/api/v1',
+  })
+}
 
 interface TagEntry {
   tag_type: TagType
@@ -32,7 +34,7 @@ export async function synthesizePulseTags(
     .map(t => `• [${TAG_LABELS[t.tag_type]}] ${t.comment}`)
     .join('\n')
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: MODEL,
     max_tokens: 200,
     messages: [
@@ -64,7 +66,7 @@ export async function generateDayDigest(
     .map((s, i) => `${i + 1}. **${s.title}** (${s.tagCount} реакций)\n   ${s.synthesis}`)
     .join('\n\n')
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: MODEL,
     max_tokens: 600,
     messages: [
