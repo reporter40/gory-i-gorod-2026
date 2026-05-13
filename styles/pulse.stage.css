@@ -1,0 +1,58 @@
+.pulse-shell {
+  min-height: 100vh;
+  background: var(--pulse-bg-primary);
+  color: var(--pulse-text-primary);
+  font-family: var(--pulse-font-family);
+}
+
+main.flex-1.pb-nav:has(.pulse-shell) {
+  padding-bottom: 0 !important;
+}
+
+.pulse-page-outer {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0;
+  background: radial-gradient(120% 80% at 50% -10%, rgba(0, 231, 253, 0.084), transparent 46%),
+    linear-gradient(180deg, var(--pulse-bg-primary) 0%, var(--pulse-bg-deep) 46%, #070e18 100%);
+}
+
+.pulse-stage {
+  position: relative;
+  width: 1672px;
+  height: 941px;
+  flex-shrink: 0;
+  overflow: hidden;
+  font-size: var(--pulse-font-body);
+}
+
+.pulse-panel {
+  background: var(--pulse-bg-panel);
+  border: 1px solid var(--pulse-border);
+  border-radius: var(--pulse-panel-radius);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 11px 42px rgba(0, 0, 0, 0.285), 0 0 0 1px rgba(255, 255, 255, 0.038);
+}
+
+.pulse-panel-title {
+  font-size: var(--pulse-font-small);
+  font-weight: 700;
+  letter-spacing: 0.125em;
+  text-transform: uppercase;
+  color: var(--pulse-text-secondary);
+}
+
+.pulse-mountain-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 68px;
+  height: 48px;
+  pointer-events: none;
+  opacity: 0.35;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.5));
+  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+}

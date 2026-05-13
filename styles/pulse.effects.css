@@ -1,0 +1,60 @@
+.pulse-glow-text {
+  text-shadow: 0 0 17px var(--pulse-accent-cyan-glow);
+}
+
+.pulse-nav-active {
+  color: var(--pulse-text-primary) !important;
+  text-shadow: 0 0 12px var(--pulse-accent-cyan-glow);
+  border-bottom: 2px solid var(--pulse-accent-cyan);
+  padding-bottom: 2px;
+}
+
+.pulse-rotate-slow {
+  animation: pulse-orbit 24s linear infinite;
+}
+
+.pulse-rotate-mid {
+  animation: pulse-orbit 16s linear infinite reverse;
+}
+
+[data-visual-test="1"] .pulse-rotate-slow,
+[data-visual-test="1"] .pulse-rotate-mid,
+[data-visual-test="1"] .pulse-particle,
+[data-visual-test="1"] .pulse-blink {
+  animation: none !important;
+}
+
+@keyframes pulse-orbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-blink-opacity {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.pulse-blink {
+  animation: pulse-blink-opacity 2s ease-in-out infinite;
+}
+
+/* Dev reference overlay: alignment only; default opacity in CSS */
+.pulse-visual-overlay-root {
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.pulse-visual-overlay-image {
+  pointer-events: none;
+  opacity: 0.18;
+  mix-blend-mode: normal;
+}

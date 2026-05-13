@@ -1,0 +1,108 @@
+import type { SessionHeatmap as SessionHeatmapT } from '@/lib/pulse/pulse-data'
+
+function intensityColor(v: number): string {
+  const t = v / 100
+  const r = Math.round(14 + t * (0 + 229 - 14))
+  const g = Math.round(31 + t * (212 - 31))
+  const b = Math.round(40 + t * (255 - 40))
+  return `rgba(${r},${g},${b},${0.15 + t * 0.85})`
+}
+
+export default function SessionInterestHeatmap({
+  heat,
+  speakerDots,
+}: {
+  heat: SessionHeatmapT
+  speakerDots: { initials: string; color: string }[]
+}) {
+  const cellW = 54
+  const cellH = 22
+  const ox = 86
+  const oy = 30
+  const cw = heat.times.length * cellW + ox + 8
+  const ch = heat.halls.length * cellH + oy + 24
+
+  const { hallIndex: hi, timeIndex: ti, engagement, label } = heat.highlight
+  const cx = ox + ti * cellW + cellW / 2
+
+  return (
+    <section className="pulse-panel absolute flex flex-col overflow-hidden p-3" style={{ left: 804, top: 538, width: 508, height: 319 }}>
+      <h2 className="pulse-panel-title mb-2 shrink-0">Карта интереса к сессиям</h2>
+      <div className="relative min-h-0 flex-1">
+        <svg width="100%" height="210" viewBox={`0 0 ${cw} ${ch}`} preserveAspectRatio="xMinYMin meet">
+          <defs>
+            <filter id="pulseTipShadow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.45" />
+            </filter>
+          </defs>
+          {heat.times.map((t, j) => (
+            <text
+              key={t}
+              x={ox + j * cellW + cellW / 2}
+              y={16}
+              fill="rgba(255,255,255,0.42)"
+              fontSize={10}
+              textAnchor="middle"
+              fontFamily="system-ui, sans-serif"
+            >
+              {t}
+            </text>
+          ))}
+          {heat.halls.map((hall, i) => (
+            <text
+              key={hall}
+              x={4}
+              y={oy + i * cellH + cellH / 2 + 4}
+              fill="rgba(255,255,255,0.55)"
+              fontSize={10}
+              fontFamily="system-ui, sans-serif"
+            >
+              {hall.length > 18 ? `${hall.slice(0, 16)}…` : hall}
+            </text>
+          ))}
+          {heat.values.map((row, i) =>
+            row.map((v, j) => {
+              const isHi = hi === i && ti === j
+              return (
+                <rect
+                  key={`${i}-${j}`}
+                  x={ox + j * cellW + 2}
+                  y={oy + i * cellH + 2}
+                  width={cellW - 4}
+                  height={cellH - 4}
+                  rx={6}
+                  fill={intensityColor(v)}
+                  stroke={isHi ? 'rgba(0,229,255,0.68)' : 'rgba(255,255,255,0.06)'}
+                  strokeWidth={isHi ? 1.8 : 1}
+                />
+              )
+            }),
+          )}
+          <g transform={`translate(${cx - 146}, ${oy + hi * cellH - 44})`} filter="url(#pulseTipShadow)">
+            <rect x={0} y={0} width={292} height={58} rx={12} fill="rgba(6,11,22,0.97)" stroke="rgba(0,229,255,0.42)" strokeWidth={1} />
+            {speakerDots.slice(0, 3).map((s, idx) => (
+              <g key={`${s.initials}-${idx}`} transform={`translate(${14 + idx * 18}, ${15})`}>
+                <circle r={11} cx={11} cy={11} fill={s.color} stroke="#081018" strokeWidth={1} />
+                <text x={11} y={15} fill="#fff" fontSize={9} fontWeight={700} textAnchor="middle" fontFamily="system-ui, sans-serif">
+                  {s.initials.slice(0, 2)}
+                </text>
+              </g>
+            ))}
+            <text x={74} y={22} fill="#ffffff" fontSize={11} fontWeight={700} fontFamily="system-ui, sans-serif">
+              {label.slice(0, 44)}
+              {label.length > 44 ? '…' : ''}
+            </text>
+            <text x={74} y={40} fill="rgba(255,255,255,0.6)" fontSize={10} fontFamily="system-ui, sans-serif">
+              {`${engagement}% · вовлечённость · +218`}
+            </text>
+          </g>
+        </svg>
+        <div className="pointer-events-none absolute bottom-2 left-0 right-0 flex items-center gap-3 px-2 text-[10px] text-white/45">
+          <span className="shrink-0">Низкий интерес</span>
+          <span className="h-2 flex-1 rounded-full bg-gradient-to-r from-[#141c2f] via-[#0e4b6b] to-[#00ffc6]" />
+          <span className="shrink-0">Высокий интерес</span>
+        </div>
+      </div>
+    </section>
+  )
+}

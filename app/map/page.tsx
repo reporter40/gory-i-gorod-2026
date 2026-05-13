@@ -8,14 +8,14 @@ export default function MapPage() {
   ]
 
   const schedule = [
-    { time: '09:00', event: 'Регистрация', location: 'Вход' },
-    { time: '10:00', event: 'Открытие форума', location: 'Зал А' },
-    { time: '11:30', event: 'Параллельные секции', location: 'Зал А / Зал Б' },
-    { time: '13:00', event: 'Обед + нетворкинг', location: 'Кофе-зона' },
-    { time: '14:00', event: 'Дневные сессии', location: 'Зал А / Зал Б' },
-    { time: '16:00', event: 'Кофе-брейк', location: 'Кофе-зона' },
-    { time: '16:30', event: 'Финальная сессия', location: 'Зал А' },
-    { time: '18:00', event: 'Нетворкинг на террасе', location: 'Терраса' },
+    { time: '08:00', event: 'Регистрация и кофе', location: 'Фойе' },
+    { time: '10:00', event: 'Открытие форума', location: 'Главный зал' },
+    { time: '10:15', event: 'Пленарная сессия №1', location: 'Главный зал' },
+    { time: '12:45', event: 'Обед', location: 'Ресторан' },
+    { time: '13:30', event: 'Сольные выступления', location: 'Главный зал' },
+    { time: '15:15', event: 'Кофе-брейк', location: 'Фойе' },
+    { time: '16:45', event: 'Пленарная сессия №2', location: 'Главный зал' },
+    { time: '18:00', event: 'Ужин спикеров', location: 'Ресторан' },
   ]
 
   return (
@@ -23,7 +23,7 @@ export default function MapPage() {
       <div className="forum-gradient text-white px-4 pt-10 pb-6">
         <div className="max-w-md mx-auto">
           <h1 className="text-2xl font-bold mb-1">Карта площадки</h1>
-          <p className="text-sm opacity-75">Санаторий «Голубая волна», Геленджик</p>
+          <p className="text-sm opacity-75">Геленджик Арена, Геленджик</p>
         </div>
       </div>
 

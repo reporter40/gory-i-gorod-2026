@@ -2,20 +2,17 @@
 import { useState } from 'react'
 import { PARTICIPANTS } from '@/lib/data'
 
-const ROLES = ['Все', 'Урбанист', 'Архитектор', 'Чиновник', 'Инвестор', 'Девелопер']
-
 const AVATAR_COLORS = ['#0f1f3d', '#166534', '#2563eb', '#9333ea', '#ea580c', '#0891b2']
 
 export default function NetworkPage() {
   const [search, setSearch] = useState('')
-  const [role, setRole] = useState('Все')
   const [qrOpen, setQrOpen] = useState<string | null>(null)
 
+  const q = search.trim().toLowerCase()
   const filtered = PARTICIPANTS.filter(p => {
-    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.city.toLowerCase().includes(search.toLowerCase())
-    const matchRole = role === 'Все' || p.role.includes(role)
-    return matchSearch && matchRole
+    if (!q) return true
+    const hay = `${p.name} ${p.city} ${p.role}`.toLowerCase()
+    return hay.includes(q)
   })
 
   const openP = PARTICIPANTS.find(p => p.id === qrOpen)
@@ -26,6 +23,9 @@ export default function NetworkPage() {
         <div className="max-w-md mx-auto">
           <p className="subhead text-white/50 mb-2">Нетворкинг</p>
           <h1 className="heading text-white">Участники</h1>
+          <p className="text-xs text-white/60 mt-2 leading-relaxed">
+            Список из колонки «Спикеры / Участники» программы (как в XLSX). Контакты в файле не заданы.
+          </p>
         </div>
       </div>
 
@@ -36,20 +36,8 @@ export default function NetworkPage() {
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
           <input type="search" value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Имя или город"
+            placeholder="Имя или фрагмент подписи из программы"
             className="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:border-gray-400 transition-colors" />
-        </div>
-
-        {/* Role filter */}
-        <div className="flex gap-1.5 no-scroll overflow-x-auto pb-3">
-          {ROLES.map(r => (
-            <button key={r} onClick={() => setRole(r)}
-              className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full border font-medium transition-all ${
-                role === r ? 'bg-[#0f1f3d] text-white border-[#0f1f3d]' : 'bg-white text-gray-500 border-gray-200'
-              }`}>
-              {r}
-            </button>
-          ))}
         </div>
 
         <div className="space-y-2">
@@ -61,7 +49,10 @@ export default function NetworkPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-sm text-[#0f1f3d]">{p.name}</div>
-                <div className="text-xs text-gray-400">{p.role} · {p.city}</div>
+                <div className="text-xs text-gray-400 line-clamp-2">
+                  {p.role}
+                  {p.city ? ` · ${p.city}` : ''}
+                </div>
               </div>
               <button onClick={() => setQrOpen(p.id)}
                 className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50 transition-colors flex-shrink-0">
@@ -88,7 +79,10 @@ export default function NetworkPage() {
               {openP.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
             </div>
             <h3 className="font-bold text-[#0f1f3d] mb-0.5">{openP.name}</h3>
-            <p className="text-sm text-gray-500 mb-4">{openP.role} · {openP.city}</p>
+            <p className="text-sm text-gray-500 mb-4">
+              {openP.role}
+              {openP.city ? ` · ${openP.city}` : ''}
+            </p>
 
             {/* QR placeholder */}
             <div className="w-36 h-36 mx-auto bg-gray-50 rounded-2xl border border-gray-200 flex items-center justify-center mb-4">
@@ -100,11 +94,19 @@ export default function NetworkPage() {
               </div>
             </div>
 
-            <p className="text-xs text-gray-400 mb-4">{openP.email}</p>
-            <a href={`mailto:${openP.email}`}
-              className="block w-full py-3 rounded-xl text-white text-sm font-semibold forum-gradient mb-2">
-              Написать
-            </a>
+            {openP.email.trim() ? (
+              <>
+                <p className="text-xs text-gray-400 mb-4">{openP.email}</p>
+                <a href={`mailto:${openP.email}`}
+                  className="block w-full py-3 rounded-xl text-white text-sm font-semibold forum-gradient mb-2">
+                  Написать
+                </a>
+              </>
+            ) : (
+              <p className="text-xs text-gray-400 mb-4 text-center">
+                E-mail в файле программы не указан.
+              </p>
+            )}
             <button onClick={() => setQrOpen(null)} className="text-sm text-gray-400 py-1.5 w-full">
               Закрыть
             </button>

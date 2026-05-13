@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { SESSIONS, SPEAKERS, BLOCK_LABELS } from '@/lib/data'
+import { SESSIONS, SPEAKERS, BLOCK_LABELS, PARTICIPANTS } from '@/lib/data'
 import { PartnersBar, LogoInnopolis, LogoGelendzhikArena, LogoIIntegration } from '@/components/Logos'
 
 const BLOCK_DOT: Record<string, string> = {
@@ -8,14 +8,15 @@ const BLOCK_DOT: Record<string, string> = {
 }
 
 export default function Home() {
-  const nextSession = SESSIONS[0]
+  const nextSession =
+    SESSIONS.find(s => s.id === 'd1-open') ?? SESSIONS.find(s => s.speaker_id !== 'org') ?? SESSIONS[0]
   const speaker = SPEAKERS.find(s => s.id === nextSession.speaker_id)
 
   const quickLinks = [
-    { href: '/program', icon: '▤', title: 'Программа', desc: '8 сессий · 2 дня' },
+    { href: '/program', icon: '▤', title: 'Программа', desc: `${SESSIONS.length} слотов · 2 дня` },
     { href: '/pulse', icon: '◎', title: 'Городской Пульс', desc: 'AI-синтез идей', accent: true },
-    { href: '/speakers', icon: '◈', title: 'Спикеры', desc: '6 экспертов' },
-    { href: '/network', icon: '◉', title: 'Участники', desc: '200+ человек' },
+    { href: '/speakers', icon: '◈', title: 'Спикеры', desc: `${SPEAKERS.length} экспертов` },
+    { href: '/network', icon: '◉', title: 'Участники', desc: `${PARTICIPANTS.length} в программе` },
     { href: '/map', icon: '◫', title: 'Площадка', desc: 'Схема залов' },
     { href: '/dashboard', icon: '◧', title: 'Аналитика', desc: 'Для организаторов' },
   ]
@@ -34,7 +35,7 @@ export default function Home() {
             <LogoIIntegration size={18} />
           </div>
 
-          <p className="subhead text-white/50 mb-3">17–18 сентября 2026 · Геленджик</p>
+          <p className="subhead text-white/50 mb-3">16–17 мая 2026 · Геленджик</p>
           <h1 className="display text-white mb-2">Горы и Город</h1>
           <p className="text-white/70 text-base font-light leading-relaxed">
             Форум урбанистики — практический опыт<br />создания городской среды
@@ -73,7 +74,8 @@ export default function Home() {
                   className="w-8 h-8 rounded-full object-cover grayscale" />
               )}
               <div className="text-sm text-gray-500">
-                {speaker?.name} · {nextSession.hall} · 10:00
+                {speaker?.name} · {nextSession.hall} ·{' '}
+                {new Date(nextSession.starts_at).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
           </div>

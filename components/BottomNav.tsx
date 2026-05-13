@@ -12,6 +12,7 @@ const NAV = [
 
 export default function BottomNav() {
   const path = usePathname()
+  if (path === '/pulse') return null
 
   return (
     <nav
@@ -25,21 +26,15 @@ export default function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-1 transition-colors ${
+              className={`relative flex-1 flex flex-col items-center justify-center py-2.5 gap-1 transition-colors ${
                 active ? 'text-[#0f1f3d]' : 'text-gray-400 hover:text-gray-600'
               }`}
             >
-              <svg
-                width="20" height="20" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor"
-                strokeWidth={active ? 2 : 1.5}
-              >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.5}>
                 {svg}
               </svg>
               <span className={`text-[10px] font-medium ${active ? 'text-[#0f1f3d]' : ''}`}>{label}</span>
-              {active && (
-                <span className="absolute bottom-[calc(100%+0px)] w-5 h-0.5 rounded-full bg-[#0f1f3d]" />
-              )}
+              {active && <span className="absolute bottom-[calc(100%+0px)] w-5 h-0.5 rounded-full bg-[#0f1f3d]" />}
             </Link>
           )
         })}

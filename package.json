@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:visual": "PLAYWRIGHT_BROWSERS_PATH=./.pw-browser playwright test tests/pulse.visual.spec.ts",
+    "test:visual:update": "PLAYWRIGHT_BROWSERS_PATH=./.pw-browser playwright test tests/pulse.visual.spec.ts --update-snapshots",
+    "docs:pulse-sheet": "node scripts/build-pulse-review-sheet.cjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.93.0",
@@ -22,12 +25,15 @@
     "recharts": "^3.8.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "pixelmatch": "^7.2.0",
+    "pngjs": "^7.0.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

@@ -1,0 +1,31 @@
+:root {
+  --pulse-bg-primary: #050913;
+  --pulse-bg-deep: #0a101c;
+  --pulse-bg-panel: rgba(13, 17, 30, 0.785);
+  --pulse-bg-panel-solid: rgba(10, 14, 26, 0.96);
+  --pulse-text-primary: #ffffff;
+  --pulse-text-secondary: rgba(255, 255, 255, 0.721);
+  --pulse-text-muted: rgba(255, 255, 255, 0.448);
+  --pulse-accent-cyan: #00e6fd;
+  --pulse-accent-cyan-dim: rgba(0, 231, 253, 0.54);
+  --pulse-accent-cyan-glow: rgba(0, 231, 253, 0.34);
+  --pulse-accent-gold: #f7a819;
+  --pulse-accent-green: #22c55e;
+  --pulse-accent-red: #ef4444;
+  --pulse-accent-purple: #a855f7;
+  --pulse-accent-magenta: #e879f9;
+  --pulse-border: rgba(255, 255, 255, 0.085);
+  --pulse-border-accent: rgba(0, 231, 253, 0.29);
+  --pulse-glow-cyan: 0 0 21px rgba(0, 231, 253, 0.138), 0 0 54px rgba(0, 231, 253, 0.069);
+  --pulse-glow-strong: 0 0 28px rgba(0, 231, 253, 0.195), 0 0 74px rgba(0, 231, 253, 0.076);
+  --pulse-panel-radius: 14px;
+  --pulse-panel-padding: 14px;
+  --pulse-font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --pulse-font-hero-num: 72px;
+  --pulse-font-ai-title: 44px;
+  --pulse-font-h1: 13px;
+  --pulse-font-h2: 12px;
+  --pulse-font-body: 12px;
+  --pulse-font-small: 11px;
+  --pulse-font-tiny: 10px;
+}
