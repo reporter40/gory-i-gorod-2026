@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1672 520" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+  <defs>
+    <linearGradient id="nbFog" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#02060e" stop-opacity="0"/>
+      <stop offset="35%" stop-color="#051a2e" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#010308" stop-opacity="0.92"/>
+    </linearGradient>
+    <radialGradient id="nbGlow" cx="50%" cy="88%" r="75%">
+      <stop offset="0%" stop-color="#00e7fd" stop-opacity="0.34"/>
+      <stop offset="45%" stop-color="#f7a819" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#000008" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="nbSoft" x="-2%" y="-2%" width="104%" height="104%">
+      <feGaussianBlur stdDeviation="1.8"/>
+    </filter>
+  </defs>
+  <rect width="1672" height="520" fill="url(#nbFog)"/>
+  <ellipse cx="836" cy="480" rx="780" ry="220" fill="url(#nbGlow)" opacity="0.85"/>
+  <!-- Distant range -->
+  <path fill="#030a14" stroke="rgba(0,231,253,0.12)" stroke-width="0.8" filter="url(#nbSoft)"
+    d="M0 520 L0 220 L120 180 L220 210 L340 160 L480 200 L620 150 L760 195 L900 165 L1040 205 L1180 155 L1320 190 L1460 170 L1580 200 L1672 175 L1672 520 Z"/>
+  <!-- Mid mountains -->
+  <path fill="#020810" stroke="rgba(247,168,25,0.1)" stroke-width="0.55" opacity="0.95"
+    d="M0 520 L0 300 L80 280 L180 320 L280 270 L400 310 L520 260 L660 300 L780 255 L920 295 L1060 265 L1200 305 L1340 275 L1480 315 L1600 290 L1672 310 L1672 520 Z"/>
+  <!-- City silhouette base -->
+  <path fill="#01060c" d="M0 520 L0 380 L1672 380 L1672 520 Z"/>
+  <!-- Building blocks + implied lights (rect windows) -->
+  <g opacity="0.92">
+    <rect x="40" y="300" width="28" height="120" fill="#050f1c" stroke="rgba(0,231,253,0.08)" stroke-width="0.4"/>
+    <rect x="74" y="318" width="22" height="102" fill="#050f1c" stroke="rgba(0,231,253,0.06)" stroke-width="0.4"/>
+    <rect x="102" y="285" width="36" height="135" fill="#060f1e" stroke="rgba(247,168,25,0.06)" stroke-width="0.4"/>
+    <rect x="200" y="310" width="32" height="110" fill="#050e1a"/>
+    <rect x="240" y="292" width="44" height="128" fill="#060f1e"/>
+    <rect x="320" y="315" width="26" height="105" fill="#050e1a"/>
+    <rect x="360" y="298" width="48" height="122" fill="#040c18"/>
+    <rect x="460" y="308" width="34" height="112" fill="#050f1c"/>
+    <rect x="510" y="288" width="40" height="132" fill="#060f1e"/>
+    <rect x="600" y="318" width="24" height="102" fill="#050e1a"/>
+    <rect x="640" y="302" width="52" height="118" fill="#040c18"/>
+    <rect x="720" y="312" width="30" height="108" fill="#050f1c"/>
+    <rect x="760" y="295" width="46" height="125" fill="#060f1e"/>
+    <rect x="860" y="320" width="22" height="100" fill="#050e1a"/>
+    <rect x="890" y="305" width="38" height="115" fill="#050f1c"/>
+    <rect x="940" y="290" width="42" height="130" fill="#040c18"/>
+    <rect x="1020" y="315" width="28" height="105" fill="#050f1c"/>
+    <rect x="1060" y="300" width="50" height="120" fill="#060f1e"/>
+    <rect x="1140" y="322" width="24" height="98" fill="#050e1a"/>
+    <rect x="1180" y="308" width="44" height="112" fill="#050f1c"/>
+    <rect x="1260" y="295" width="36" height="125" fill="#040c18"/>
+    <rect x="1320" y="318" width="30" height="102" fill="#050f1c"/>
+    <rect x="1360" y="302" width="48" height="118" fill="#060f1e"/>
+    <rect x="1440" y="312" width="34" height="108" fill="#050e1a"/>
+    <rect x="1490" y="298" width="40" height="122" fill="#040c18"/>
+    <rect x="1560" y="318" width="28" height="102" fill="#050f1c"/>
+    <rect x="1600" y="308" width="52" height="112" fill="#060f1e"/>
+  </g>
+  <!-- Window lights (gold / cyan) -->
+  <g>
+    <circle cx="52" cy="340" r="1.4" fill="#f7d88a" opacity="0.85"/><circle cx="58" cy="380" r="1.1" fill="#8ef7ff" opacity="0.7"/>
+    <circle cx="112" cy="320" r="1.2" fill="#f7c96a" opacity="0.8"/><circle cx="128" cy="360" r="1.3" fill="#00e7fd" opacity="0.65"/>
+    <circle cx="210" cy="340" r="1.2" fill="#ffe6a8" opacity="0.75"/><circle cx="228" cy="390" r="1.1" fill="#7ee8ff" opacity="0.7"/>
+    <circle cx="268" cy="330" r="1.3" fill="#00e7fd" opacity="0.72"/><circle cx="290" cy="370" r="1.2" fill="#f7a819" opacity="0.68"/>
+    <circle cx="372" cy="345" r="1.1" fill="#b8f0ff" opacity="0.65"/><circle cx="388" cy="385" r="1.2" fill="#ffd27a" opacity="0.78"/>
+    <circle cx="430" cy="325" r="1.2" fill="#00e7fd" opacity="0.7"/><circle cx="448" cy="365" r="1.1" fill="#f7d88a" opacity="0.72"/>
+    <circle cx="528" cy="338" r="1.3" fill="#ffe09a" opacity="0.8"/><circle cx="548" cy="378" r="1.2" fill="#6edcff" opacity="0.68"/>
+    <circle cx="618" cy="352" r="1.1" fill="#00e7fd" opacity="0.62"/><circle cx="632" cy="392" r="1.2" fill="#f7a819" opacity="0.7"/>
+    <circle cx="708" cy="340" r="1.2" fill="#ffd89a" opacity="0.75"/><circle cx="728" cy="380" r="1.1" fill="#8ef7ff" opacity="0.65"/>
+    <circle cx="788" cy="328" r="1.3" fill="#00e7fd" opacity="0.74"/><circle cx="804" cy="368" r="1.2" fill="#f7c96a" opacity="0.7"/>
+    <circle cx="878" cy="350" r="1.1" fill="#b8f0ff" opacity="0.6"/><circle cx="898" cy="388" r="1.2" fill="#ffd27a" opacity="0.76"/>
+    <circle cx="958" cy="332" r="1.2" fill="#00e7fd" opacity="0.68"/><circle cx="976" cy="372" r="1.1" fill="#f7a819" opacity="0.72"/>
+    <circle cx="1048" cy="342" r="1.3" fill="#ffe6a8" opacity="0.78"/><circle cx="1068" cy="382" r="1.1" fill="#7ee8ff" opacity="0.64"/>
+    <circle cx="1148" cy="355" r="1.2" fill="#00e7fd" opacity="0.66"/><circle cx="1168" cy="395" r="1.1" fill="#f7d88a" opacity="0.74"/>
+    <circle cx="1238" cy="328" r="1.2" fill="#8ef7ff" opacity="0.62"/><circle cx="1258" cy="368" r="1.2" fill="#f7a819" opacity="0.7"/>
+    <circle cx="1338" cy="345" r="1.1" fill="#ffd89a" opacity="0.77"/><circle cx="1354" cy="385" r="1.3" fill="#00e7fd" opacity="0.7"/>
+    <circle cx="1428" cy="338" r="1.2" fill="#6edcff" opacity="0.65"/><circle cx="1448" cy="378" r="1.1" fill="#ffe09a" opacity="0.8"/>
+    <circle cx="1520" cy="352" r="1.2" fill="#00e7fd" opacity="0.68"/><circle cx="1540" cy="392" r="1.1" fill="#f7c96a" opacity="0.72"/>
+    <circle cx="1610" cy="335" r="1.3" fill="#b8f0ff" opacity="0.63"/><circle cx="1628" cy="375" r="1.2" fill="#f7a819" opacity="0.75"/>
+  </g>
+  <!-- Horizontal light line (city horizon) -->
+  <rect x="0" y="368" width="1672" height="2" fill="url(#nbGlow)" opacity="0.42"/>
+</svg>

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1672 220" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+  <defs>
+    <linearGradient id="pulseAtmHorizon" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00e7fd" stop-opacity="0.28"/>
+      <stop offset="40%" stop-color="#f7a819" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#00e7fd" stop-opacity="0.12"/>
+    </linearGradient>
+    <linearGradient id="pulseAtmCity" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#0a1628" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#020508" stop-opacity="0.98"/>
+    </linearGradient>
+    <filter id="pulseAtmSoftGlow" x="-5%" y="-5%" width="110%" height="110%">
+      <feGaussianBlur stdDeviation="2.4" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Distant peaks -->
+  <path
+    fill="url(#pulseAtmCity)"
+    stroke="rgba(0,231,253,0.14)"
+    stroke-width="0.6"
+    filter="url(#pulseAtmSoftGlow)"
+    d="M0 220 L0 118 L142 72 L268 96 L412 54 L556 88 L702 48 L848 82 L1004 58 L1152 90 L1288 62 L1436 84 L1588 52 L1672 78 L1672 220 Z"
+  />
+  <!-- Mid ridge -->
+  <path
+    fill="#050d18"
+    stroke="rgba(247,168,25,0.1)"
+    stroke-width="0.5"
+    opacity="0.92"
+    d="M0 220 L0 148 L120 128 L240 152 L380 118 L520 146 L668 124 L820 158 L964 132 L1108 154 L1240 128 L1388 150 L1520 136 L1672 162 L1672 220 Z"
+  />
+  <!-- City mass (simplified blocks) -->
+  <g fill="#071222" stroke="rgba(0,231,253,0.08)" stroke-width="0.4" opacity="0.88">
+    <rect x="48" y="138" width="36" height="82"/>
+    <rect x="92" y="152" width="28" height="68"/>
+    <rect x="128" y="128" width="44" height="92"/>
+    <rect x="420" y="144" width="32" height="76"/>
+    <rect x="458" y="156" width="40" height="64"/>
+    <rect x="720" y="140" width="52" height="80"/>
+    <rect x="780" y="160" width="24" height="60"/>
+    <rect x="1020" y="148" width="38" height="72"/>
+    <rect x="1064" y="168" width="30" height="52"/>
+    <rect x="1320" y="136" width="48" height="84"/>
+    <rect x="1376" y="156" width="36" height="64"/>
+    <rect x="1520" y="150" width="44" height="70"/>
+  </g>
+  <!-- Horizon light wash -->
+  <rect x="0" y="158" width="1672" height="62" fill="url(#pulseAtmHorizon)" opacity="0.42"/>
+</svg>

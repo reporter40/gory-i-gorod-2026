@@ -1,7 +1,15 @@
 :root {
   --pulse-bg-primary: #050913;
   --pulse-bg-deep: #0a101c;
-  --pulse-bg-panel: rgba(13, 17, 30, 0.785);
+  /* Deeper glass stack (Iteration 4 premium) */
+  --pulse-bg-panel: linear-gradient(
+      152deg,
+      rgba(28, 42, 68, 0.42) 0%,
+      rgba(10, 16, 32, 0.86) 38%,
+      rgba(4, 8, 18, 0.94) 100%
+    ),
+    linear-gradient(210deg, rgba(0, 231, 253, 0.04) 0%, transparent 42%),
+    rgba(6, 10, 20, 0.62);
   --pulse-bg-panel-solid: rgba(10, 14, 26, 0.96);
   --pulse-text-primary: #ffffff;
   --pulse-text-secondary: rgba(255, 255, 255, 0.721);
@@ -14,10 +22,16 @@
   --pulse-accent-red: #ef4444;
   --pulse-accent-purple: #a855f7;
   --pulse-accent-magenta: #e879f9;
-  --pulse-border: rgba(255, 255, 255, 0.085);
-  --pulse-border-accent: rgba(0, 231, 253, 0.29);
+  --pulse-border: rgba(255, 255, 255, 0.062);
+  --pulse-border-accent: rgba(0, 231, 253, 0.38);
+  --pulse-border-gold: rgba(247, 168, 25, 0.14);
+  --pulse-panel-edge-cyan: rgba(0, 231, 253, 0.19);
+  --pulse-panel-edge-gold: rgba(247, 168, 25, 0.095);
   --pulse-glow-cyan: 0 0 21px rgba(0, 231, 253, 0.138), 0 0 54px rgba(0, 231, 253, 0.069);
-  --pulse-glow-strong: 0 0 28px rgba(0, 231, 253, 0.195), 0 0 74px rgba(0, 231, 253, 0.076);
+  --pulse-glow-strong: 0 0 32px rgba(0, 231, 253, 0.26), 0 0 88px rgba(0, 231, 253, 0.1), 0 0 120px rgba(247, 168, 25, 0.06);
+  --pulse-glow-gold-soft: 0 0 40px rgba(247, 168, 25, 0.12);
+  --pulse-noise-opacity: 0.042;
+  --pulse-panel-blur: 32px;
   --pulse-panel-radius: 14px;
   --pulse-panel-padding: 14px;
   --pulse-font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;

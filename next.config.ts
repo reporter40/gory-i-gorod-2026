@@ -1,7 +1,11 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
+import { fileURLToPath } from 'node:url'
 
 const nextConfig: NextConfig = {
-  /* config options here */
-};
+  /** Pin workspace root so Turbopack does not pick a parent `package-lock.json` (e.g. `~/`). */
+  turbopack: {
+    root: fileURLToPath(new URL('.', import.meta.url)),
+  },
+}
 
-export default nextConfig;
+export default nextConfig

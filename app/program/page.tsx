@@ -69,7 +69,12 @@ export default function ProgramPage() {
 
         {/* Sessions list */}
         <div className="space-y-2 pb-4">
-          {filtered.map(session => (
+          {filtered.map(session =>
+            session.program_card === 'title_only' ? (
+              <div key={session.id} className="card p-4">
+                <h3 className="font-semibold text-[#0f1f3d] leading-snug">{session.title}</h3>
+              </div>
+            ) : (
             <div key={session.id} className="card p-4">
               {/* Time + block */}
               <div className="flex items-center justify-between mb-2.5">
@@ -77,7 +82,7 @@ export default function ProgramPage() {
                   {new Date(session.starts_at).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })}
                   {' – '}
                   {new Date(session.ends_at).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })}
-                  {' · '}{session.hall}
+                  {session.hall?.trim() ? ` · ${session.hall}` : ''}
                 </span>
                 <span className="flex items-center gap-1 text-[11px] font-medium"
                   style={{ color: BLOCK_COLOR[session.block] }}>
@@ -87,28 +92,37 @@ export default function ProgramPage() {
               </div>
 
               {/* Title */}
-              <h3 className="font-semibold text-[#0f1f3d] leading-snug mb-3">{session.title}</h3>
+              {session.title?.trim() ? (
+                <h3 className="font-semibold text-[#0f1f3d] leading-snug mb-3">{session.title}</h3>
+              ) : null}
 
               {session.description && (
                 <p className="text-xs text-gray-500 leading-relaxed mb-3">{session.description}</p>
               )}
 
-              {/* Speaker */}
-              <div className="flex items-center gap-2.5 pt-2.5 border-t border-gray-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={session.speaker.photo_url} alt={session.speaker.name}
-                  className="w-7 h-7 rounded-full object-cover grayscale opacity-80" />
-                <div>
-                  <div className="text-xs font-semibold text-gray-800">{session.speaker.name}</div>
-                  {[session.speaker.role, session.speaker.city].filter(Boolean).length > 0 && (
-                    <div className="text-[10px] text-gray-400">
-                      {[session.speaker.role, session.speaker.city].filter(Boolean).join(' · ')}
-                    </div>
-                  )}
+              {session.speaker_row_note?.trim() ? (
+                <p className="text-xs text-gray-400 pt-2.5 border-t border-gray-100 leading-relaxed whitespace-pre-line">
+                  {session.speaker_row_note}
+                </p>
+              ) : session.speaker_id !== 'org' ||
+                (!session.description?.trim() && Boolean(session.title?.trim())) ? (
+                <div className="flex items-center gap-2.5 pt-2.5 border-t border-gray-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={session.speaker.photo_url} alt={session.speaker.name}
+                    className="w-7 h-7 rounded-full object-cover grayscale opacity-80" />
+                  <div>
+                    <div className="text-xs font-semibold text-gray-800">{session.speaker.name}</div>
+                    {[session.speaker.role, session.speaker.city].filter(Boolean).length > 0 && (
+                      <div className="text-[10px] text-gray-400">
+                        {[session.speaker.role, session.speaker.city].filter(Boolean).join(' · ')}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </div>
-          ))}
+            )
+          )}
         </div>
       </div>
     </div>

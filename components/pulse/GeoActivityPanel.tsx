@@ -29,15 +29,22 @@ export default function GeoActivityPanel({ regions }: { regions: PulseGeoRegion[
           ))}
           <li className="mt-1 text-[10px] text-white/35">+ ещё 48 регионов</li>
         </ul>
-        <div className="relative min-w-0 flex-1 rounded-lg border border-white/[0.07] bg-[#060b14]">
-          <svg viewBox="0 0 440 210" className="h-full w-full opacity-90" preserveAspectRatio="xMidYMid meet">
+        <div
+          className="relative min-w-0 flex-1 overflow-hidden rounded-lg border border-cyan-400/12"
+          style={{
+            background:
+              'radial-gradient(ellipse 80% 70% at 45% 40%, rgba(0,231,253,0.08) 0%, transparent 55%), linear-gradient(165deg, #040a14 0%, #03060e 100%)',
+            boxShadow: 'inset 0 0 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(0,231,253,0.08)',
+          }}
+        >
+          <svg viewBox="0 0 440 210" className="h-full w-full opacity-95" preserveAspectRatio="xMidYMid meet">
             <defs>
               <linearGradient id="ru-fill" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#15304a" stopOpacity={0.5} />
                 <stop offset="100%" stopColor="#0c1828" stopOpacity={0.9} />
               </linearGradient>
               <filter id="glow">
-                <feGaussianBlur stdDeviation="4" result="b" />
+                <feGaussianBlur stdDeviation="5.2" result="b" />
                 <feMerge>
                   <feMergeNode in="b" />
                   <feMergeNode in="SourceGraphic" />

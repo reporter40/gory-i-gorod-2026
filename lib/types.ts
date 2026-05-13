@@ -24,6 +24,10 @@ export interface Session {
   block: Block
   day: number
   description?: string
+  /** Вместо блока ФИО/роль — одна строка (пустые ячейки спикера в XLSX). */
+  speaker_row_note?: string
+  /** `title_only` — в расписании только заголовок (без времени, блока, описания, спикера). */
+  program_card?: 'title_only'
 }
 
 export interface Participant {
