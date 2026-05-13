@@ -10,8 +10,16 @@ const BLOCK_COLOR: Record<string, string> = {
 export default function ProgramPage() {
   const [day, setDay] = useState(1)
   const [activeBlock, setActiveBlock] = useState<string | null>(null)
-  const sessions = getSessionsWithSpeakers().filter(s => s.day === day)
-  const filtered = activeBlock ? sessions.filter(s => s.block === activeBlock) : sessions
+  const sessions = getSessionsWithSpeakers()
+    .filter(s => s.day === day)
+    .sort(
+      (a, b) =>
+        new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime() ||
+        a.hall.localeCompare(b.hall, 'ru'),
+    )
+  const filtered = activeBlock
+    ? sessions.filter(s => s.block === activeBlock)
+    : sessions
 
   return (
     <div className="min-h-screen">
@@ -27,8 +35,8 @@ export default function ProgramPage() {
         {/* Day tabs */}
         <div className="flex gap-2">
           {[
-            { d: 1, label: '17 сент' },
-            { d: 2, label: '18 сент' },
+            { d: 1, label: '16 мая' },
+            { d: 2, label: '17 мая' },
           ].map(({ d, label }) => (
             <button key={d} onClick={() => setDay(d)}
               className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
