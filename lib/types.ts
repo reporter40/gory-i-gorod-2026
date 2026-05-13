@@ -3,9 +3,12 @@ export type Block = 'tourism' | 'quality' | 'creative' | 'infra' | 'cases'
 export interface Speaker {
   id: string
   name: string
+  /** Не из программы XLSX; зарезервировано, в данных пусто. */
   bio: string
   photo_url: string
+  /** Не из программы XLSX; география только в `role`, если есть в ячейке. */
   city: string
+  /** Подпись из колонки «Спикеры / Участники» XLSX (после ФИО или целиком ячейка). */
   role: string
   session_id?: string
 }

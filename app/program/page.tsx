@@ -100,7 +100,11 @@ export default function ProgramPage() {
                   className="w-7 h-7 rounded-full object-cover grayscale opacity-80" />
                 <div>
                   <div className="text-xs font-semibold text-gray-800">{session.speaker.name}</div>
-                  <div className="text-[10px] text-gray-400">{session.speaker.role} · {session.speaker.city}</div>
+                  {[session.speaker.role, session.speaker.city].filter(Boolean).length > 0 && (
+                    <div className="text-[10px] text-gray-400">
+                      {[session.speaker.role, session.speaker.city].filter(Boolean).join(' · ')}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
