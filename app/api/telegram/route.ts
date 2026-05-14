@@ -72,10 +72,12 @@ export async function POST(req: NextRequest) {
       `/vote — 📱 Показать QR-код на экране зала`,
       `/freeze — ⏸ Заморозить (тихо, зрители не видят)`,
       ``,
-      `<b>Сессии:</b>`,
-      `/session 1 ... /session 5`,
+      `<b>Сессии (авто):</b>`,
+      `/sync — 🔄 Авто-синхронизация по текущему времени`,
+      `/next — ⏭ Переключить на следующую сессию`,
+      `/session ID — переключить вручную по ID`,
       ``,
-      `<b>Статистика зала (обновить вручную):</b>`,
+      `<b>Статистика зала:</b>`,
       `/audience 450 — участников онлайн`,
       `/activity 67 — активность зала %`,
       `/engagement 72 — вовлечённость %`,
@@ -198,6 +200,116 @@ export async function POST(req: NextRequest) {
         fbSet(`event/stats/hallPulseTimeline/${Date.now()}`, { time: now, value: n }, tok),
       ])
       await send(chatId, `💓 <b>Пульс зала: ${n}%</b> (${now})\nОбновлено на дашборде.`)
+    } catch (e) { await send(chatId, `❌ ${e}`) }
+    return NextResponse.json({ ok: true })
+  }
+
+  // /sync — auto-activate session by current Moscow time
+  if (text === '/sync') {
+    try {
+      const tok = await getAnonToken()
+      const sessionsRaw = await fbGet('sessions', tok)
+      if (!sessionsRaw) { await send(chatId, `❌ Сессии не найдены в Firebase`); return NextResponse.json({ ok: true }) }
+
+      const now = Date.now()
+      // Moscow is UTC+3
+      const moscowOffset = 3 * 60 * 60 * 1000
+      const moscowNow = now + moscowOffset
+
+      type FbSession = { title: string; starts_at?: string; ends_at?: string; status?: string }
+      const sessions = Object.entries(sessionsRaw as Record<string, FbSession>)
+
+      let liveId: string | null = null
+      let liveTitle = ''
+      const updates: Promise<void>[] = []
+
+      for (const [id, s] of sessions) {
+        if (!s.starts_at || !s.ends_at) continue
+        const start = new Date(s.starts_at).getTime()
+        const end = new Date(s.ends_at).getTime()
+        // Compare using UTC (Firebase stores ISO with timezone)
+        const isLive = now >= start && now < end
+        const isEnded = now >= end
+        const newStatus = isLive ? 'live' : isEnded ? 'ended' : 'upcoming'
+        if (newStatus !== s.status) {
+          updates.push(fbSet(`sessions/${id}/status`, newStatus, tok))
+        }
+        if (isLive) { liveId = id; liveTitle = s.title }
+      }
+
+      await Promise.all(updates)
+      if (liveId) {
+        await fbSet('event/activeSessionId', liveId, tok)
+        const t = new Date(now)
+        const timeStr = t.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow' })
+        await send(chatId, [
+          `🔄 <b>Синхронизировано по времени</b>`,
+          ``,
+          `🕐 Московское время: ${timeStr}`,
+          `▶ LIVE: <b>${liveTitle}</b>`,
+          `ID: <code>${liveId}</code>`,
+          ``,
+          `Обновлено статусов: ${updates.length}`,
+        ].join('\n'))
+      } else {
+        // Find next upcoming session
+        const upcoming = sessions
+          .filter(([, s]) => s.starts_at && new Date(s.starts_at).getTime() > now)
+          .sort(([, a], [, b]) => new Date(a.starts_at!).getTime() - new Date(b.starts_at!).getTime())
+        const nextSession = upcoming[0]
+        const timeStr = new Date(now).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow' })
+        if (nextSession) {
+          const [nextId, nextData] = nextSession
+          const startsIn = Math.round((new Date(nextData.starts_at!).getTime() - now) / 60000)
+          await send(chatId, [
+            `🔄 <b>Синхронизировано</b> (обновлено: ${updates.length})`,
+            ``,
+            `🕐 Сейчас: ${timeStr} МСК`,
+            `⏳ Активных сессий нет`,
+            `➡ Следующая через ${startsIn} мин: <b>${nextData.title}</b>`,
+            ``,
+            `/next — переключить на неё`,
+          ].join('\n'))
+        } else {
+          await send(chatId, `🔄 Синхронизировано. Сейчас ${timeStr} МСК — активных сессий нет.`)
+        }
+      }
+    } catch (e) { await send(chatId, `❌ ${e}`) }
+    return NextResponse.json({ ok: true })
+  }
+
+  // /next — switch to next upcoming session
+  if (text === '/next') {
+    try {
+      const tok = await getAnonToken()
+      const [sessionsRaw, currentId] = await Promise.all([
+        fbGet('sessions', tok),
+        fbGet('event/activeSessionId', tok),
+      ])
+      if (!sessionsRaw) { await send(chatId, `❌ Сессии не найдены`); return NextResponse.json({ ok: true }) }
+
+      type FbSession = { title: string; starts_at?: string; status?: string }
+      const sessions = Object.entries(sessionsRaw as Record<string, FbSession>)
+        .filter(([, s]) => s.starts_at)
+        .sort(([, a], [, b]) => new Date(a.starts_at!).getTime() - new Date(b.starts_at!).getTime())
+
+      const currentIdx = sessions.findIndex(([id]) => id === currentId)
+      const nextEntry = sessions[currentIdx + 1] ?? sessions.find(([, s]) => s.status === 'upcoming')
+
+      if (!nextEntry) { await send(chatId, `⏭ Следующих сессий нет`); return NextResponse.json({ ok: true }) }
+
+      const [nextId, nextData] = nextEntry
+      await Promise.all([
+        fbSet('event/activeSessionId', nextId, tok),
+        fbSet(`sessions/${nextId}/status`, 'live', tok),
+        currentId ? fbSet(`sessions/${currentId}/status`, 'ended', tok) : Promise.resolve(),
+      ])
+      await send(chatId, [
+        `⏭ <b>Следующая сессия</b>`,
+        ``,
+        `▶ LIVE: <b>${nextData.title}</b>`,
+        `ID: <code>${nextId}</code>`,
+      ].join('\n'))
     } catch (e) { await send(chatId, `❌ ${e}`) }
     return NextResponse.json({ ok: true })
   }
