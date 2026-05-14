@@ -73,16 +73,16 @@ export default function ProgramPage() {
         </div>
 
         {/* Sessions list */}
-        <div className="space-y-3 pb-6">
+        <div className="space-y-4 pb-6">
           {filtered.map(session =>
             session.program_card === 'title_only' ? (
-              <div key={session.id} className="card" style={{ padding: '16px 18px' }}>
+              <div key={session.id} className="card" style={{ padding: '18px 20px' }}>
                 <h3 style={{ fontWeight: 700, color: 'var(--text)', lineHeight: 1.4, fontSize: 15 }}>{session.title}</h3>
               </div>
             ) : (
-              <div key={session.id} className="card" style={{ padding: '16px 18px 18px' }}>
+              <div key={session.id} className="card" style={{ padding: '18px 20px 20px' }}>
                 {/* Time + block */}
-                <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
+                <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
                   <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-3)', letterSpacing: '0.02em' }}>
                     {new Date(session.starts_at).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })}
                     {' – '}
@@ -96,23 +96,23 @@ export default function ProgramPage() {
                 </div>
 
                 {session.title?.trim() ? (
-                  <h3 style={{ fontWeight: 700, color: 'var(--text)', lineHeight: 1.4, marginBottom: 10, fontSize: 16 }}>
+                  <h3 style={{ fontWeight: 700, color: 'var(--text)', lineHeight: 1.4, marginBottom: 12, fontSize: 16 }}>
                     {session.title}
                   </h3>
                 ) : null}
 
                 {session.description && (
-                  <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65, marginBottom: 14 }}>
+                  <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65, marginBottom: 16 }}>
                     {session.description}
                   </p>
                 )}
 
                 {session.speaker_row_note?.trim() ? (
-                  <p style={{ fontSize: 12, color: 'var(--text-3)', paddingTop: 12, borderTop: '1px solid var(--border)', lineHeight: 1.65, whiteSpace: 'pre-line' }}>
+                  <p style={{ fontSize: 12, color: 'var(--text-3)', paddingTop: 14, borderTop: '1px solid var(--border)', lineHeight: 1.65, whiteSpace: 'pre-line' }}>
                     {session.speaker_row_note}
                   </p>
                 ) : session.speaker_id !== 'org' || Boolean(session.title?.trim()) ? (
-                  <div className="space-y-2.5" style={{ paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+                  <div className="space-y-2.5" style={{ paddingTop: 14, borderTop: '1px solid var(--border)' }}>
                     <div className="flex items-center gap-2.5">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={session.speaker.photo_url} alt={session.speaker.name}
