@@ -218,6 +218,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
+    // Stats commands without argument — show usage
+    if (['/audience', '/activity', '/engagement', '/pulse'].includes(text)) {
+      await send(chatId, `Укажи число, например:\n/audience 450 — участников\n/activity 67 — активность %\n/engagement 72 — вовлечённость %\n/pulse 58 — пульс зала`)
+      return NextResponse.json({ ok: true })
+    }
+
   await send(chatId, `Не понял. Отправь /help`)
   return NextResponse.json({ ok: true })
 }

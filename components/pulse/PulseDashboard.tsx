@@ -23,6 +23,7 @@ import { startTabKeepAlive } from '@/lib/pulse/reliability/tabKeepAlive'
 import { startHeartbeat } from '@/lib/pulse/reliability/heartbeat'
 import { startSnapshotSaver } from '@/lib/pulse/reliability/stateSnapshot'
 import { useEventMode } from '@/lib/pulse/useEventMode'
+import QRCode from 'react-qr-code'
 
 function PulseDashboardInner() {
   const params = useSearchParams()
@@ -152,15 +153,7 @@ function PulseDashboardInner() {
             Сканируй и голосуй
           </div>
           <div style={{ background: '#fff', padding: '20px', borderRadius: '20px', boxShadow: '0 0 60px #00e5ff44' }}>
-            {/* QR via Google Charts API — no JS dependency */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`https://chart.googleapis.com/chart?cht=qr&chs=280x280&chl=${encodeURIComponent(voteUrl)}&choe=UTF-8`}
-              alt="QR code"
-              width={280}
-              height={280}
-              style={{ display: 'block' }}
-            />
+            <QRCode value={voteUrl} size={280} bgColor="#ffffff" fgColor="#000000" />
           </div>
           <div style={{ color: '#94a3b8', fontSize: 'clamp(0.9rem, 1.5vw, 1.1rem)', textAlign: 'center', maxWidth: '500px' }}>
             {voteUrl}
