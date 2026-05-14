@@ -9,11 +9,11 @@ interface TagCard { id: string; name: string; icon: string; votes: number }
 interface SessionInfo { id: string; title: string; speakerName: string; hall: string }
 
 const DEFAULT_TAGS: TagCard[] = [
-  { id: 'actual',     name: 'Актуально',         icon: '🔥', votes: 0 },
-  { id: 'ppp',        name: 'ГЧП / Партнёрство', icon: '🤝', votes: 0 },
-  { id: 'innovation', name: 'Инновации',          icon: '💡', votes: 0 },
-  { id: 'cases',      name: 'Кейсы / Практика',  icon: '📋', votes: 0 },
-  { id: 'invest',     name: 'Инвестиции',         icon: '💰', votes: 0 },
+  { id: 'implement',  name: 'Хочу внедрить',  icon: '🔥', votes: 0 },
+  { id: 'discovery',  name: 'Открытие',        icon: '💡', votes: 0 },
+  { id: 'partner',    name: 'Ищу партнёров',   icon: '🤝', votes: 0 },
+  { id: 'question',   name: 'Есть вопрос',     icon: '❓', votes: 0 },
+  { id: 'applicable', name: 'Применимо у нас', icon: '📍', votes: 0 },
 ]
 
 const ROLES = [

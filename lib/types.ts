@@ -41,24 +41,22 @@ export interface Participant {
   avatar_url?: string
 }
 
-export type TagType = 'applicable' | 'scalable' | 'needs_ppp' | 'barriers' | 'innovative' | 'doing'
+export type TagType = 'implement' | 'discovery' | 'partner' | 'question' | 'applicable'
 
 export const TAG_LABELS: Record<TagType, string> = {
-  applicable: 'Применимо',
-  scalable: 'Масштабируемо',
-  needs_ppp: 'Нужен ГЧП',
-  barriers: 'Барьеры высокие',
-  innovative: 'Инновационно',
-  doing: 'Уже делаем',
+  implement:  'Хочу внедрить',
+  discovery:  'Открытие',
+  partner:    'Ищу партнёров',
+  question:   'Есть вопрос',
+  applicable: 'Применимо у нас',
 }
 
 export const TAG_COLORS: Record<TagType, string> = {
+  implement:  '#f97316',
+  discovery:  '#f5c518',
+  partner:    '#22c55e',
+  question:   '#a855f7',
   applicable: '#4a9eca',
-  scalable: '#2d5a3d',
-  needs_ppp: '#e07b39',
-  barriers: '#c0392b',
-  innovative: '#8e44ad',
-  doing: '#27ae60',
 }
 
 export interface PulseTag {
