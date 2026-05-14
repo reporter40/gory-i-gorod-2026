@@ -1,0 +1,69 @@
+{
+  "rules": {
+    "votes": {
+      "$sessionId": {
+        "$tagId": {
+          ".read": true,
+          ".write": "auth != null",
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000"
+        }
+      }
+    },
+    "userVotes": {
+      "$sessionId": {
+        "$userId": {
+          "$tagId": {
+            ".read": "auth != null && auth.uid === $userId",
+            ".write": "auth != null && auth.uid === $userId && !data.exists()",
+            ".validate": "newData.isBoolean() && newData.val() === true"
+          }
+        }
+      }
+    },
+    "mood": {
+      ".read": true,
+      "$pushId": {
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['tagId','sessionId','userId','ts'])"
+      }
+    },
+    "sessions": {
+      ".read": true,
+      "$sessionId": {
+        ".write": false,
+        ".validate": "newData.hasChildren(['title','speakerId','hall','start','end','status'])"
+      }
+    },
+    "speakers": {
+      ".read": true,
+      "$speakerId": {
+        ".write": false,
+        ".validate": "newData.hasChildren(['name','role','avatar'])"
+      }
+    },
+    "event": {
+      ".read": true,
+      "activeSessionId": {
+        ".write": false
+      },
+      "expectedAudience": {
+        ".write": false
+      },
+      "updatedAt": {
+        ".write": false
+      },
+      "frozen": {
+        ".read": true,
+        ".write": false
+      }
+    },
+    "heartbeat": {
+      "$dashboardId": {
+        "lastSeen": {
+          ".read": true,
+          ".write": "auth != null"
+        }
+      }
+    }
+  }
+}
