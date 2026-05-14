@@ -1,4 +1,43 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { PulseState } from '../../lib/pulse/types'
+import { validatePulseSnapshot } from '../../lib/pulse/reliability/dataValidator'
+
+function minimalFirebaseWireState(): PulseState {
+  return {
+    event: {
+      name: 'T',
+      activeSessionId: 's',
+      expectedAudience: 100,
+      frozen: false,
+      updatedAt: 1747123200000,
+    },
+    stats: {
+      onlineParticipants: 0,
+      participantsChange: 0,
+      hallActivity: 0,
+      engagement: 0,
+      engagementChange: 0,
+      speakersToday: 0,
+      overallEngagement: 0,
+    },
+    sessions: [],
+    topTags: [{ id: 'implement', name: 'X', icon: '🔥', votes: 5, growth: 0, mood: 0 }],
+    tagMoodBars: [],
+    topicNetwork: [],
+    geoRegions: [],
+    hallPulse: { current: 0, timeline: [] },
+    heatmap: [],
+    aiInsights: [],
+    footer: { quote: '', quoteAuthor: '', trends: [], nextRecommendation: '' },
+    connection: { status: 'connected', lastConnected: null, reconnectAttempt: 0 },
+    _meta: {
+      source: 'firebase',
+      lastUpdated: 1747123200000,
+      staleSince: null,
+      errors: [],
+    } as PulseState['_meta'],
+  }
+}
 
 // Regression: mock fallback must NOT activate when Firebase snapshot is live
 describe('usePulseRealtime — mock fallback regression', () => {
@@ -13,9 +52,29 @@ describe('usePulseRealtime — mock fallback regression', () => {
     vi.doMock('@/lib/pulse/adapters/mockPulseAdapter', () => ({
       createMockPulseAdapter: () => ({
         subscribe: (cb: (s: unknown) => void) => {
-          cb({ _meta: { source: 'mock' }, topTags: [], sessions: [], stats: {}, event: {}, heatmap: [],
-               tagMoodBars: [], topicNetwork: [], geoRegions: [], hallPulse: { current: 0, timeline: [] },
-               aiInsights: [], footer: {}, connection: {} })
+          cb({
+            _meta: {
+              source: 'mock',
+              activeSessionId: null,
+              eventsCount: 0,
+              heatmapSource: 'mock',
+              lastUpdated: 0,
+              staleSince: null,
+              errors: [],
+            },
+            topTags: [],
+            sessions: [],
+            stats: {},
+            event: {},
+            heatmap: [],
+            tagMoodBars: [],
+            topicNetwork: [],
+            geoRegions: [],
+            hallPulse: { current: 0, timeline: [] },
+            aiInsights: [],
+            footer: {},
+            connection: {},
+          })
           return () => {}
         },
         destroy: () => {},
@@ -31,11 +90,10 @@ describe('usePulseRealtime — mock fallback regression', () => {
     adapter.destroy()
   })
 
-  it('mock source does not appear when live source is firebase', () => {
-    // Verify that _meta.source 'firebase' means live data — not mixed with mock
-    const liveState = { _meta: { source: 'firebase' as const }, topTags: [{ id: 'implement', votes: 5, name: 'X', icon: '🔥', growth: 0, mood: 50 }] }
-    expect(liveState._meta.source).toBe('firebase')
-    expect(liveState._meta.source).not.toBe('mock')
-    expect(liveState._meta.source).not.toBe('snapshot')
+  it('legacy firebase wire meta normalizes to live (heatmap lineage votes)', () => {
+    const result = validatePulseSnapshot(minimalFirebaseWireState())
+    expect(result._meta.source).toBe('live')
+    expect(result._meta.heatmapSource).toBe('votes')
+    expect(result._meta.eventsCount).toBe(5)
   })
 })

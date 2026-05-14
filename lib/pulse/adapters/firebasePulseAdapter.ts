@@ -14,6 +14,11 @@ import { getFirebaseDb } from '../firebase/client'
 import { FB_PATHS, type FirebaseSession, type FirebaseSpeaker } from '../firebase/schema'
 import { createMockPulseAdapter } from './mockPulseAdapter'
 import { validatePulseSnapshot } from '../reliability/dataValidator'
+import {
+  buildHeatmapFromTagStats,
+  buildPulseStateMeta,
+  sessionHeatmapToCells,
+} from '../pulse-aggregations'
 
 const STALE_THRESHOLD_MS = 60_000
 const NO_DATA_TIMEOUT_MS = 30_000
@@ -51,27 +56,39 @@ export function createFirebasePulseAdapter(): PulseAdapter {
   function fallbackToMock() {
     if (currentState) return // already have data
     mockFallback.subscribe((mockState) => {
-      emit({ ...mockState, _meta: { ...mockState._meta, source: 'snapshot' } })
+      emit({
+        ...mockState,
+        _meta: buildPulseStateMeta({
+          mode: 'mock',
+          activeSessionId: mockState.event.activeSessionId || null,
+          topTags: mockState.topTags,
+        }),
+      })
     })
   }
 
   function buildTagStats(votes: Record<string, number>): PulseTagStat[] {
-    // Must match DEFAULT_TAGS in app/pulse/vote/page.tsx — keep in sync
+    // Fixed canonical rows only — same IDs as vote page / Firebase counters (legacy keys ignored)
     const TAG_META: Record<string, { name: string; icon: string }> = {
-      implement:  { name: 'Хочу внедрить',  icon: '🔥' },
-      discovery:  { name: 'Открытие',        icon: '💡' },
-      partner:    { name: 'Ищу партнёров',   icon: '🤝' },
-      question:   { name: 'Есть вопрос',     icon: '❓' },
+      implement: { name: 'Хочу внедрить', icon: '🔥' },
+      discovery: { name: 'Открытие', icon: '💡' },
+      partner: { name: 'Ищу партнёров', icon: '🤝' },
+      question: { name: 'Есть вопрос', icon: '❓' },
       applicable: { name: 'Применимо у нас', icon: '📍' },
     }
-    return Object.entries(votes).map(([id, count]) => ({
-      id,
-      name: TAG_META[id]?.name ?? id,
-      icon: TAG_META[id]?.icon ?? '🏷️',
-      votes: count,
-      growth: 0,
-      mood: Math.min(100, Math.round((count / Math.max(1, Object.values(votes).reduce((a, b) => a + b, 0))) * 100)),
-    }))
+    const canonicalIds = Object.keys(TAG_META)
+    const total = canonicalIds.reduce((s, id) => s + (votes[id] ?? 0), 0)
+    return canonicalIds.map((id) => {
+      const count = votes[id] ?? 0
+      return {
+        id,
+        name: TAG_META[id].name,
+        icon: TAG_META[id].icon,
+        votes: count,
+        growth: 0,
+        mood: total > 0 ? Math.min(100, Math.round((count / total) * 100)) : 0,
+      }
+    })
   }
 
   function buildSessions(): PulseSession[] {
@@ -95,6 +112,7 @@ export function createFirebasePulseAdapter(): PulseAdapter {
   function mergeFirebaseUpdate(partial: Partial<PulseState>): PulseState {
     const base = currentState ?? (mockFallback as unknown as { _lastState?: PulseState })._lastState
     if (!base) {
+      const shellTags = partial.topTags ?? []
       return {
         event: { name: 'Горы и Город — 2026', activeSessionId: '', expectedAudience: 1700, frozen, updatedAt: Date.now() },
         stats: { onlineParticipants: 0, participantsChange: 0, hallActivity: 0, engagement: 0, engagementChange: 0, speakersToday: 0, overallEngagement: 0 },
@@ -108,20 +126,23 @@ export function createFirebasePulseAdapter(): PulseAdapter {
         aiInsights: [],
         footer: { quote: '', quoteAuthor: '', trends: [], nextRecommendation: '' },
         connection: connectionStatus,
-        _meta: { source: 'firebase', lastUpdated: Date.now(), staleSince: null, errors: [] },
+        _meta: buildPulseStateMeta({
+          mode: 'empty',
+          activeSessionId: null,
+          topTags: shellTags,
+        }),
         ...partial,
+        connection: connectionStatus,
       }
     }
+    const nextMeta = partial._meta
+      ? { ...partial._meta }
+      : { ...base._meta, lastUpdated: Date.now(), staleSince: base._meta.staleSince ?? null }
     return {
       ...base,
-      connection: connectionStatus,
-      _meta: {
-        source: frozen ? 'frozen' : 'firebase',
-        lastUpdated: Date.now(),
-        staleSince: null,
-        errors: base._meta.errors,
-      },
       ...partial,
+      connection: connectionStatus,
+      _meta: nextMeta,
     }
   }
 
@@ -149,7 +170,11 @@ export function createFirebasePulseAdapter(): PulseAdapter {
   const frozenUnsub = onValue(frozenRef, (snap: DataSnapshot) => {
     frozen = !!snap.val()
     if (frozen && currentState) {
-      emit({ ...currentState, connection: connectionStatus, _meta: { ...currentState._meta, source: 'frozen' } })
+      emit({
+        ...currentState,
+        connection: connectionStatus,
+        event: { ...currentState.event, frozen: true },
+      })
     }
   })
   unsubscribers.push(() => off(frozenRef, 'value', frozenUnsub as Parameters<typeof off>[2]))
@@ -240,15 +265,28 @@ export function createFirebasePulseAdapter(): PulseAdapter {
     if (newSessionId === activeSessionId) return
     activeSessionId = newSessionId
 
-    // Detach previous votes listener
     if (votesUnsub) {
       votesUnsub()
       votesUnsub = null
     }
 
-    if (!activeSessionId) return
+    if (!activeSessionId) {
+      const emptyTags = buildTagStats({})
+      emit(mergeFirebaseUpdate({
+        event: {
+          ...(currentState?.event ?? { name: 'Горы и Город — 2026', expectedAudience: 1700, updatedAt: Date.now(), frozen }),
+          activeSessionId: '',
+          frozen,
+        },
+        topTags: emptyTags,
+        sessions: buildSessions(),
+        heatmap: [],
+        _meta: buildPulseStateMeta({ mode: 'empty', activeSessionId: null, topTags: emptyTags }),
+        ...buildStatsUpdate(emptyTags),
+      }))
+      return
+    }
 
-    // votes/{activeSessionId}
     const votesRef = ref(db, `votes/${activeSessionId}`)
     const votesCb = onValue(votesRef, (voteSnap: DataSnapshot) => {
       if (frozen) return
@@ -258,11 +296,22 @@ export function createFirebasePulseAdapter(): PulseAdapter {
       const votesRaw = (voteSnap.val() as Record<string, number>) ?? {}
       const topTags = buildTagStats(votesRaw)
       const sessions = buildSessions()
+      const heatmapData = buildHeatmapFromTagStats({
+        sessionId: activeSessionId,
+        tagStats: topTags.map((t) => ({ tagId: t.id, label: t.name, count: t.votes })),
+      })
+      const heatmap = sessionHeatmapToCells(heatmapData)
 
       emit(mergeFirebaseUpdate({
-        event: { ...(currentState?.event ?? { name: 'Горы и Город — 2026', expectedAudience: 1700, updatedAt: Date.now(), frozen }), activeSessionId, frozen },
+        event: {
+          ...(currentState?.event ?? { name: 'Горы и Город — 2026', expectedAudience: 1700, updatedAt: Date.now(), frozen }),
+          activeSessionId,
+          frozen,
+        },
         topTags,
         sessions,
+        heatmap,
+        _meta: buildPulseStateMeta({ mode: 'live', activeSessionId, topTags }),
         ...buildStatsUpdate(topTags),
       }))
     })

@@ -1,6 +1,15 @@
-import type { MockPulseState, PulseTopTag } from './pulse-data'
+import type { MockPulseState, PulseTopTag, SessionHeatmap } from './pulse-data'
 import { mockPulseState } from './pulse-data'
-import type { PulseState, PulseTagStat, PulseTopicNode, PulseHeatmapCell, PulseInsight } from './types'
+import type {
+  PulseState,
+  PulseTagStat,
+  PulseTopicNode,
+  PulseHeatmapCell,
+  PulseInsight,
+  PulsePrimarySource,
+  PulseHeatmapLineage,
+  PulseStateMeta,
+} from './types'
 
 export function pulseTopTagsByVotes(tags: PulseTopTag[]): PulseTopTag[] {
   return [...tags].sort((a, b) => b.votes - a.votes)
@@ -21,6 +30,28 @@ export function pulseExpectedFillRatio(state: MockPulseState): number {
 
 export function defaultPulseMock(): MockPulseState {
   return mockPulseState
+}
+
+export function buildPulseStateMeta(input: {
+  mode: PulsePrimarySource
+  activeSessionId: string | null
+  topTags: PulseTagStat[]
+  /** Fixed clock for mock adapter / visual tests */
+  lastUpdated?: number
+}): PulseStateMeta {
+  const eventsCount = input.topTags.reduce((s, t) => s + t.votes, 0)
+  const heatmapSource: PulseHeatmapLineage =
+    input.mode === 'mock' ? 'mock' : eventsCount > 0 ? 'votes' : 'empty'
+
+  return {
+    source: input.mode,
+    activeSessionId: input.activeSessionId,
+    eventsCount,
+    heatmapSource,
+    lastUpdated: input.lastUpdated ?? Date.now(),
+    staleSince: null,
+    errors: [],
+  }
 }
 
 // --- Live-engine aggregations ---
@@ -112,4 +143,104 @@ export function aggregatePulseEvents(events: PulseReactionEvent[]): AggregatedRe
   }
 
   return { byTag, bySession, totalVotes }
+}
+
+/** Same grid shape as SessionInterestHeatmap expects — derived only from vote counters */
+export type HeatmapData = SessionHeatmap
+
+/** Must stay aligned with app/pulse/vote/page.tsx DEFAULT_TAGS and firebasePulseAdapter TAG_META */
+export const CANONICAL_REACTION_TAG_IDS = [
+  'implement',
+  'discovery',
+  'partner',
+  'question',
+  'applicable',
+] as const
+
+export type CanonicalReactionTagId = (typeof CANONICAL_REACTION_TAG_IDS)[number]
+
+const CANONICAL_LABELS: Record<CanonicalReactionTagId, string> = {
+  implement: 'Хочу внедрить',
+  discovery: 'Открытие',
+  partner: 'Ищу партнёров',
+  question: 'Есть вопрос',
+  applicable: 'Применимо у нас',
+}
+
+function isCanonicalTagId(id: string): id is CanonicalReactionTagId {
+  return (CANONICAL_REACTION_TAG_IDS as readonly string[]).includes(id)
+}
+
+/**
+ * Builds SessionHeatmap rows from live vote counts only (canonical reaction tags).
+ * intensity ∈ [0,1] internally → values are 0–100 for SessionInterestHeatmap color scale.
+ * Zero totals → empty grid (no mock filler cells).
+ */
+export function buildHeatmapFromTagStats(input: {
+  sessionId: string
+  tagStats: Array<{ tagId: string; label: string; count: number }>
+}): HeatmapData {
+  void input.sessionId
+
+  const filtered = input.tagStats.filter((t) => isCanonicalTagId(t.tagId))
+  if (filtered.length === 0) {
+    return {
+      halls: [],
+      times: [],
+      values: [],
+      highlight: { hallIndex: 0, timeIndex: 0, engagement: 0, label: '' },
+    }
+  }
+
+  const ordered = CANONICAL_REACTION_TAG_IDS.map((id) => {
+    const row = filtered.find((t) => t.tagId === id)
+    return {
+      tagId: id,
+      label: row?.label?.trim() ? row.label : CANONICAL_LABELS[id],
+      count: Math.max(0, row?.count ?? 0),
+    }
+  })
+
+  const total = ordered.reduce((s, r) => s + r.count, 0)
+  if (total === 0) {
+    return {
+      halls: [],
+      times: [],
+      values: [],
+      highlight: { hallIndex: 0, timeIndex: 0, engagement: 0, label: '' },
+    }
+  }
+
+  const maxCount = Math.max(...ordered.map((r) => r.count), 0)
+  const intensities01 = ordered.map((r) => (maxCount > 0 ? r.count / maxCount : 0))
+  const values = intensities01.map((t) => [Math.round(t * 100)] as const)
+
+  let maxIdx = 0
+  for (let i = 1; i < ordered.length; i++) {
+    if (ordered[i].count > ordered[maxIdx].count) maxIdx = i
+  }
+
+  return {
+    halls: ordered.map((r) => r.label),
+    times: ['Реакции'],
+    values,
+    highlight: {
+      hallIndex: maxIdx,
+      timeIndex: 0,
+      engagement: values[maxIdx]?.[0] ?? 0,
+      label: ordered[maxIdx]?.label ?? '',
+    },
+  }
+}
+
+/** PulseState.heatmap flat cells — same numbers as SessionHeatmap grid */
+export function sessionHeatmapToCells(h: HeatmapData): PulseHeatmapCell[] {
+  if (!h.halls.length || !h.times.length) return []
+  return h.halls.flatMap((hall, hi) =>
+    h.times.map((time, ti) => ({
+      hall,
+      time,
+      value: h.values[hi]?.[ti] ?? 0,
+    })),
+  )
 }

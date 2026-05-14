@@ -96,8 +96,18 @@ export interface PulseConnectionState {
   reconnectAttempt: number
 }
 
+/** Dashboard lineage: mock adapter vs Firebase live path vs no active session signal */
+export type PulsePrimarySource = 'live' | 'empty' | 'mock'
+
+/** Heatmap grid is driven by vote counters, mock fixture, or intentionally empty */
+export type PulseHeatmapLineage = 'votes' | 'mock' | 'empty'
+
 export interface PulseStateMeta {
-  source: 'mock' | 'firebase' | 'snapshot' | 'frozen'
+  source: PulsePrimarySource
+  activeSessionId: string | null
+  /** Sum of canonical reaction counts for the active session */
+  eventsCount: number
+  heatmapSource: PulseHeatmapLineage
   lastUpdated: number
   staleSince: number | null
   errors: string[]

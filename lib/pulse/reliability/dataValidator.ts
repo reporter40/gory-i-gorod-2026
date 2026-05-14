@@ -1,4 +1,4 @@
-import type { PulseState } from '../types'
+import type { PulseState, PulsePrimarySource, PulseHeatmapLineage, PulseStateMeta } from '../types'
 
 // Validation rules:
 //   votes count: 0 ≤ n ≤ 100000, integer
@@ -26,8 +26,46 @@ function validTs(n: unknown): n is number {
   return typeof n === 'number' && n > MIN_TS
 }
 
-export function validatePulseSnapshot(state: PulseState): PulseState {
+function normalizePulseMeta(state: PulseState): PulseStateMeta {
+  const raw = state._meta as unknown as Record<string, unknown>
+  const legacySource = raw?.source as string | undefined
+
+  const eventsCount = state.topTags.reduce((s, t) => s + t.votes, 0)
+
+  let source: PulsePrimarySource
+  if (legacySource === 'mock') source = 'mock'
+  else if (legacySource === 'empty') source = 'empty'
+  else if (legacySource === 'live') source = 'live'
+  else if (legacySource === 'firebase' || legacySource === 'snapshot' || legacySource === 'frozen') source = 'live'
+  else source = eventsCount > 0 ? 'live' : 'empty'
+
+  const heatmapSource: PulseHeatmapLineage =
+    source === 'mock' ? 'mock' : eventsCount > 0 ? 'votes' : 'empty'
+
+  const activeSessionIdRaw = raw?.activeSessionId
+  const activeSessionId: string | null =
+    activeSessionIdRaw === null
+      ? null
+      : typeof activeSessionIdRaw === 'string'
+        ? activeSessionIdRaw
+        : state.event.activeSessionId || null
+
   return {
+    source,
+    activeSessionId,
+    eventsCount,
+    heatmapSource,
+    lastUpdated: typeof raw?.lastUpdated === 'number' ? (raw.lastUpdated as number) : Date.now(),
+    staleSince:
+      raw?.staleSince === null || typeof raw?.staleSince === 'number'
+        ? (raw.staleSince as number | null)
+        : null,
+    errors: Array.isArray(raw?.errors) ? (raw.errors as string[]) : [],
+  }
+}
+
+export function validatePulseSnapshot(state: PulseState): PulseState {
+  const next: PulseState = {
     ...state,
     topTags: state.topTags.map((t) => ({
       ...t,
@@ -55,9 +93,17 @@ export function validatePulseSnapshot(state: PulseState): PulseState {
       ...state.event,
       updatedAt: validTs(state.event.updatedAt) ? state.event.updatedAt : Date.now(),
     },
-    _meta: {
-      ...state._meta,
-      lastUpdated: validTs(state._meta.lastUpdated) ? state._meta.lastUpdated : Date.now(),
-    },
+    connection: state.connection,
+    aiInsights: state.aiInsights,
+    footer: state.footer,
+    hallPulse: state.hallPulse,
+    topicNetwork: state.topicNetwork,
+    geoRegions: state.geoRegions,
+    _meta: state._meta,
+  }
+
+  return {
+    ...next,
+    _meta: normalizePulseMeta(next),
   }
 }

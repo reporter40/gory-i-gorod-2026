@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { PulseState, PulseAdapter } from './types'
 import { createMockPulseAdapter } from './adapters/mockPulseAdapter'
 import { hasFirebaseConfig } from './firebase/client'
+import { validatePulseSnapshot } from './reliability/dataValidator'
 
 function getInitialState(): PulseState | null {
   if (typeof window === 'undefined') return null
@@ -12,7 +13,7 @@ function getInitialState(): PulseState | null {
     const raw = localStorage.getItem('pulse_last_good_state_v3')
     if (raw) {
       const parsed = JSON.parse(raw) as PulseState
-      return { ...parsed, _meta: { ...parsed._meta, source: 'snapshot' } }
+      return validatePulseSnapshot(parsed)
     }
   } catch {
     // ignore
@@ -52,6 +53,7 @@ export function usePulseRealtime(): PulseState {
         console.log('eventsCount (topTags total votes):', newState.topTags.reduce((s, t) => s + t.votes, 0))
         console.log('sessionsCount:', newState.sessions.length)
         console.log('reactionsBySession:', newState.topTags.map(t => `${t.id}:${t.votes}`).join(', '))
+        console.log('heatmapSource:', newState._meta.heatmapSource)
         console.log('heatmapInput cells:', newState.heatmap.length)
         console.groupEnd()
       }

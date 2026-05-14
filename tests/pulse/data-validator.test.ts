@@ -16,7 +16,15 @@ function makeState(overrides: Partial<PulseState> = {}): PulseState {
     aiInsights: [],
     footer: { quote: '', quoteAuthor: '', trends: [], nextRecommendation: '' },
     connection: { status: 'connected', lastConnected: null, reconnectAttempt: 0 },
-    _meta: { source: 'firebase', lastUpdated: 1747123200000, staleSince: null, errors: [] },
+    _meta: {
+      source: 'live',
+      activeSessionId: 's1',
+      eventsCount: 100,
+      heatmapSource: 'votes',
+      lastUpdated: 1747123200000,
+      staleSince: null,
+      errors: [],
+    },
     ...overrides,
   }
 }
@@ -69,6 +77,21 @@ describe('dataValidator', () => {
     const state = makeState({ heatmap: [{ hall: 'H', time: '10:00', value: 150 }] })
     const result = validatePulseSnapshot(state)
     expect(result.heatmap[0].value).toBe(100)
+  })
+
+  it('legacy firebase source string normalizes to live', () => {
+    const state = {
+      ...makeState(),
+      _meta: {
+        source: 'firebase',
+        lastUpdated: 1747123200000,
+        staleSince: null,
+        errors: [],
+      },
+    } as PulseState
+    const result = validatePulseSnapshot(state)
+    expect(result._meta.source).toBe('live')
+    expect(result._meta.eventsCount).toBe(100)
   })
 
   it('does not throw on NaN stats', () => {
