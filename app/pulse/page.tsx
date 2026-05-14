@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { SESSIONS, SPEAKERS } from '@/lib/data'
+import { SPEAKERS } from '@/lib/data'
 import { voteForTag, flushOfflineQueue, type VoteResult } from '@/lib/pulse/vote-client'
 import { ensureAnonymousAuth, hasFirebaseConfig } from '@/lib/pulse/firebase/client'
 
@@ -13,28 +13,25 @@ const TAGS = [
   { id: 'applicable', name: 'Применимо у нас', icon: '📍', color: '#4a9eca' },
 ]
 
-const BLOCK_COLOR: Record<string, string> = {
-  tourism: '#4a9eca', quality: '#22c55e', creative: '#a855f7',
-  infra: '#f97316',   cases: '#06b6d4',
+interface ActiveSession {
+  id: string
+  title: string
+  speakerName: string
+  speakerId?: string
+  hall: string
 }
 
 type ToastType = 'success' | 'warn' | 'error'
 
-// Sessions eligible for voting (exclude title_only and org-only slots with no title)
-const VOTABLE = SESSIONS.filter(s => s.program_card !== 'title_only' && s.title?.trim())
-
 export default function PulsePage() {
-  const [day, setDay]                   = useState(1)
-  const [view, setView]                 = useState<'list' | 'vote'>('list')
-  const [selectedId, setSelectedId]     = useState<string | null>(null)
-  const [userId, setUserId]             = useState<string | null>(null)
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
-  const [frozen, setFrozen]             = useState(false)
-  // votes: sessionId → tagId → count
-  const [votes, setVotes]               = useState<Record<string, Record<string, number>>>({})
-  const [votedTags, setVotedTags]       = useState<Set<string>>(new Set())
-  const [pendingTags, setPendingTags]   = useState<Set<string>>(new Set())
-  const [toasts, setToasts]             = useState<{ text: string; type: ToastType; id: number }[]>([])
+  const [userId, setUserId]           = useState<string | null>(null)
+  const [session, setSession]         = useState<ActiveSession | null>(null)
+  const [loading, setLoading]         = useState(true)
+  const [frozen, setFrozen]           = useState(false)
+  const [tagCounts, setTagCounts]     = useState<Record<string, number>>({})
+  const [votedTags, setVotedTags]     = useState<Set<string>>(new Set())
+  const [pendingTags, setPendingTags] = useState<Set<string>>(new Set())
+  const [toasts, setToasts]           = useState<{ text: string; type: ToastType; id: number }[]>([])
 
   function toast(text: string, type: ToastType = 'success') {
     const id = Date.now()
@@ -42,266 +39,234 @@ export default function PulsePage() {
     setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 2800)
   }
 
-  // Init Firebase subscriptions
   useEffect(() => {
     async function init() {
+      // Mock mode (no Firebase config)
       if (!hasFirebaseConfig()) {
         setUserId('mock-user')
-        setActiveSessionId(VOTABLE[2]?.id ?? null)
+        setSession({ id: 'mock-1', title: 'Будущее городов в новой реальности', speakerName: 'А. Иванова', hall: 'Главный зал' })
+        setLoading(false)
         return
       }
+
       try {
         const uid = await ensureAnonymousAuth()
         setUserId(uid)
         const { getFirebaseDb } = await import('@/lib/pulse/firebase/client')
-        const { ref, onValue } = await import('firebase/database')
+        const { ref, get, onValue } = await import('firebase/database')
         const db = getFirebaseDb()
-        onValue(ref(db, 'event/frozen'),         s => setFrozen(!!s.val()))
-        onValue(ref(db, 'event/activeSessionId'), s => setActiveSessionId(s.val() as string | null))
-        onValue(ref(db, 'votes'), s => {
-          setVotes((s.val() as Record<string, Record<string, number>> | null) ?? {})
+
+        // Subscribe to frozen state
+        onValue(ref(db, 'event/frozen'), s => setFrozen(!!s.val()))
+
+        // Subscribe to active session changes (organizer switches speaker)
+        onValue(ref(db, 'event/activeSessionId'), async snap => {
+          const sid = snap.val() as string | null
+          if (!sid) { setSession(null); setLoading(false); return }
+
+          const [ss, vs] = await Promise.all([
+            get(ref(db, `sessions/${sid}`)),
+            get(ref(db, `votes/${sid}`)),
+          ])
+          const sd = ss.val() as { title: string; speakerId?: string; hall: string } | null
+          if (!sd) { setSession(null); setLoading(false); return }
+
+          let spName = ''
+          if (sd.speakerId) {
+            try {
+              const sp = await get(ref(db, `speakers/${sd.speakerId}`))
+              spName = (sp.val() as { name?: string } | null)?.name ?? ''
+            } catch {}
+          }
+
+          setSession({ id: sid, title: sd.title, speakerName: spName, speakerId: sd.speakerId, hall: sd.hall })
+          setTagCounts((vs.val() as Record<string, number> | null) ?? {})
+
+          // Restore voted tags from localStorage
+          const av = new Set<string>()
+          TAGS.forEach(t => {
+            if (localStorage.getItem(`pulse_voted_${sid}_${t.id}_${uid}`) === '1') av.add(t.id)
+          })
+          setVotedTags(av)
+          setPendingTags(new Set())
+          setLoading(false)
+
+          // Live vote counts for this session
+          onValue(ref(db, `votes/${sid}`), s => {
+            setTagCounts((s.val() as Record<string, number> | null) ?? {})
+          })
         })
+
         flushOfflineQueue()
-      } catch (e) { console.error(e) }
+      } catch (e) {
+        console.error(e)
+        toast('Ошибка подключения', 'error')
+        setLoading(false)
+      }
     }
     init()
-  }, [])
-
-  // Load voted tags from localStorage when session changes
-  useEffect(() => {
-    if (!selectedId || !userId) return
-    const av = new Set<string>()
-    TAGS.forEach(t => {
-      if (localStorage.getItem(`pulse_voted_${selectedId}_${t.id}_${userId}`) === '1') av.add(t.id)
-    })
-    setVotedTags(av)
-  }, [selectedId, userId])
-
-  const openSession = useCallback((id: string) => {
-    setSelectedId(id)
-    setView('vote')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleVote = useCallback(async (tagId: string) => {
-    if (!userId || !selectedId) return
+    if (!userId || !session) return
     if (votedTags.has(tagId)) { toast('Уже учтено', 'warn'); return }
     if (frozen) { toast('Голосование приостановлено', 'warn'); return }
     if (pendingTags.has(tagId)) return
     setPendingTags(p => new Set(p).add(tagId))
-    const r: VoteResult = await voteForTag({ sessionId: selectedId, tagId, userId })
+    const r: VoteResult = await voteForTag({ sessionId: session.id, tagId, userId })
     setPendingTags(p => { const n = new Set(p); n.delete(tagId); return n })
     if (r.ok) {
       setVotedTags(p => new Set(p).add(tagId))
-      toast('Голос принят!', 'success')
+      toast('Голос принят! 🎉', 'success')
     } else if (r.status === 'duplicate') {
       setVotedTags(p => new Set(p).add(tagId))
-      toast('Уже учтено', 'warn')
     } else if (r.status === 'rate_limited') {
       toast('Подождите немного', 'warn')
     } else if (r.status === 'offline') {
-      toast('Офлайн — голос в очереди', 'warn')
+      toast('Офлайн — голос сохранён', 'warn')
     } else {
       toast('Ошибка, попробуйте снова', 'error')
     }
-  }, [userId, selectedId, votedTags, frozen, pendingTags])
+  }, [userId, session, votedTags, frozen, pendingTags])
 
-  const selectedSession = VOTABLE.find(s => s.id === selectedId)
-  const selectedSpeaker = selectedSession ? SPEAKERS.find(sp => sp.id === selectedSession.speaker_id) : null
-  const sessionVotes    = selectedId ? (votes[selectedId] ?? {}) : {}
-  const totalVotes      = Object.values(sessionVotes).reduce((a, b) => a + b, 0)
+  const totalVotes = Object.values(tagCounts).reduce((a, b) => a + b, 0)
+  const speaker = session?.speakerId ? SPEAKERS.find(s => s.id === session.speakerId) : null
 
-  const dayList = VOTABLE.filter(s => s.day === day)
-
-  // ── VOTE VIEW ──────────────────────────────────────────────────────────────
-  if (view === 'vote' && selectedSession) {
-    const isActive = selectedSession.id === activeSessionId
-    return (
-      <div className="min-h-screen pb-nav">
-        {/* Toasts */}
-        <div style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', flexDirection: 'column', gap: 8, pointerEvents: 'none' }}>
-          {toasts.map(t => (
-            <div key={t.id} style={{
-              background: t.type === 'success' ? '#166534' : t.type === 'warn' ? '#854d0e' : '#7f1d1d',
-              border: `1px solid ${t.type === 'success' ? '#22c55e40' : t.type === 'warn' ? '#f5c51840' : '#ef444440'}`,
-              color: '#fff', borderRadius: 12, padding: '10px 18px',
-              fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-            }}>{t.text}</div>
-          ))}
-        </div>
-
-        {/* Header */}
-        <div className="forum-gradient text-white px-5 pt-10 pb-6">
-          <div className="max-w-md mx-auto">
-            <button onClick={() => setView('list')} style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 700, letterSpacing: '0.06em', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-              ← НАЗАД К ДОКЛАДАМ
-            </button>
-            <div className="flex items-center gap-2 mb-2">
-              {isActive && (
-                <span className="glow-chip">
-                  <span className="blink" style={{ color: '#f5c518' }}>●</span>
-                  СЕЙЧАС НА СЦЕНЕ
-                </span>
-              )}
-            </div>
-            <h1 className="heading text-white" style={{ fontSize: 18, lineHeight: 1.3 }}>
-              {selectedSession.title}
-            </h1>
-            {selectedSpeaker && (
-              <p style={{ fontSize: 12, color: 'rgba(238,244,255,0.5)', marginTop: 8 }}>
-                {selectedSpeaker.name}{selectedSession.hall ? ` · ${selectedSession.hall}` : ''}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="max-w-md mx-auto px-4 py-5 space-y-4">
-          {frozen ? (
-            <div className="card p-5" style={{ textAlign: 'center', borderColor: 'rgba(239,68,68,0.3)' }}>
-              <p style={{ fontSize: 20, marginBottom: 8 }}>⏸</p>
-              <p style={{ fontSize: 14, fontWeight: 700, color: '#ef4444' }}>Голосование приостановлено</p>
-            </div>
-          ) : (
-            <div>
-              <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 14 }}>
-                Ваша реакция на доклад
-              </p>
-              <div className="space-y-3">
-                {TAGS.map(tag => {
-                  const count   = sessionVotes[tag.id] ?? 0
-                  const pct     = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0
-                  const voted   = votedTags.has(tag.id)
-                  const pending = pendingTags.has(tag.id)
-                  return (
-                    <button key={tag.id} onClick={() => handleVote(tag.id)} disabled={pending}
-                      style={{
-                        width: '100%', textAlign: 'left',
-                        background: voted ? `${tag.color}18` : 'var(--surface)',
-                        border: `1px solid ${voted ? tag.color + '55' : 'var(--border)'}`,
-                        borderRadius: 16, padding: '14px 16px',
-                        cursor: pending ? 'wait' : 'pointer',
-                        transition: 'all 0.2s', position: 'relative', overflow: 'hidden',
-                      }}>
-                      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${pct}%`, background: `${tag.color}12`, transition: 'width 0.6s ease', borderRadius: 16 }} />
-                      <div className="flex items-center justify-between" style={{ position: 'relative' }}>
-                        <div className="flex items-center gap-3">
-                          <span style={{ fontSize: 22 }}>{tag.icon}</span>
-                          <span style={{ fontSize: 14, fontWeight: voted ? 700 : 500, color: voted ? tag.color : 'var(--text)' }}>{tag.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {pct > 0 && <span style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'monospace' }}>{pct}%</span>}
-                          <span style={{ fontSize: 12, fontWeight: 700, fontFamily: 'monospace', color: voted ? tag.color : 'var(--text-3)', background: voted ? `${tag.color}20` : 'transparent', border: `1px solid ${voted ? tag.color + '40' : 'transparent'}`, borderRadius: 8, padding: '2px 8px' }}>
-                            {pending ? '…' : count}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-              {totalVotes > 0 && (
-                <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-3)', marginTop: 16 }}>
-                  {totalVotes} {totalVotes < 5 ? 'голоса' : 'голосов'} по этому докладу
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  // ── LIST VIEW ──────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen pb-nav">
+
+      {/* Toasts */}
+      <div style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', flexDirection: 'column', gap: 8, pointerEvents: 'none' }}>
+        {toasts.map(t => (
+          <div key={t.id} style={{
+            background: t.type === 'success' ? '#166534' : t.type === 'warn' ? '#854d0e' : '#7f1d1d',
+            border: `1px solid ${t.type === 'success' ? '#22c55e40' : t.type === 'warn' ? '#f5c51840' : '#ef444440'}`,
+            color: '#fff', borderRadius: 12, padding: '10px 18px',
+            fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+          }}>{t.text}</div>
+        ))}
+      </div>
+
       {/* Header */}
       <div className="forum-gradient text-white px-5 pt-10 pb-6">
         <div className="max-w-md mx-auto">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="glow-chip">
-              <span className="blink" style={{ color: '#f5c518' }}>●</span>
-              LIVE · ПУЛЬС
-            </span>
-          </div>
-          <h1 className="heading text-white">Выберите доклад</h1>
+          <span className="glow-chip" style={{ marginBottom: 12, display: 'inline-flex' }}>
+            <span className="blink" style={{ color: frozen ? '#ef4444' : '#f5c518' }}>●</span>
+            {frozen ? 'ПРИОСТАНОВЛЕНО' : 'LIVE · ПУЛЬС'}
+          </span>
+          <h1 className="heading text-white">Реакция зала</h1>
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-4 pt-4 space-y-3 pb-6">
-        {/* Day tabs */}
-        <div className="flex gap-2">
-          {[{ d: 1, label: '16 мая' }, { d: 2, label: '17 мая' }].map(({ d, label }) => (
-            <button key={d} onClick={() => setDay(d)}
-              className="flex-1 py-2.5 rounded-2xl text-sm font-semibold transition-all"
-              style={day === d
-                ? { background: 'var(--accent)', color: '#07101f', border: '1px solid transparent' }
-                : { background: 'var(--surface)', color: 'var(--text-2)', border: '1px solid var(--border)' }}>
-              День {d} · {label}
-            </button>
-          ))}
-        </div>
+      <div className="max-w-md mx-auto px-4 py-5 space-y-5">
 
-        {/* Session list */}
-        {dayList.map(session => {
-          const speaker   = SPEAKERS.find(sp => sp.id === session.speaker_id)
-          const isActive  = session.id === activeSessionId
-          const svotes    = votes[session.id] ?? {}
-          const svTotal   = Object.values(svotes).reduce((a, b) => a + b, 0)
-          const blockColor = BLOCK_COLOR[session.block] ?? '#4a9eca'
-
-          return (
-            <button key={session.id} onClick={() => openSession(session.id)}
-              style={{
-                width: '100%', textAlign: 'left',
-                background: isActive ? 'rgba(245,197,24,0.06)' : 'var(--surface)',
-                border: `1px solid ${isActive ? 'rgba(245,197,24,0.3)' : 'var(--border)'}`,
-                borderRadius: 'var(--radius)', padding: '14px 16px',
-                cursor: 'pointer', transition: 'all 0.15s',
-              }}>
-              {/* Time + status row */}
-              <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
-                <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-3)' }}>
-                  {new Date(session.starts_at).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })}
-                  {session.hall?.trim() ? ` · ${session.hall}` : ''}
-                </span>
-                <div className="flex items-center gap-2">
-                  {isActive && (
-                    <span style={{ fontSize: 9, fontWeight: 700, color: '#f5c518', background: 'rgba(245,197,24,0.15)', border: '1px solid rgba(245,197,24,0.3)', borderRadius: 6, padding: '2px 7px', letterSpacing: '0.06em' }}>
-                      <span className="blink">●</span> LIVE
-                    </span>
+        {/* Current speaker card */}
+        {loading ? (
+          <div className="card p-5" style={{ textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>
+            Загрузка...
+          </div>
+        ) : !session ? (
+          <div className="card p-6" style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: 28, marginBottom: 12 }}>⏳</p>
+            <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>Сессия ещё не началась</p>
+            <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6 }}>
+              Когда организаторы запустят сессию,<br />здесь появится спикер и кнопки голосования
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Speaker on stage */}
+            <div className="card p-5" style={{ borderColor: 'rgba(245,197,24,0.25)' }}>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#f5c518', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
+                ⚡ Сейчас на сцене
+              </p>
+              <div className="flex items-start gap-3">
+                {speaker?.photo_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={speaker.photo_url} alt={speaker.name}
+                    className="w-12 h-12 rounded-2xl object-cover flex-shrink-0"
+                    style={{ filter: 'grayscale(20%) brightness(1.05)' }} />
+                )}
+                <div className="flex-1 min-w-0">
+                  <h2 style={{ fontWeight: 800, fontSize: 16, color: 'var(--text)', lineHeight: 1.3, marginBottom: 6 }}>
+                    {session.title}
+                  </h2>
+                  <p style={{ fontSize: 12, color: 'var(--text-2)' }}>
+                    {[session.speakerName, session.hall].filter(Boolean).join(' · ')}
+                  </p>
+                  {speaker?.role && (
+                    <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 3, lineHeight: 1.4 }}>
+                      {speaker.role}
+                    </p>
                   )}
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: blockColor, display: 'inline-block', flexShrink: 0 }} />
                 </div>
               </div>
+            </div>
 
-              {/* Title */}
-              <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', lineHeight: 1.35, marginBottom: 8 }}>
-                {session.title}
-              </p>
-
-              {/* Speaker + vote count */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {speaker?.photo_url && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={speaker.photo_url} alt={speaker.name}
-                      className="w-5 h-5 rounded-full object-cover"
-                      style={{ filter: 'grayscale(30%)' }} />
-                  )}
-                  <span style={{ fontSize: 11, color: 'var(--text-2)' }}>
-                    {speaker?.name ?? session.speaker_row_note ?? 'Организаторы'}
-                  </span>
+            {/* Voting */}
+            {frozen ? (
+              <div className="card p-5" style={{ textAlign: 'center', borderColor: 'rgba(239,68,68,0.3)' }}>
+                <p style={{ fontSize: 20, marginBottom: 8 }}>⏸</p>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#ef4444' }}>Голосование приостановлено</p>
+              </div>
+            ) : (
+              <div>
+                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 14 }}>
+                  Ваша реакция на доклад
+                </p>
+                <div className="space-y-3">
+                  {TAGS.map(tag => {
+                    const count   = tagCounts[tag.id] ?? 0
+                    const pct     = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0
+                    const voted   = votedTags.has(tag.id)
+                    const pending = pendingTags.has(tag.id)
+                    return (
+                      <button key={tag.id} onClick={() => handleVote(tag.id)} disabled={pending}
+                        style={{
+                          width: '100%', textAlign: 'left',
+                          background: voted ? `${tag.color}18` : 'var(--surface)',
+                          border: `1px solid ${voted ? tag.color + '55' : 'var(--border)'}`,
+                          borderRadius: 16, padding: '14px 16px',
+                          cursor: pending ? 'wait' : 'pointer',
+                          transition: 'all 0.2s', position: 'relative', overflow: 'hidden',
+                        }}>
+                        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${pct}%`, background: `${tag.color}12`, transition: 'width 0.6s ease', borderRadius: 16 }} />
+                        <div className="flex items-center justify-between" style={{ position: 'relative' }}>
+                          <div className="flex items-center gap-3">
+                            <span style={{ fontSize: 22 }}>{tag.icon}</span>
+                            <span style={{ fontSize: 14, fontWeight: voted ? 700 : 500, color: voted ? tag.color : 'var(--text)' }}>
+                              {tag.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {pct > 0 && <span style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'monospace' }}>{pct}%</span>}
+                            <span style={{
+                              fontSize: 12, fontWeight: 700, fontFamily: 'monospace',
+                              color: voted ? tag.color : 'var(--text-3)',
+                              background: voted ? `${tag.color}20` : 'transparent',
+                              border: `1px solid ${voted ? tag.color + '40' : 'transparent'}`,
+                              borderRadius: 8, padding: '2px 8px',
+                            }}>
+                              {pending ? '…' : count}
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
-                {svTotal > 0 && (
-                  <span style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'monospace' }}>
-                    {svTotal} {svTotal < 5 ? 'голоса' : 'голосов'}
-                  </span>
+
+                {totalVotes > 0 && (
+                  <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-3)', marginTop: 16 }}>
+                    {totalVotes} {totalVotes === 1 ? 'голос' : totalVotes < 5 ? 'голоса' : 'голосов'} по этой сессии
+                  </p>
                 )}
               </div>
-            </button>
-          )
-        })}
+            )}
+          </>
+        )}
       </div>
     </div>
   )
