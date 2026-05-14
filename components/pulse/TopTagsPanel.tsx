@@ -27,10 +27,10 @@ export default function TopTagsPanel({
               <span className="text-[16px]" aria-hidden>
                 {tag.icon}
               </span>
-              <span className="text-[10px] font-semibold text-green-400">▲ {tag.growth}%</span>
+              {tag.growth > 0 && <span className="text-[10px] font-semibold text-green-400">▲ {tag.growth}%</span>}
             </div>
             <div className="mt-1 line-clamp-2 text-[11px] font-semibold leading-tight text-white">{tag.name}</div>
-            <div className="mt-2 text-[18px] font-bold tabular-nums text-white">{tag.votes}</div>
+            {tag.votes > 0 && <div className="mt-2 text-[18px] font-bold tabular-nums text-white">{tag.votes}</div>}
           </div>
         ))}
       </div>

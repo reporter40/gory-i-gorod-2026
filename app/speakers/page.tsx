@@ -72,7 +72,7 @@ export default function SpeakersPage() {
       </div>
 
       {open && openSp && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center"
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-5"
           style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)' }}
           onClick={() => setOpen(null)}>
           <div
@@ -81,10 +81,8 @@ export default function SpeakersPage() {
               width: '100%', maxWidth: 480,
               background: 'linear-gradient(160deg, #0e1e35 0%, #091525 100%)',
               border: '1px solid rgba(255,255,255,0.09)',
-              borderBottom: 'none',
-              borderRadius: '28px 28px 0 0',
+              borderRadius: 28,
               overflow: 'hidden',
-              paddingBottom: 'env(safe-area-inset-bottom)',
             }}>
 
             {/* Accent top bar */}

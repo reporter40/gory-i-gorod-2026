@@ -44,8 +44,8 @@ function DonutStat({
       <div className="relative z-10 flex flex-col items-center justify-center gap-0 px-2 text-center">
         <div className="line-clamp-2 text-[9px] leading-tight text-white/50">{label}</div>
         <div className="text-[24px] font-black leading-none text-white">{pct}%</div>
-        <div className="text-[9px] text-white/38">{votes.toLocaleString('ru-RU')} голосов</div>
-        <div className="text-[9px] font-semibold text-green-400">▲ {trend}%</div>
+        {votes > 0 && <div className="text-[9px] text-white/38">{votes.toLocaleString('ru-RU')} голосов</div>}
+        {trend > 0 && <div className="text-[9px] font-semibold text-green-400">▲ {trend}%</div>}
       </div>
     </div>
   )
