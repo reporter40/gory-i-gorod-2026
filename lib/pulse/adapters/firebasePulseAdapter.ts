@@ -189,13 +189,31 @@ export function createFirebasePulseAdapter(): PulseAdapter {
   })
   unsubscribers.push(() => off(statsRef, 'value', statsUnsub as Parameters<typeof off>[2]))
 
-  function buildStatsUpdate(): Partial<PulseState> {
+  function buildStatsUpdate(topTags?: PulseTagStat[]): Partial<PulseState> {
     const base = currentState
     if (!base) return {}
     const stats = { ...base.stats }
-    if (remoteStats.onlineParticipants !== undefined) stats.onlineParticipants = remoteStats.onlineParticipants
-    if (remoteStats.hallActivity !== undefined) { stats.hallActivity = remoteStats.hallActivity; stats.overallEngagement = remoteStats.hallActivity }
-    if (remoteStats.engagement !== undefined) stats.engagement = remoteStats.engagement
+
+    // Auto-derive from votes (updates on every vote)
+    const tags = topTags ?? base.topTags
+    const totalVotes = tags.reduce((s, t) => s + t.votes, 0)
+    const expectedAudience = base.event.expectedAudience ?? 1700
+
+    if (totalVotes > 0) {
+      // Operator override takes priority; otherwise auto-derive
+      stats.onlineParticipants = remoteStats.onlineParticipants
+        ?? Math.min(expectedAudience, totalVotes * 3)
+      const autoActivity = Math.min(100, Math.round(totalVotes / expectedAudience * 800))
+      stats.hallActivity = remoteStats.hallActivity ?? autoActivity
+      stats.overallEngagement = remoteStats.hallActivity ?? autoActivity
+      stats.engagement = remoteStats.engagement ?? Math.min(100, Math.round(autoActivity * 0.93))
+      stats.participantsChange = Math.round(totalVotes * 0.15)
+    } else {
+      // No votes yet — use manual overrides only
+      if (remoteStats.onlineParticipants !== undefined) stats.onlineParticipants = remoteStats.onlineParticipants
+      if (remoteStats.hallActivity !== undefined) { stats.hallActivity = remoteStats.hallActivity; stats.overallEngagement = remoteStats.hallActivity }
+      if (remoteStats.engagement !== undefined) stats.engagement = remoteStats.engagement
+    }
 
     const hallPulse = remoteStats.hallPulseCurrent !== undefined
       ? {
@@ -204,7 +222,9 @@ export function createFirebasePulseAdapter(): PulseAdapter {
             ? Object.values(remoteStats.hallPulseTimeline).sort((a, b) => a.time.localeCompare(b.time))
             : base.hallPulse.timeline,
         }
-      : base.hallPulse
+      : totalVotes > 0
+        ? { current: stats.hallActivity, timeline: base.hallPulse.timeline }
+        : base.hallPulse
 
     return { stats, hallPulse }
   }
@@ -242,7 +262,7 @@ export function createFirebasePulseAdapter(): PulseAdapter {
         event: { ...(currentState?.event ?? { name: 'Горы и Город — 2026', expectedAudience: 1700, updatedAt: Date.now(), frozen }), activeSessionId, frozen },
         topTags,
         sessions,
-        ...buildStatsUpdate(),
+        ...buildStatsUpdate(topTags),
       }))
     })
     votesUnsub = () => off(votesRef, 'value', votesCb as Parameters<typeof off>[2])
