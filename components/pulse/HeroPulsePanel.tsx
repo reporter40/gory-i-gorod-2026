@@ -60,7 +60,21 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
       </div>
       <div className="relative z-10 flex items-start justify-between gap-7 px-1.5">
         <div>
-          <h1 className="text-[46px] font-black uppercase leading-[0.92] tracking-[-0.02em] text-white pulse-glow-text">
+          <h1
+            className="text-[38px] font-black uppercase leading-[0.92] tracking-[-0.02em] text-white"
+            style={{
+              textShadow: [
+                '0 1px 0 rgba(0,231,253,0.9)',
+                '0 2px 0 rgba(0,200,230,0.75)',
+                '0 3px 0 rgba(0,160,200,0.6)',
+                '0 4px 0 rgba(0,100,150,0.45)',
+                '0 5px 0 rgba(0,60,110,0.35)',
+                '0 6px 0 rgba(0,30,70,0.25)',
+                '0 8px 16px rgba(0,0,0,0.55)',
+                '0 0 40px rgba(0,231,253,0.3)',
+              ].join(', '),
+            }}
+          >
             AI-ПУЛЬС
           </h1>
           <p className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.24em] text-white/36">
