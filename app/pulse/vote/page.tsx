@@ -25,7 +25,7 @@ const ROLES = [
   { id: 'other',     label: 'Другое',            icon: '✨' },
 ]
 
-const POPULAR_CITIES = ['Москва', 'СПб', 'Казань', 'Сочи', 'Ростов', 'Екб', 'Нск', 'Краснодар']
+const POPULAR_CITIES = ['Москва', 'СПб', 'Казань', 'Сочи', 'Ростов', 'Екб', 'Краснодар']
 
 const REGISTRATION_KEY = 'pulse_participant_v1'
 
@@ -686,7 +686,7 @@ export default function VotePage() {
                 value={fCity} onChange={e=>setFCity(e.target.value)} maxLength={40} />
             </div>
             <div className="field">
-              <div className="field-label">Компания <span>— необязательно</span></div>
+              <div className="field-label">Компания</div>
               <input className="glass-input" type="text" placeholder="ООО «Название»"
                 value={fCompany} onChange={e=>setFCompany(e.target.value)} maxLength={80} />
             </div>
@@ -704,7 +704,7 @@ export default function VotePage() {
             <div className="wiz-title">Контакты</div>
             <div className="wiz-sub">Для связи и рассылки материалов после конференции</div>
             <div className="field">
-              <div className="field-label">Телефон (WhatsApp) <span>— необязательно</span></div>
+              <div className="field-label">Телефон (WhatsApp)</div>
               <div className="prefix-wrap">
                 <span className="prefix-tag">+7</span>
                 <input type="tel" placeholder="900 123 45 67"
@@ -713,7 +713,7 @@ export default function VotePage() {
               <div className="field-hint">Только цифры после +7</div>
             </div>
             <div className="field">
-              <div className="field-label">Telegram <span>— необязательно</span></div>
+              <div className="field-label">Telegram</div>
               <div className="prefix-wrap">
                 <span className="prefix-tag">@</span>
                 <input type="text" placeholder="username"
@@ -734,10 +734,13 @@ export default function VotePage() {
             <div className="wiz-title">Последний шаг</div>
             <div className="wiz-sub">Подтвердите согласие для участия</div>
             <div className="consent-card">
-              Организатор — ООО «Горы и Город». Данные используются исключительно
-              в рамках конференции «Горы и Город — 2026»: аналитика, рассылка материалов
-              и приглашения на следующие события. Не передаются третьим лицам.
-              Отозвать: hello@gory-i-gorod.ru
+              Организатор мероприятия — форум «Горы и Город — 2026». Персональные данные
+              собираются на основании вашего добровольного согласия в соответствии
+              с Федеральным законом № 152-ФЗ «О персональных данных». Сведения используются
+              исключительно в целях обеспечения участия в форуме, формирования аналитики
+              мероприятия и направления информационных материалов по его итогам.
+              Передача данных третьим лицам не осуществляется. Согласие может быть
+              отозвано в любое время по запросу: hello@gory-i-gorod.ru
             </div>
             <label className="consent-row">
               <input type="checkbox" checked={fConsent} onChange={e=>setFConsent(e.target.checked)} />
