@@ -765,19 +765,12 @@ export default function VotePage() {
             <span className={`cdot ${dotCls}`} />
             AI‑Пульс — Голосование
           </div>
-<<<<<<< HEAD
           {session && (
             <>
               <div className="vp-session-title">{session.title}</div>
               <div className="vp-session-meta">{session.speakerName&&`${session.speakerName} · `}{session.hall}</div>
             </>
           )}
-=======
-          <div className="vp-forum-name">Горы и Город — 2026</div>
-          <div className="vp-session-meta" style={{marginTop: 5}}>
-            ООО «Горы и Город» · Форум городского развития
-          </div>
->>>>>>> feature/pulse-live-engine
         </div>
 
         {frozen && <div className="freeze-bar">🔒 Голосование приостановлено</div>}
