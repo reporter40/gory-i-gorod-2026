@@ -19,8 +19,8 @@ function DonutStat({
   const c = 2 * Math.PI * R
   const dash = (c * pct) / 100
   return (
-    <div className="flex w-[128px] flex-col items-center">
-      <svg width={128} height={128} viewBox="0 0 128 128" className="overflow-visible">
+    <div className="relative flex h-[128px] w-[128px] items-center justify-center">
+      <svg width={128} height={128} viewBox="0 0 128 128" className="absolute inset-0 overflow-visible">
         <defs>
           <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#22c55e" />
@@ -41,11 +41,11 @@ function DonutStat({
           style={{ filter: 'drop-shadow(0 0 14px rgba(0,229,255,0.25))' }}
         />
       </svg>
-      <div className="-mt-[84px] w-full text-center">
-        <div className="line-clamp-2 px-1 text-[10px] text-white/50">{label}</div>
-        <div className="text-[26px] font-black leading-tight text-white">{pct}%</div>
-        <div className="text-[10px] text-white/38">{votes.toLocaleString('ru-RU')} голосов</div>
-        <div className="text-[10px] font-semibold text-green-400">▲ {trend}%</div>
+      <div className="relative z-10 flex flex-col items-center justify-center gap-0 px-2 text-center">
+        <div className="line-clamp-2 text-[9px] leading-tight text-white/50">{label}</div>
+        <div className="text-[24px] font-black leading-none text-white">{pct}%</div>
+        <div className="text-[9px] text-white/38">{votes.toLocaleString('ru-RU')} голосов</div>
+        <div className="text-[9px] font-semibold text-green-400">▲ {trend}%</div>
       </div>
     </div>
   )
