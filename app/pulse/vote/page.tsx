@@ -106,6 +106,10 @@ body {
   background: #00d4ff;
   box-shadow: 0 0 10px #00d4ff;
 }
+.vp-forum-name {
+  font-size: 1.25rem; font-weight: 800; color: #f0f6ff;
+  letter-spacing: -0.02em; line-height: 1.2; margin-top: 4px;
+}
 .vp-session-title {
   font-size: 1.05rem; font-weight: 600; color: #f0f6ff; line-height: 1.35;
 }
@@ -764,11 +768,11 @@ export default function VotePage() {
             <span className={`cdot ${dotCls}`} />
             AI‑Пульс — Голосование
           </div>
+          <div className="vp-forum-name">Горы и Город — 2026</div>
           {session && (
-            <>
-              <div className="vp-session-title">{session.title}</div>
-              <div className="vp-session-meta">{session.speakerName&&`${session.speakerName} · `}{session.hall}</div>
-            </>
+            <div className="vp-session-meta" style={{marginTop: 6}}>
+              {session.title}{session.speakerName && ` · ${session.speakerName}`}
+            </div>
           )}
         </div>
 
