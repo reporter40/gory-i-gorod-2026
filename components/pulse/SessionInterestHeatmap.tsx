@@ -1,11 +1,37 @@
 import type { SessionHeatmap as SessionHeatmapT } from '@/lib/pulse/pulse-data'
 
 function intensityColor(v: number): string {
+  if (v <= 0) return 'rgba(10,16,32,0.4)'
   const t = v / 100
-  const r = Math.round(14 + t * (0 + 229 - 14))
-  const g = Math.round(31 + t * (212 - 31))
-  const b = Math.round(40 + t * (255 - 40))
-  return `rgba(${r},${g},${b},${0.15 + t * 0.85})`
+  // dark → teal → green → amber → yellow  (matches reference warm heatmap)
+  let r: number, g: number, b: number
+  if (t < 0.35) {
+    // dark → teal
+    const s = t / 0.35
+    r = Math.round(10 + s * (0 - 10))
+    g = Math.round(16 + s * (160 - 16))
+    b = Math.round(32 + s * (140 - 32))
+  } else if (t < 0.65) {
+    // teal → green
+    const s = (t - 0.35) / 0.30
+    r = Math.round(0 + s * (30 - 0))
+    g = Math.round(160 + s * (210 - 160))
+    b = Math.round(140 + s * (80 - 140))
+  } else if (t < 0.85) {
+    // green → amber
+    const s = (t - 0.65) / 0.20
+    r = Math.round(30 + s * (240 - 30))
+    g = Math.round(210 + s * (180 - 210))
+    b = Math.round(80 + s * (20 - 80))
+  } else {
+    // amber → bright yellow
+    const s = (t - 0.85) / 0.15
+    r = Math.round(240 + s * (255 - 240))
+    g = Math.round(180 + s * (220 - 180))
+    b = Math.round(20 + s * (0 - 20))
+  }
+  const a = 0.25 + t * 0.75
+  return `rgba(${r},${g},${b},${a})`
 }
 
 export default function SessionInterestHeatmap({
@@ -99,7 +125,7 @@ export default function SessionInterestHeatmap({
         </svg>
         <div className="pointer-events-none absolute bottom-2 left-0 right-0 flex items-center gap-3 px-2 text-[10px] text-white/45">
           <span className="shrink-0">Низкий интерес</span>
-          <span className="h-2 flex-1 rounded-full bg-gradient-to-r from-[#141c2f] via-[#0e4b6b] to-[#00ffc6]" />
+          <span className="h-2 flex-1 rounded-full bg-gradient-to-r from-[#0a1020] via-[#00a078] via-[#1ed760] to-[#ffdc00]" />
           <span className="shrink-0">Высокий интерес</span>
         </div>
       </div>
