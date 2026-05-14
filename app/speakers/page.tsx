@@ -162,10 +162,10 @@ export default function SpeakersPage() {
 
             {/* Close button */}
             <button onClick={() => setOpen(null)} style={{
-              width: '100%', padding: '16px 24px',
+              width: '100%', padding: '14px 24px',
               borderTop: '1px solid rgba(255,255,255,0.06)',
               background: 'none', color: 'var(--text-3)',
-              fontSize: 14, fontWeight: 600, cursor: 'pointer',
+              fontSize: 13, fontWeight: 600, cursor: 'pointer',
               letterSpacing: '0.04em',
             }}>
               ЗАКРЫТЬ
