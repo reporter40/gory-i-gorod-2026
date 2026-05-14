@@ -94,17 +94,17 @@ export default function Home() {
       {/* Block pills */}
       <div style={{ background: 'rgba(255,255,255,0.025)', borderBottom: '1px solid rgba(255,255,255,0.06)' }} className="px-5 relative z-10">
         <div className="max-w-md mx-auto">
-          <div className="flex gap-1.5 py-3 no-scroll overflow-x-auto">
+          <div className="flex gap-2 py-3 no-scroll overflow-x-auto">
             {Object.entries(BLOCK_LABELS).map(([key, label]) => (
               <Link key={key} href={`/program?block=${key}`}>
-                <span className="flex-shrink-0 flex items-center gap-1.5 text-xs rounded-full px-3 py-1.5 transition-all"
+                <span className="block-pill"
                   style={{
                     background: BLOCK_ACCENT[key],
-                    border: `1px solid ${BLOCK_DOT[key]}30`,
+                    border: `1px solid ${BLOCK_DOT[key]}35`,
                     color: BLOCK_DOT[key],
-                    fontWeight: 600,
+                    ['--pill-color' as string]: BLOCK_DOT[key],
                   }}>
-                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: BLOCK_DOT[key] }} />
+                  <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: BLOCK_DOT[key] }} />
                   {label}
                 </span>
               </Link>
@@ -137,12 +137,12 @@ export default function Home() {
         </Link>
 
         {/* Quick links grid */}
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-3">
           {quickLinks.map(({ href, icon, title, desc, color, live }) => (
             <Link key={href} href={href}>
-              <div className="card p-4 h-full cursor-pointer active:scale-95 transition-transform"
-                style={{ borderColor: `${color}22` }}>
-                <div className="flex items-start justify-between mb-3">
+              <div className="card h-full cursor-pointer active:scale-95 transition-transform"
+                style={{ borderColor: `${color}22`, padding: '18px 16px 16px' }}>
+                <div className="flex items-start justify-between mb-4">
                   <span style={{ fontSize: 22, color: color, fontFamily: 'monospace', lineHeight: 1 }}>
                     {icon}
                   </span>
@@ -152,8 +152,8 @@ export default function Home() {
                     </span>
                   )}
                 </div>
-                <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 3 }}>{title}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{desc}</div>
+                <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 5 }}>{title}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.4 }}>{desc}</div>
               </div>
             </Link>
           ))}

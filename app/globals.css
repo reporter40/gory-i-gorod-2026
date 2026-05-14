@@ -99,6 +99,21 @@ body {
 /* ── Bottom nav clearance ── */
 .pb-nav { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
 
+/* ── Block filter pills ── */
+.block-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  border-radius: 999px; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.03em; padding: 5px 11px; flex-shrink: 0;
+  transition: box-shadow 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+.block-pill:active {
+  box-shadow: 0 0 12px var(--pill-color, #4a9eca), 0 0 0 1px var(--pill-color, #4a9eca);
+  filter: brightness(1.25);
+  transform: scale(0.96);
+}
+
 /* ── Glow chip ── */
 .glow-chip {
   display: inline-flex; align-items: center; gap: 5px;
