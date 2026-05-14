@@ -93,9 +93,11 @@ function PulseDashboardInner() {
   }, [])
 
   const eventMode = useEventMode()
-  const voteUrl = typeof window !== 'undefined'
+  // Always use production URL for QR — localhost is unreachable from phones
+  const PROD_URL = 'https://gory-i-gorod-2026.vercel.app'
+  const voteUrl = (typeof window !== 'undefined' && !window.location.hostname.includes('localhost'))
     ? `${window.location.origin}/pulse/vote`
-    : 'https://gory-i-gorod-2026.vercel.app/pulse/vote'
+    : `${PROD_URL}/pulse/vote`
 
   const isFrozen = liveState._meta.source === 'frozen'
   const isStale = liveState._meta.staleSince !== null

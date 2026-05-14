@@ -135,7 +135,7 @@ export default function VotePage() {
 
   // Registration
   const [participant, setParticipant] = useState<ParticipantData | null>(null)
-  const [showReg, setShowReg] = useState(false)
+  const [showReg, setShowReg] = useState<boolean | null>(null) // null = checking
   const [regName, setRegName] = useState('')
   const [regTelegram, setRegTelegram] = useState('')
   const [regSubmitting, setRegSubmitting] = useState(false)
@@ -388,8 +388,10 @@ export default function VotePage() {
         )}
 
         {/* Tags */}
-        {showReg ? null : !userId ? (
+        {showReg === null ? (
           <div className="loading">Загрузка...</div>
+        ) : showReg ? null : !userId ? (
+          <div className="loading">Подключение...</div>
         ) : (
           <div className="tags-grid">
             {tags.map((tag) => {
