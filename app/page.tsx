@@ -113,7 +113,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-4 py-5 flex-1 space-y-3 relative z-10 w-full">
+      <div className="max-w-md mx-auto px-4 py-5 flex-1 space-y-4 relative z-10 w-full">
         {/* Opening session card */}
         <Link href="/program">
           <div className="card p-4 cursor-pointer" style={{ borderColor: 'rgba(74,158,202,0.2)' }}>
