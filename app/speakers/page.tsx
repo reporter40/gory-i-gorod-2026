@@ -72,42 +72,105 @@ export default function SpeakersPage() {
       </div>
 
       {open && openSp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-5"
-          style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)' }}
+        <div className="fixed inset-0 z-50 flex items-end justify-center"
+          style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)' }}
           onClick={() => setOpen(null)}>
-          <div className="rounded-3xl p-6 w-72" style={{ background: '#0c1a2e', border: '1px solid rgba(255,255,255,0.1)' }}
-            onClick={e => e.stopPropagation()}>
-            <div className="flex flex-col items-center mb-4">
-              <div className="w-14 h-14 rounded-full mb-3 flex items-center justify-center text-xl font-bold"
-                style={{ background: AVATAR_COLORS[openIdx % AVATAR_COLORS.length], color: AVATAR_TEXT[openIdx % AVATAR_TEXT.length] }}>
-                {openSp.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%', maxWidth: 480,
+              background: 'linear-gradient(160deg, #0e1e35 0%, #091525 100%)',
+              border: '1px solid rgba(255,255,255,0.09)',
+              borderBottom: 'none',
+              borderRadius: '28px 28px 0 0',
+              overflow: 'hidden',
+              paddingBottom: 'env(safe-area-inset-bottom)',
+            }}>
+
+            {/* Accent top bar */}
+            <div style={{
+              height: 3,
+              background: `linear-gradient(90deg, ${AVATAR_TEXT[openIdx % AVATAR_TEXT.length]}, transparent)`,
+            }} />
+
+            <div style={{ padding: '28px 24px 0' }}>
+              {/* Avatar + name row */}
+              <div className="flex items-center gap-4" style={{ marginBottom: 20 }}>
+                <div style={{
+                  width: 64, height: 64, borderRadius: 20, flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 22, fontWeight: 800,
+                  background: AVATAR_COLORS[openIdx % AVATAR_COLORS.length],
+                  color: AVATAR_TEXT[openIdx % AVATAR_TEXT.length],
+                  boxShadow: `0 0 24px ${AVATAR_TEXT[openIdx % AVATAR_TEXT.length]}33`,
+                }}>
+                  {openSp.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 style={{ fontWeight: 800, color: '#ffffff', fontSize: 20, letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: 4 }}>
+                    {openSp.name}
+                  </h3>
+                  {openSp.city && (
+                    <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                      {openSp.city}
+                    </span>
+                  )}
+                </div>
               </div>
-              <h3 style={{ fontWeight: 800, color: 'var(--text)', textAlign: 'center', fontSize: 16 }}>{openSp.name}</h3>
+
+              {/* Role */}
               {openSp.role && (
-                <p style={{ fontSize: 13, color: 'var(--text-2)', textAlign: 'center', marginTop: 4, lineHeight: 1.5 }}>{openSp.role}</p>
+                <p style={{
+                  fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65,
+                  paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.07)',
+                  marginBottom: 20,
+                }}>
+                  {openSp.role}
+                </p>
               )}
-              {openSp.city && (
-                <p style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', marginTop: 3 }}>📍 {openSp.city}</p>
+
+              {/* Sessions — title on top, time at bottom */}
+              {openSessions.length > 0 && (
+                <div className="space-y-3" style={{ marginBottom: 24 }}>
+                  {openSessions.map(s => (
+                    <div key={s.id} style={{
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.07)',
+                      borderRadius: 16, padding: '14px 16px',
+                    }}>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', lineHeight: 1.45, marginBottom: 10 }}>
+                        {s.title}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, fontFamily: 'monospace',
+                          color: AVATAR_TEXT[openIdx % AVATAR_TEXT.length],
+                          background: `${AVATAR_TEXT[openIdx % AVATAR_TEXT.length]}15`,
+                          border: `1px solid ${AVATAR_TEXT[openIdx % AVATAR_TEXT.length]}30`,
+                          borderRadius: 6, padding: '3px 8px', letterSpacing: '0.04em',
+                        }}>
+                          {new Date(s.starts_at).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })}
+                          {' · '}день {s.day}
+                        </span>
+                        {s.hall?.trim() && (
+                          <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{s.hall}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
-            {openSessions.length > 0 && (
-              <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, marginBottom: 16 }} className="space-y-2.5">
-                {openSessions.map(s => (
-                  <div key={s.id} className="flex gap-2" style={{ fontSize: 12 }}>
-                    <span style={{ color: 'var(--accent)', fontFamily: 'monospace', width: 52, flexShrink: 0, paddingTop: 1 }}>
-                      {new Date(s.starts_at).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })} д{s.day}
-                    </span>
-                    <span style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{s.title}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <button onClick={() => setOpen(null)}
-              className="w-full py-2 text-center text-sm"
-              style={{ color: 'var(--text-3)' }}>
-              Закрыть
+            {/* Close button */}
+            <button onClick={() => setOpen(null)} style={{
+              width: '100%', padding: '16px 24px',
+              borderTop: '1px solid rgba(255,255,255,0.06)',
+              background: 'none', color: 'var(--text-3)',
+              fontSize: 14, fontWeight: 600, cursor: 'pointer',
+              letterSpacing: '0.04em',
+            }}>
+              ЗАКРЫТЬ
             </button>
           </div>
         </div>
