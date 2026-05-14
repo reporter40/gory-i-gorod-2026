@@ -4,7 +4,7 @@
       ".read": true,
       "$sessionId": {
         "$tagId": {
-          ".write": "auth != null",
+          ".write": false,
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000"
         }
       }
@@ -14,7 +14,7 @@
         "$userId": {
           "$tagId": {
             ".read": "auth != null && auth.uid === $userId",
-            ".write": "auth != null && auth.uid === $userId && !data.exists()",
+            ".write": false,
             ".validate": "newData.isBoolean() && newData.val() === true"
           }
         }
@@ -23,21 +23,21 @@
     "mood": {
       ".read": true,
       "$pushId": {
-        ".write": "auth != null",
+        ".write": false,
         ".validate": "newData.hasChildren(['tagId','sessionId','userId','ts'])"
       }
     },
     "sessions": {
       ".read": true,
-      ".write": "auth != null"
+      ".write": false
     },
     "speakers": {
       ".read": true,
-      ".write": "auth != null"
+      ".write": false
     },
     "event": {
       ".read": true,
-      ".write": "auth != null"
+      ".write": false
     },
     "participants": {
       ".read": "auth != null",

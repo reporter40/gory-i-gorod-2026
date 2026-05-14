@@ -1,7 +1,7 @@
 'use client'
 
-// Vote client — single entry point for all voting operations.
-// Check order: frozen → rate_limited → localStorage duplicate → offline → Firebase transaction
+// Vote client — Strategy A: server POST /api/pulse/vote (Firebase ID token).
+// Local checks: frozen → rate_limited → localStorage duplicate → offline → API.
 
 import { checkRateLimit, recordVote } from './reliability/rateLimiter'
 import { enqueueVote, getQueue, removeFromQueue, makeEventId } from './reliability/offlineQueue'
@@ -41,52 +41,75 @@ async function isFrozen(): Promise<boolean> {
   }
 }
 
-async function isOnline(): Promise<boolean> {
-  if (typeof navigator !== 'undefined' && !navigator.onLine) return false
+function browserOnline(): boolean {
+  return typeof navigator === 'undefined' || navigator.onLine !== false
+}
+
+async function getVoteIdToken(): Promise<string | null> {
   try {
-    const { hasFirebaseConfig, getFirebaseDb } = await import('./firebase/client')
-    if (!hasFirebaseConfig()) return false
-    const { ref, get } = await import('firebase/database')
-    const db = getFirebaseDb()
-    const snap = await get(ref(db, '.info/connected'))
-    return !!snap.val()
+    const { hasFirebaseConfig, ensureAnonymousAuth, getFirebaseAuth } = await import('./firebase/client')
+    if (!hasFirebaseConfig()) return null
+    await ensureAnonymousAuth()
+    const u = getFirebaseAuth().currentUser
+    if (!u) return null
+    return await u.getIdToken()
   } catch {
-    return false
+    return null
   }
 }
 
-async function incrementVoteTransaction(sessionId: string, tagId: string): Promise<void> {
-  const { getFirebaseDb } = await import('./firebase/client')
-  const { ref, runTransaction } = await import('firebase/database')
-  const db = getFirebaseDb()
-  const voteRef = ref(db, `votes/${sessionId}/${tagId}`)
-  await runTransaction(voteRef, (current: number | null) => {
-    return (current ?? 0) + 1
-  })
+function mapVoteResponse(res: Response, data: { ok?: boolean; status?: string; message?: string }): VoteResult | null {
+  if (res.ok && data.ok && data.status === 'voted') {
+    return { ok: true, status: 'voted' }
+  }
+  if (res.status === 423 || data.status === 'frozen') {
+    return { ok: false, status: 'frozen' }
+  }
+  if (res.status === 409 || data.status === 'duplicate') {
+    return { ok: false, status: 'duplicate' }
+  }
+  if (res.status === 503) {
+    return { ok: false, status: 'error', message: data.message ?? 'Server vote unavailable' }
+  }
+  if (res.status === 401) {
+    return { ok: false, status: 'error', message: data.message ?? 'unauthorized' }
+  }
+  if (!data.ok || data.status === 'error') {
+    return { ok: false, status: 'error', message: data.message ?? `vote failed (${res.status})` }
+  }
+  return null
 }
 
-async function setUserVoteMarker(sessionId: string, tagId: string, userId: string): Promise<void> {
-  const { getFirebaseDb } = await import('./firebase/client')
-  const { ref, set } = await import('firebase/database')
-  const db = getFirebaseDb()
-  const markerRef = ref(db, `userVotes/${sessionId}/${userId}/${tagId}`)
-  await set(markerRef, true)
-}
+async function submitVoteViaApi(sessionId: string, tagId: string): Promise<VoteResult> {
+  const token = await getVoteIdToken()
+  if (!token) {
+    return { ok: false, status: 'error', message: 'Firebase auth unavailable' }
+  }
 
-async function pushMoodEvent(sessionId: string, tagId: string, userId: string): Promise<void> {
+  let res: Response
   try {
-    const { getFirebaseDb } = await import('./firebase/client')
-    const { ref, push, serverTimestamp } = await import('firebase/database')
-    const db = getFirebaseDb()
-    await push(ref(db, 'mood'), {
-      tagId,
-      sessionId,
-      userId,
-      ts: serverTimestamp(),
+    res = await fetch('/api/pulse/vote', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ sessionId, tagId }),
     })
   } catch {
-    // best-effort, does not block vote result
+    return { ok: false, status: 'offline', queued: false }
   }
+
+  const data = (await res.json().catch(() => ({}))) as {
+    ok?: boolean
+    status?: string
+    message?: string
+  }
+
+  const mapped = mapVoteResponse(res, data)
+  if (mapped) return mapped
+
+  return { ok: false, status: 'error', message: data.message ?? `unexpected response (${res.status})` }
 }
 
 export async function voteForTag(input: {
@@ -96,7 +119,6 @@ export async function voteForTag(input: {
 }): Promise<VoteResult> {
   const { sessionId, tagId, userId } = input
 
-  // 0. Validate required fields — never silently drop incomplete events
   if (!sessionId || !tagId || !userId) {
     const missing = [!sessionId && 'sessionId', !tagId && 'tagId', !userId && 'userId'].filter(Boolean).join(', ')
     if (process.env.NODE_ENV === 'development') {
@@ -105,37 +127,38 @@ export async function voteForTag(input: {
     return { ok: false, status: 'error', message: `missing required fields: ${missing}` }
   }
 
-  const firebasePath = `votes/${sessionId}/${tagId}`
+  const { hasFirebaseConfig } = await import('./firebase/client')
+  if (!hasFirebaseConfig()) {
+    return { ok: false, status: 'error', message: 'Firebase not configured' }
+  }
+
   if (process.env.NODE_ENV === 'development') {
     console.group('[PulseVote]')
     console.log('participantId:', userId)
     console.log('sessionId:', sessionId)
     console.log('tagId:', tagId)
-    console.log('firebasePath:', firebasePath)
     console.groupCollapsed('call stack')
     console.trace()
     console.groupEnd()
   }
 
-  // 1. Check frozen
   if (await isFrozen()) {
+    if (process.env.NODE_ENV === 'development') console.groupEnd()
     return { ok: false, status: 'frozen' }
   }
 
-  // 2. Rate limiter
   const rateCheck = checkRateLimit(userId)
   if (rateCheck.limited) {
+    if (process.env.NODE_ENV === 'development') console.groupEnd()
     return { ok: false, status: 'rate_limited', retryAfter: rateCheck.retryAfter }
   }
 
-  // 3. localStorage duplicate check
   if (hasVotedLocally(sessionId, tagId, userId)) {
+    if (process.env.NODE_ENV === 'development') console.groupEnd()
     return { ok: false, status: 'duplicate' }
   }
 
-  // 4. Online check
-  const online = await isOnline()
-  if (!online) {
+  if (!browserOnline()) {
     const eventId = makeEventId(userId, sessionId, tagId)
     enqueueVote({ sessionId, tagId, userId, eventId })
     if (process.env.NODE_ENV === 'development') {
@@ -145,62 +168,73 @@ export async function voteForTag(input: {
     return { ok: false, status: 'offline', queued: true }
   }
 
-  try {
-    // 5. Firebase transaction — atomic increment
-    await incrementVoteTransaction(sessionId, tagId)
+  const result = await submitVoteViaApi(sessionId, tagId)
 
-    // 6. Set userVotes marker (dedupe at Firebase level)
-    await setUserVoteMarker(sessionId, tagId, userId)
-
-    // 7. Mark locally
+  if (result.ok && result.status === 'voted') {
     markVotedLocally(sessionId, tagId, userId)
     recordVote(userId)
-
-    // 8. Push mood event (best-effort)
-    pushMoodEvent(sessionId, tagId, userId)
-
     if (process.env.NODE_ENV === 'development') {
-      console.log('writeResult: ok — voted, path:', firebasePath)
+      console.log('writeResult: ok — voted via API')
       console.groupEnd()
     }
-    return { ok: true, status: 'voted' }
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    // Firebase rules blocked duplicate → treat as duplicate
-    if (msg.includes('PERMISSION_DENIED')) {
-      markVotedLocally(sessionId, tagId, userId)
-      if (process.env.NODE_ENV === 'development') { console.log('writeResult: duplicate (PERMISSION_DENIED)'); console.groupEnd() }
-      return { ok: false, status: 'duplicate' }
-    }
-    if (process.env.NODE_ENV === 'development') { console.error('writeResult: error', msg); console.groupEnd() }
-    return { ok: false, status: 'error', message: msg }
+    return result
   }
+
+  if (result.ok === false && result.status === 'duplicate') {
+    markVotedLocally(sessionId, tagId, userId)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('writeResult: duplicate')
+      console.groupEnd()
+    }
+    return result
+  }
+
+  if (result.ok === false && result.status === 'offline' && !result.queued) {
+    const eventId = makeEventId(userId, sessionId, tagId)
+    enqueueVote({ sessionId, tagId, userId, eventId })
+    if (process.env.NODE_ENV === 'development') {
+      console.log('writeResult: network error — queued offline')
+      console.groupEnd()
+    }
+    return { ok: false, status: 'offline', queued: true }
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('writeResult:', result)
+    console.groupEnd()
+  }
+  return result
 }
 
-// Flush offline queue on reconnect
 export async function flushOfflineQueue(): Promise<void> {
   const queue = getQueue()
   if (queue.length === 0) return
 
-  const online = await isOnline()
-  if (!online) return
-
+  if (!browserOnline()) return
   if (await isFrozen()) return
 
+  const { hasFirebaseConfig } = await import('./firebase/client')
+  if (!hasFirebaseConfig()) return
+
   for (const item of queue) {
-    // Re-check dedupe before sending
     if (hasVotedLocally(item.sessionId, item.tagId, item.userId)) {
       removeFromQueue(item)
       continue
     }
-    try {
-      await incrementVoteTransaction(item.sessionId, item.tagId)
-      await setUserVoteMarker(item.sessionId, item.tagId, item.userId)
+    const result = await submitVoteViaApi(item.sessionId, item.tagId)
+    if (result.ok && result.status === 'voted') {
       markVotedLocally(item.sessionId, item.tagId, item.userId)
       recordVote(item.userId)
       removeFromQueue(item)
-    } catch {
-      // leave in queue, retry next time
+      continue
+    }
+    if (result.ok === false && result.status === 'duplicate') {
+      markVotedLocally(item.sessionId, item.tagId, item.userId)
+      removeFromQueue(item)
+      continue
+    }
+    if (result.ok === false && result.status === 'offline') {
+      break
     }
   }
 }

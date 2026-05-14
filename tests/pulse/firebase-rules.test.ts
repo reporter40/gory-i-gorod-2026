@@ -1,65 +1,61 @@
 import { describe, it, expect } from 'vitest'
 import rules from '../../lib/pulse/firebase/rules.json'
 
-// Logic tests for Firebase Security Rules structure.
-// Full emulator tests require @firebase/rules-unit-testing + running emulator.
-// These tests verify rule shape and critical constraints from the JSON.
+/** JSON rule contract — emulator scenarios documented in docs/PULSE_RTD_ACCESS_MODEL.md */
 
-describe('Firebase Rules — structure', () => {
-  it('has votes rules', () => {
-    expect(rules.rules.votes).toBeDefined()
+describe('Firebase Rules — SPRINT-PULSE-04 contract', () => {
+  it('votes: client writes disabled (server Admin only)', () => {
+    const tag = (
+      (rules.rules.votes as Record<string, unknown>).$sessionId as Record<string, unknown>
+    ).$tagId as { '.write': boolean }
+    expect(tag['.write']).toBe(false)
+    expect(tag['.validate']).toContain('isNumber()')
   })
 
-  it('votes validate number 0–100000', () => {
-    const validate = (rules.rules.votes as Record<string, unknown>).$sessionId as Record<string, unknown>
-    const tagRule = validate.$tagId as { '.validate': string }
-    expect(tagRule['.validate']).toContain('isNumber()')
-    expect(tagRule['.validate']).toContain('100000')
+  it('userVotes: client writes disabled', () => {
+    const tag = (
+      ((rules.rules.userVotes as Record<string, unknown>).$sessionId as Record<string, unknown>).$userId as Record<
+        string,
+        unknown
+      >
+    ).$tagId as { '.write': boolean; '.read': string }
+    expect(tag['.write']).toBe(false)
+    expect(tag['.read']).toContain('auth.uid === $userId')
   })
 
-  it('userVotes write only if !data.exists()', () => {
-    const r = rules.rules.userVotes
-    const tagRule = (r as Record<string, unknown>).$sessionId as Record<string, unknown>
-    const userRule = tagRule.$userId as Record<string, unknown>
-    const write = (userRule.$tagId as { '.write': string })['.write']
-    expect(write).toContain('!data.exists()')
-    expect(write).toContain('auth.uid === $userId')
+  it('mood: client writes disabled', () => {
+    const pushRule = (rules.rules.mood as Record<string, unknown>).$pushId as { '.write': boolean }
+    expect(pushRule['.write']).toBe(false)
   })
 
-  it('userVotes validate boolean true only', () => {
-    const r = rules.rules.userVotes
-    const tagRule = (r as Record<string, unknown>).$sessionId as Record<string, unknown>
-    const userRule = tagRule.$userId as Record<string, unknown>
-    const validate = (userRule.$tagId as { '.validate': string })['.validate']
-    expect(validate).toContain('isBoolean()')
-    expect(validate).toContain('true')
+  it('sessions: read public, no client write', () => {
+    const s = rules.rules.sessions as Record<string, unknown>
+    expect(s['.read']).toBe(true)
+    expect(s['.write']).toBe(false)
   })
 
-  it('mood requires 4 fields', () => {
-    const pushRule = (rules.rules.mood as Record<string, unknown>).$pushId as { '.validate': string }
-    expect(pushRule['.validate']).toContain('tagId')
-    expect(pushRule['.validate']).toContain('sessionId')
-    expect(pushRule['.validate']).toContain('userId')
-    expect(pushRule['.validate']).toContain('ts')
+  it('speakers: read public, no client write', () => {
+    const s = rules.rules.speakers as Record<string, unknown>
+    expect(s['.read']).toBe(true)
+    expect(s['.write']).toBe(false)
   })
 
-  it('event is publicly readable', () => {
-    const eventRead = (rules.rules.event as Record<string, unknown>)['.read']
-    expect(eventRead).toBe(true)
+  it('event: read public, no client write', () => {
+    const e = rules.rules.event as Record<string, unknown>
+    expect(e['.read']).toBe(true)
+    expect(e['.write']).toBe(false)
   })
 
-  it('frozen is readable without auth', () => {
-    // event has top-level .read: true which covers frozen
-    const eventRead = (rules.rules.event as Record<string, unknown>)['.read']
-    expect(eventRead).toBe(true)
+  it('participants: write only own uid', () => {
+    const uidRule = (rules.rules.participants as Record<string, unknown>).$uid as {
+      '.write': string
+      '.validate': string
+    }
+    expect(uidRule['.write']).toContain('auth.uid === $uid')
+    expect(uidRule['.validate']).toContain('consent')
   })
 
-  it('sessions are publicly readable', () => {
-    const sessRead = (rules.rules.sessions as Record<string, unknown>)['.read']
-    expect(sessRead).toBe(true)
-  })
-
-  it('heartbeat requires auth to write', () => {
+  it('heartbeat lastSeen requires auth to write', () => {
     const dashRule = rules.rules.heartbeat.$dashboardId as { lastSeen: { '.write': string } }
     expect(dashRule.lastSeen['.write']).toContain('auth != null')
   })

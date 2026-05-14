@@ -108,8 +108,20 @@ export default function AdminPage() {
   const wakeLockRef = useRef<WakeLockSentinel | null>(null)
   const [seeding, setSeeding] = useState(false)
   const [seedResult, setSeedResult] = useState<string | null>(null)
+  const [operatorKey, setOperatorKey] = useState('')
+  const [operatorMsg, setOperatorMsg] = useState<string | null>(null)
 
   const mode: OperatorMode = frozen ? 'freeze' : 'live'
+
+  useEffect(() => {
+    try {
+      const k = sessionStorage.getItem('pulse_operator_key')
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate saved secret once after mount (SSR-safe)
+      if (k) setOperatorKey(k)
+    } catch {
+      /* ignore */
+    }
+  }, [])
 
   // Wake lock — keeps phone screen on
   async function toggleWakeLock(on: boolean) {
@@ -128,9 +140,10 @@ export default function AdminPage() {
 
   // Auto wake lock on mount
   useEffect(() => {
-    toggleWakeLock(true)
+    queueMicrotask(() => {
+      void toggleWakeLock(true)
+    })
     return () => { wakeLockRef.current?.release() }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Heartbeat age ticker
@@ -142,12 +155,15 @@ export default function AdminPage() {
   }, [])
 
   useEffect(() => {
-    if (!ADMIN_ENABLED || !hasFirebaseConfig()) { setLoading(false); return }
+    if (!ADMIN_ENABLED || !hasFirebaseConfig()) {
+      queueMicrotask(() => setLoading(false))
+      return
+    }
 
     async function setup() {
       try {
         const { getFirebaseDb, ensureAnonymousAuth } = await import('@/lib/pulse/firebase/client')
-        const { ref, onValue, orderByChild, limitToLast, query, serverTimestamp } = await import('firebase/database')
+        const { ref, onValue, orderByChild, limitToLast, query } = await import('firebase/database')
         await ensureAnonymousAuth()
         const db = getFirebaseDb()
 
@@ -181,10 +197,36 @@ export default function AdminPage() {
     setup()
   }, [])
 
+  async function callOperator(body: Record<string, unknown>): Promise<boolean> {
+    setOperatorMsg(null)
+    const key = operatorKey.trim()
+    if (!key) {
+      setOperatorMsg('❌ Введите operator key (секрет сервера)')
+      return false
+    }
+    try {
+      const res = await fetch('/api/pulse/operator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-pulse-operator-key': key,
+        },
+        body: JSON.stringify(body),
+      })
+      const d = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string }
+      if (!res.ok || !d.ok) {
+        setOperatorMsg(`❌ ${d.error ?? res.status}`)
+        return false
+      }
+      return true
+    } catch (e) {
+      setOperatorMsg(`❌ ${e}`)
+      return false
+    }
+  }
+
   async function setActiveSession(id: string) {
-    const { getFirebaseDb } = await import('@/lib/pulse/firebase/client')
-    const { ref, set } = await import('firebase/database')
-    await set(ref(getFirebaseDb(), 'event/activeSessionId'), id)
+    await callOperator({ activeSessionId: id })
   }
 
   async function seedSessions() {
@@ -202,10 +244,11 @@ export default function AdminPage() {
   }
 
   async function applyFrozen(value: boolean) {
-    const { getFirebaseDb } = await import('@/lib/pulse/firebase/client')
-    const { ref, set } = await import('firebase/database')
-    await set(ref(getFirebaseDb(), 'event/frozen'), value)
-    setDialog(null)
+    const ok = await callOperator({
+      frozen: value,
+      mode: value ? 'freeze' : 'live',
+    })
+    if (ok) setDialog(null)
   }
 
   if (!ADMIN_ENABLED) {
@@ -240,6 +283,45 @@ export default function AdminPage() {
             <span className={`dot ${connDot}`} />
             {connection.status === 'connected' ? 'online' : connection.status}
           </span>
+        </div>
+
+        {/* Operator API key — matches PULSE_OPERATOR_SECRET on server; never commit */}
+        <div className="card">
+          <h2>Operator API</h2>
+          <input
+            type="password"
+            autoComplete="off"
+            placeholder="PULSE_OPERATOR_SECRET"
+            value={operatorKey}
+            onChange={(e) => {
+              const v = e.target.value
+              setOperatorKey(v)
+              try {
+                sessionStorage.setItem('pulse_operator_key', v)
+              } catch {
+                /* ignore */
+              }
+            }}
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              borderRadius: 10,
+              border: '1px solid #1e293b',
+              background: '#060b14',
+              color: '#e2e8f0',
+              fontSize: '0.88rem',
+              marginBottom: 8,
+            }}
+          />
+          <div style={{ fontSize: '0.72rem', color: '#64748b', lineHeight: 1.45 }}>
+            Запись в <code style={{ color: '#94a3b8' }}>event/*</code> только через сервер. Ключ хранится в sessionStorage
+            этого браузера.
+          </div>
+          {operatorMsg && (
+            <div style={{ marginTop: 10, fontSize: '0.82rem', color: operatorMsg.startsWith('❌') ? '#ef4444' : '#4ade80' }}>
+              {operatorMsg}
+            </div>
+          )}
         </div>
 
         {/* Current mode status */}
