@@ -1,10 +1,10 @@
 export default function MapPage() {
   const zones = [
-    { id: 'hall-a', label: 'Зал А', desc: 'Пленарные сессии', color: '#1a3a5c', x: 60, y: 80, w: 200, h: 120 },
-    { id: 'hall-b', label: 'Зал Б', desc: 'Параллельные секции', color: '#2d5a3d', x: 290, y: 80, w: 140, h: 120 },
-    { id: 'coffee', label: 'Кофе-зона', desc: 'Нетворкинг', color: '#e07b39', x: 60, y: 230, w: 140, h: 80 },
-    { id: 'expo', label: 'Экспозиция', desc: 'Выставка проектов', color: '#8e44ad', x: 220, y: 230, w: 210, h: 80 },
-    { id: 'sea', label: 'Терраса', desc: 'Вид на море 🌊', color: '#4a9eca', x: 60, y: 340, w: 370, h: 60 },
+    { id: 'hall-a', label: 'Зал А', desc: 'Пленарные сессии', color: '#1a3a5c', x: 30, y: 80, w: 185, h: 120 },
+    { id: 'hall-b', label: 'Зал Б', desc: 'Параллельные секции', color: '#2d5a3d', x: 235, y: 80, w: 185, h: 120 },
+    { id: 'coffee', label: 'Кофе-зона', desc: 'Нетворкинг', color: '#e07b39', x: 30, y: 220, w: 185, h: 80 },
+    { id: 'expo', label: 'Экспозиция', desc: 'Выставка проектов', color: '#8e44ad', x: 235, y: 220, w: 185, h: 80 },
+    { id: 'sea', label: 'Терраса', desc: 'Вид на море 🌊', color: '#4a9eca', x: 30, y: 320, w: 390, h: 60 },
   ]
 
   const schedule = [
@@ -30,13 +30,13 @@ export default function MapPage() {
       <div className="max-w-md mx-auto px-4 py-4">
         {/* SVG map */}
         <div className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 mb-4">
-          <svg viewBox="0 0 450 430" className="w-full" style={{ maxHeight: 300 }}>
+          <svg viewBox="0 0 450 450" className="w-full" style={{ maxHeight: 320 }}>
             {/* Background */}
-            <rect width="450" height="430" fill="#f0f4f8" rx="12" />
+            <rect width="450" height="450" fill="#f0f4f8" rx="12" />
 
             {/* Sea at bottom */}
-            <rect x="0" y="380" width="450" height="50" fill="#4a9eca" opacity="0.15" rx="0" />
-            <text x="225" y="410" textAnchor="middle" fontSize="11" fill="#4a9eca">🌊 Чёрное море</text>
+            <rect x="0" y="400" width="450" height="50" fill="#4a9eca" opacity="0.15" rx="0" />
+            <text x="225" y="430" textAnchor="middle" fontSize="11" fill="#4a9eca">🌊 Чёрное море</text>
 
             {zones.map(z => (
               <g key={z.id}>
