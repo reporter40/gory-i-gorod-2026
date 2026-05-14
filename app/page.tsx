@@ -137,7 +137,7 @@ export default function Home() {
         </Link>
 
         {/* Quick links grid */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3" style={{ marginTop: 12 }}>
           {quickLinks.map(({ href, icon, title, desc, color, live }) => (
             <Link key={href} href={href}>
               <div className="card h-full cursor-pointer active:scale-95 transition-transform"
