@@ -174,12 +174,12 @@ export const mockPulseState: MockPulseState = {
     { name: 'Инфраструктура', value: 0, color: '#eab308' },
   ],
   topicNetwork: [
-    { id: 'innovation', name: 'Инновации', value: 0, trend: 0 },
-    { id: 'ppp-dev', name: 'ГЧП и партнёрское развитие', value: 0, trend: 0 },
-    { id: 'strategy', name: 'Стратегическое развитие', value: 0, trend: 0 },
-    { id: 'digital', name: 'Цифровизация', value: 0, trend: 0 },
-    { id: 'infra', name: 'Инфраструктура', value: 0, trend: 0 },
-    { id: 'invest', name: 'Инвестиции', value: 0, trend: 0 },
+    { id: 'innovation', name: 'Инновации', value: 76, trend: 12 },
+    { id: 'ppp-dev', name: 'ГЧП и партнёрское развитие', value: 84, trend: 15 },
+    { id: 'strategy', name: 'Стратегическое развитие', value: 79, trend: 11 },
+    { id: 'digital', name: 'Цифровизация', value: 71, trend: 9 },
+    { id: 'infra', name: 'Инфраструктура', value: 68, trend: 6 },
+    { id: 'invest', name: 'Инвестиции', value: 62, trend: 7 },
   ],
   geoRegions: [
     { name: 'Москва', percent: 24 },

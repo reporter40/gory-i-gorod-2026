@@ -16,6 +16,13 @@ function heatStroke(val: number): string {
   return 'rgba(148,163,184,0.75)'
 }
 
+function heatFill(val: number): string {
+  if (val >= 76) return 'rgba(34,197,94,0.18)'
+  if (val >= 66) return 'rgba(56,189,248,0.16)'
+  if (val >= 58) return 'rgba(234,179,8,0.14)'
+  return 'rgba(6,14,26,0.88)'
+}
+
 function shortTopicName(name: string): string {
   return name.length > 22 ? `${name.slice(0, 19)}…` : name
 }
@@ -254,7 +261,7 @@ export default function TopicMoodNetwork({ nodes }: { nodes: PulseTopicNode[] })
                 width={bw}
                 height={bh}
                 rx={22}
-                fill="rgba(6,14,26,0.88)"
+                fill={heatFill(n.value)}
                 stroke={heatStroke(n.value)}
                 strokeWidth={1.2}
                 filter="url(#pulseNodeGlow)"
