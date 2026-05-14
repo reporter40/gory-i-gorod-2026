@@ -74,6 +74,10 @@ function PulseDashboardInner() {
     // sessionHeatmap stays from mockState (visual-only, Firebase sends heatmap cells)
   }
 
+  // Show voting/network panels only when real votes exist — hides empty "0%" panels
+  const hasVotes = liveState.topTags.some(t => t.votes > 0)
+  const hasAiInsights = liveState.aiInsights && liveState.aiInsights.length > 0
+
   const avatarsForVote = Object.values(MOCK_SPEAKERS).map(s => ({
     id: s.id,
     initials: s.initials,
@@ -183,24 +187,28 @@ function PulseDashboardInner() {
             <HeroPulsePanel state={state} />
           </PulseErrorBoundary>
           <PulseErrorBoundary panelName="TopTags">
-            <TopTagsPanel topTags={state.topTags} filterTabs={state.tagFilterTabs} />
+            <TopTagsPanel topTags={state.topTags} filterTabs={state.tagFilterTabs} expanded={!hasVotes} />
           </PulseErrorBoundary>
-          <PulseErrorBoundary panelName="TagVotingMood">
-            <TagVotingMoodPanel
-              left={{ label: voting.leftDonut.label, percent: voting.leftDonut.percent, votes: voting.leftDonut.votes, trend: voting.leftDonut.trend }}
-              right={{
-                label: voting.rightDonut.label,
-                percent: voting.rightDonut.percent,
-                votes: voting.rightDonut.votes,
-                trend: voting.rightDonut.trend,
-              }}
-              bars={state.tagMoodBars}
-              avatarSlices={avatarsForVote}
-            />
-          </PulseErrorBoundary>
-          <PulseErrorBoundary panelName="SessionHeatmap">
-            <SessionInterestHeatmap heat={state.sessionHeatmap} speakerDots={heatSpeakers} />
-          </PulseErrorBoundary>
+          {hasVotes && (
+            <>
+              <PulseErrorBoundary panelName="TagVotingMood">
+                <TagVotingMoodPanel
+                  left={{ label: voting.leftDonut.label, percent: voting.leftDonut.percent, votes: voting.leftDonut.votes, trend: voting.leftDonut.trend }}
+                  right={{
+                    label: voting.rightDonut.label,
+                    percent: voting.rightDonut.percent,
+                    votes: voting.rightDonut.votes,
+                    trend: voting.rightDonut.trend,
+                  }}
+                  bars={state.tagMoodBars}
+                  avatarSlices={avatarsForVote}
+                />
+              </PulseErrorBoundary>
+              <PulseErrorBoundary panelName="SessionHeatmap">
+                <SessionInterestHeatmap heat={state.sessionHeatmap} speakerDots={heatSpeakers} />
+              </PulseErrorBoundary>
+            </>
+          )}
           <PulseErrorBoundary panelName="TopicNetwork">
             <TopicMoodNetwork nodes={state.topicNetwork} />
           </PulseErrorBoundary>

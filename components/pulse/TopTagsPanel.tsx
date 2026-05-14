@@ -5,12 +5,14 @@ import type { PulseTopTag } from '@/lib/pulse/pulse-data'
 export default function TopTagsPanel({
   topTags,
   filterTabs,
+  expanded = false,
 }: {
   topTags: PulseTopTag[]
   filterTabs: readonly string[]
+  expanded?: boolean
 }) {
   return (
-    <section className="pulse-panel absolute overflow-hidden px-3 py-2.5" style={{ left: 318, top: 374, width: 994, height: 154 }}>
+    <section className="pulse-panel absolute overflow-hidden px-3 py-2.5" style={{ left: 318, top: 374, width: 994, height: expanded ? 481 : 154 }}>
       <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="pulse-panel-title">Топ-теги сейчас</h2>
