@@ -156,9 +156,9 @@ Visual tests use `?visualTest=1` → mock adapter → deterministic output.
 
 ## Smoke Test
 
-1. Open `/pulse` without `?visualTest` → live data (or mock if no Firebase)
-2. Open `/pulse?visualTest=1` → mock data, Playwright snapshot matches
-3. Open `/pulse/vote` → vote → count on `/pulse` updates within 2s
+1. Open **`/pulse/live`** without `?visualTest` → live data (or mock if no Firebase)
+2. Open **`/pulse/live?visualTest=1`** → mock data, Playwright snapshot matches
+3. Open `/pulse/vote` → vote → count on **`/pulse/live`** updates within 2s
 4. In `/pulse/admin` → freeze → dashboard shows "Данные зафиксированы"
 5. In `/pulse/admin` → unfreeze → dashboard resumes live updates
 6. Kill network → `/pulse/vote` shows offline toast, queues vote

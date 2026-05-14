@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useMemo } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import PulseStage from '@/components/pulse/PulseStage'
 import VisualOverlay from '@/components/pulse/VisualOverlay'
@@ -27,6 +27,16 @@ import QRCode from 'react-qr-code'
 
 /** Stable mock fixture — avoid new object identity every render */
 const STATIC_MOCK_DASHBOARD = defaultPulseMock()
+
+/** Avoid Date.now() during render (react-hooks/purity). */
+function StaleIndicatorMinutes({ staleSince }: { staleSince: number }) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 30_000)
+    return () => window.clearInterval(id)
+  }, [])
+  return <>{Math.max(0, Math.round((now - staleSince) / 60_000))}</>
+}
 
 function PulseDashboardInner() {
   const params = useSearchParams()
@@ -139,7 +149,7 @@ function PulseDashboardInner() {
     ? `${window.location.origin}/pulse/vote`
     : `${PROD_URL}/pulse/vote`
 
-  // Mobile redirect: phone users visiting /pulse during vote mode → go straight to registration
+  // Mobile redirect: phone users opening the live dashboard during vote mode → go straight to registration
   useEffect(() => {
     if (eventMode === 'vote' && typeof window !== 'undefined' && window.innerWidth < 768) {
       window.location.replace(voteUrl)
@@ -164,14 +174,14 @@ function PulseDashboardInner() {
       )}
 
       {/* Stale indicator — bottom right, hidden in visualTest */}
-      {!visualTest && isStale && !isFrozen && (
+      {!visualTest && isStale && !isFrozen && liveState._meta.staleSince != null && (
         <div style={{
           position: 'fixed', bottom: 0, right: 20, zIndex: 9998,
           background: 'rgba(0,0,0,0.75)', color: '#fbbf24',
           padding: '6px 14px', borderRadius: '8px 8px 0 0',
           fontSize: '12px',
         }}>
-          Обновлено {Math.round((Date.now() - (liveState._meta.staleSince ?? Date.now())) / 60000)} мин назад
+          Обновлено <StaleIndicatorMinutes staleSince={liveState._meta.staleSince} /> мин назад
         </div>
       )}
 

@@ -6,6 +6,7 @@
 - **Votes:** **Strategy A — server-authoritative.** `POST /api/pulse/vote` with `Authorization: Bearer <Firebase ID token>`. Server uses **Firebase Admin SDK** to claim `userVotes`, increment `votes`, push `mood`.
 - **Operators:** writes to `event/activeSessionId`, `event/frozen`, `event/mode` via `POST /api/pulse/operator` with header `x-pulse-operator-key: <PULSE_OPERATOR_SECRET>` (length ≥ 16 on server). Telegram bot uses Admin SDK (`rtdbRead` / `rtdbWrite`) — requires `FIREBASE_SERVICE_ACCOUNT_JSON`.
 - **Program seed:** `POST /api/seed-sessions` uses Admin SDK (`sessions` tree).
+- **Participant vs monitor:** участники заходят на **`/pulse`**; экран зала / проектор — **`/pulse/live`** (стабильный URL дашборда).
 
 ## Environment variables
 

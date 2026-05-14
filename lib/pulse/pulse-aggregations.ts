@@ -159,7 +159,8 @@ export const CANONICAL_REACTION_TAG_IDS = [
 
 export type CanonicalReactionTagId = (typeof CANONICAL_REACTION_TAG_IDS)[number]
 
-const CANONICAL_LABELS: Record<CanonicalReactionTagId, string> = {
+/** Display labels for participant / results UIs — keep aligned with vote page tags */
+export const CANONICAL_REACTION_TAG_LABELS: Record<CanonicalReactionTagId, string> = {
   implement: 'Хочу внедрить',
   discovery: 'Открытие',
   partner: 'Ищу партнёров',
@@ -196,7 +197,7 @@ export function buildHeatmapFromTagStats(input: {
     const row = filtered.find((t) => t.tagId === id)
     return {
       tagId: id,
-      label: row?.label?.trim() ? row.label : CANONICAL_LABELS[id],
+      label: row?.label?.trim() ? row.label : CANONICAL_REACTION_TAG_LABELS[id],
       count: Math.max(0, row?.count ?? 0),
     }
   })

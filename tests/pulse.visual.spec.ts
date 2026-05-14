@@ -14,7 +14,7 @@ test.describe('pulse visual', () => {
     await page.setViewportSize({ width: 1672, height: 941 })
     await page.emulateMedia({ reducedMotion: 'reduce' })
 
-    await page.goto('/pulse?visualTest=1', { waitUntil: 'networkidle', timeout: 120_000 })
+    await page.goto('/pulse/live?visualTest=1', { waitUntil: 'networkidle', timeout: 120_000 })
     await page.waitForSelector('.pulse-stage', { state: 'visible', timeout: 120_000 })
     const stage = page.locator('.pulse-stage')
     await expect(stage).toBeVisible()
@@ -37,7 +37,7 @@ test.describe('pulse visual', () => {
   test('writes PULSE_BG_ONLY_V7.png (bgMode=bg-only)', async ({ page }) => {
     await page.setViewportSize({ width: 1672, height: 941 })
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto('/pulse?visualTest=1&bgMode=bg-only', { waitUntil: 'networkidle', timeout: 120_000 })
+    await page.goto('/pulse/live?visualTest=1&bgMode=bg-only', { waitUntil: 'networkidle', timeout: 120_000 })
     await page.waitForSelector('.pulse-stage', { state: 'visible', timeout: 120_000 })
     const stage = page.locator('.pulse-stage')
     await expect(stage).toBeVisible()
@@ -50,7 +50,7 @@ test.describe('pulse visual', () => {
   test('writes PULSE_UI_ONLY_CLEAN_V7.png (bgMode=ui-only)', async ({ page }) => {
     await page.setViewportSize({ width: 1672, height: 941 })
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto('/pulse?visualTest=1&bgMode=ui-only', { waitUntil: 'networkidle', timeout: 120_000 })
+    await page.goto('/pulse/live?visualTest=1&bgMode=ui-only', { waitUntil: 'networkidle', timeout: 120_000 })
     await page.waitForSelector('.pulse-stage', { state: 'visible', timeout: 120_000 })
     const stage = page.locator('.pulse-stage')
     await expect(stage).toBeVisible()
@@ -63,7 +63,7 @@ test.describe('pulse visual', () => {
   test('bgMode=final shows approved raster + clean UI', async ({ page }) => {
     await page.setViewportSize({ width: 1672, height: 941 })
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto('/pulse?visualTest=1&bgMode=final', { waitUntil: 'networkidle', timeout: 120_000 })
+    await page.goto('/pulse/live?visualTest=1&bgMode=final', { waitUntil: 'networkidle', timeout: 120_000 })
     await page.waitForSelector('.pulse-stage', { state: 'visible', timeout: 120_000 })
     await expect(page.locator('.pulse-stage')).toBeVisible()
     await expect(page.locator('.pulse-background-image')).toBeVisible()
