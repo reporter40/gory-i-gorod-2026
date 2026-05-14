@@ -245,7 +245,7 @@ export default function TopicMoodNetwork({ nodes }: { nodes: PulseTopicNode[] })
           const p = coords.get(nodeId)
           if (!n || !p) return null
           const bw = Math.min(196, Math.max(120, Math.round((n.value / 100) * 196)))
-          const bh = 44
+          const bh = 58
           return (
             <g key={n.id}>
               <rect
@@ -259,9 +259,12 @@ export default function TopicMoodNetwork({ nodes }: { nodes: PulseTopicNode[] })
                 strokeWidth={1.2}
                 filter="url(#pulseNodeGlow)"
               />
+              <text x={p.x} y={p.y - 14} textAnchor="middle" fill="rgba(255,255,255,0.50)" fontSize={9} fontFamily="system-ui, sans-serif">
+                {shortTopicName(n.name)}
+              </text>
               <text
                 x={p.x}
-                y={p.y - 4}
+                y={p.y + 2}
                 textAnchor="middle"
                 fill="#fff"
                 fontSize={13}
@@ -272,17 +275,14 @@ export default function TopicMoodNetwork({ nodes }: { nodes: PulseTopicNode[] })
               </text>
               <text
                 x={p.x}
-                y={p.y + 10}
+                y={p.y + 15}
                 textAnchor="middle"
                 fill="#22d3ee"
-                fontSize={10}
+                fontSize={9}
                 fontFamily="system-ui, sans-serif"
                 fontWeight={600}
               >
                 {`▲ ${n.trend}%`}
-              </text>
-              <text x={p.x} y={p.y + 24} textAnchor="middle" fill="rgba(255,255,255,0.58)" fontSize={10} fontFamily="system-ui, sans-serif">
-                {shortTopicName(n.name)}
               </text>
             </g>
           )
