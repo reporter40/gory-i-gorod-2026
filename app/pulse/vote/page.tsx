@@ -30,10 +30,26 @@ const DEFAULT_TAGS: TagCard[] = [
 
 const REGISTRATION_KEY = 'pulse_participant_v1'
 
+const ROLES = [
+  { id: 'ceo', label: 'CEO / Основатель', icon: '👔' },
+  { id: 'investor', label: 'Инвестор', icon: '💼' },
+  { id: 'developer', label: 'Девелопер', icon: '🏗️' },
+  { id: 'official', label: 'Чиновник', icon: '🏛️' },
+  { id: 'expert', label: 'Эксперт', icon: '🎓' },
+  { id: 'other', label: 'Другое', icon: '✨' },
+]
+
+const POPULAR_CITIES = ['Москва', 'СПб', 'Казань', 'Сочи', 'Ростов', 'Екб', 'Нск']
+
 interface ParticipantData {
   name: string
+  phone: string
   telegram: string
+  company: string
+  role: string
+  city: string
   uid: string
+  consent: boolean
 }
 
 function loadRegistration(): ParticipantData | null {
@@ -54,7 +70,12 @@ async function registerParticipant(data: ParticipantData, sessionId: string) {
     const db = getFirebaseDb()
     await set(ref(db, `participants/${data.uid}`), {
       name: data.name,
+      phone: data.phone || null,
       telegram: data.telegram || null,
+      company: data.company || null,
+      role: data.role || null,
+      city: data.city || null,
+      consent: data.consent,
       sessionId,
       ts: Date.now(),
     })
@@ -63,12 +84,12 @@ async function registerParticipant(data: ParticipantData, sessionId: string) {
   }
 }
 
-// --- Styles (CSS module via style tag — no external dep) ---
+// --- Inline CSS ---
 const css = `
 :root { color-scheme: dark; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: #0a0f1a; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-.vote-page { min-height: 100dvh; padding: 16px; max-width: 428px; margin: 0 auto; }
+.vote-page { min-height: 100dvh; padding: 16px; max-width: 428px; margin: 0 auto; display: flex; flex-direction: column; }
 .header { padding: 12px 0 20px; border-bottom: 1px solid #1e293b; margin-bottom: 20px; }
 .header h1 { font-size: 1.1rem; font-weight: 700; color: #00e5ff; letter-spacing: 0.05em; text-transform: uppercase; }
 .session-info { margin-top: 8px; }
@@ -101,28 +122,58 @@ body { background: #0a0f1a; color: #e2e8f0; font-family: -apple-system, BlinkMac
 .toast.warn { border-color: #f59e0b66; color: #fcd34d; }
 @keyframes slide-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .loading { text-align: center; color: #475569; padding: 40px 0; }
-.reg-screen { display: flex; flex-direction: column; gap: 24px; padding: 8px 0 32px; }
-.reg-title { font-size: 1.3rem; font-weight: 800; color: #f1f5f9; }
-.reg-subtitle { font-size: 0.9rem; color: #64748b; margin-top: 4px; line-height: 1.4; }
-.reg-field { display: flex; flex-direction: column; gap: 8px; }
-.reg-label { font-size: 0.8rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
-.reg-input { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 14px 16px; color: #f1f5f9; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+
+/* ── Wizard ── */
+.wizard { display: flex; flex-direction: column; flex: 1; padding-bottom: 32px; }
+.wizard-progress { display: flex; gap: 6px; margin-bottom: 32px; }
+.wizard-dot { flex: 1; height: 3px; border-radius: 2px; background: #1e293b; transition: background 0.3s; }
+.wizard-dot.done { background: #00e5ff; }
+.wizard-dot.active { background: #00e5ff88; }
+.wizard-step { animation: fade-in 0.25s ease; }
+@keyframes fade-in { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: translateX(0); } }
+.wizard-emoji { font-size: 2.4rem; margin-bottom: 12px; }
+.wizard-title { font-size: 1.4rem; font-weight: 800; color: #f1f5f9; margin-bottom: 6px; }
+.wizard-sub { font-size: 0.9rem; color: #64748b; line-height: 1.5; margin-bottom: 24px; }
+.reg-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.reg-label { font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
+.reg-input { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 14px 16px; color: #f1f5f9; font-size: 1rem; outline: none; transition: border-color 0.2s; width: 100%; }
 .reg-input:focus { border-color: #00e5ff66; }
-.reg-input::placeholder { color: #475569; }
-.reg-hint { font-size: 0.75rem; color: #475569; }
-.reg-btn { background: #00e5ff; color: #000; font-size: 1rem; font-weight: 700; border: none; border-radius: 14px; padding: 16px; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
-.reg-btn:active { transform: scale(0.98); opacity: 0.9; }
-.reg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.reg-greeting { background: #0f172a; border: 1px solid #00e5ff22; border-radius: 12px; padding: 12px 16px; font-size: 0.9rem; color: #94a3b8; }
+.reg-input::placeholder { color: #334155; }
+.input-with-prefix { display: flex; background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden; transition: border-color 0.2s; }
+.input-with-prefix:focus-within { border-color: #00e5ff66; }
+.input-prefix { padding: 14px 0 14px 16px; color: #475569; font-size: 1rem; white-space: nowrap; user-select: none; }
+.input-with-prefix input { flex: 1; background: transparent; border: none; padding: 14px 16px 14px 6px; color: #f1f5f9; font-size: 1rem; outline: none; }
+.reg-hint { font-size: 0.75rem; color: #334155; margin-top: 2px; }
+.chip-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+.chip { padding: 10px 16px; border-radius: 50px; background: #0f172a; border: 1px solid #1e293b; color: #94a3b8; font-size: 0.9rem; cursor: pointer; transition: all 0.15s; user-select: none; display: flex; align-items: center; gap: 6px; }
+.chip:active { transform: scale(0.96); }
+.chip.selected { background: #00e5ff18; border-color: #00e5ff66; color: #00e5ff; }
+.chip.city { font-size: 0.85rem; padding: 8px 14px; }
+.wizard-actions { display: flex; gap: 12px; margin-top: 24px; }
+.btn-primary { flex: 1; background: #00e5ff; color: #000; font-size: 1rem; font-weight: 700; border: none; border-radius: 14px; padding: 16px; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+.btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-skip { background: transparent; color: #475569; font-size: 0.9rem; border: 1px solid #1e293b; border-radius: 14px; padding: 16px 20px; cursor: pointer; transition: color 0.15s; white-space: nowrap; }
+.btn-skip:hover { color: #94a3b8; }
+.btn-back { background: transparent; color: #475569; font-size: 0.9rem; border: none; padding: 0; cursor: pointer; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
+.consent-box { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 16px; font-size: 0.82rem; color: #64748b; line-height: 1.6; margin-bottom: 20px; }
+.consent-check { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; padding: 4px 0; }
+.consent-check input[type=checkbox] { width: 20px; height: 20px; flex-shrink: 0; accent-color: #00e5ff; margin-top: 2px; cursor: pointer; }
+.consent-check-label { font-size: 0.88rem; color: #94a3b8; line-height: 1.5; }
+.success-screen { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 0 24px; gap: 12px; }
+.success-emoji { font-size: 3.5rem; animation: pop 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+.success-title { font-size: 1.4rem; font-weight: 800; color: #f1f5f9; }
+.success-sub { font-size: 0.9rem; color: #64748b; line-height: 1.5; }
+.reg-greeting { background: #0f172a; border: 1px solid #00e5ff22; border-radius: 12px; padding: 12px 16px; font-size: 0.9rem; color: #94a3b8; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 .reg-greeting strong { color: #00e5ff; }
 `
 
-// --- Toast ---
 interface Toast { id: number; msg: string; type: 'success' | 'error' | 'warn' }
-
 let toastId = 0
 
-// --- Main Component ---
+const TOTAL_STEPS = 5
+
 export default function VotePage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [session, setSession] = useState<SessionInfo | null>(null)
@@ -133,12 +184,21 @@ export default function VotePage() {
   const [toasts, setToasts] = useState<Toast[]>([])
   const connection = useConnectionStatus()
 
-  // Registration
+  // Registration wizard
   const [participant, setParticipant] = useState<ParticipantData | null>(null)
-  const [showReg, setShowReg] = useState<boolean | null>(null) // null = checking
-  const [regName, setRegName] = useState('')
-  const [regTelegram, setRegTelegram] = useState('')
-  const [regSubmitting, setRegSubmitting] = useState(false)
+  const [showWizard, setShowWizard] = useState<boolean | null>(null) // null = checking
+  const [wizardStep, setWizardStep] = useState(1)
+  const [showSuccess, setShowSuccess] = useState(false)
+
+  // Form fields
+  const [fName, setFName] = useState('')
+  const [fPhone, setFPhone] = useState('')
+  const [fTelegram, setFTelegram] = useState('')
+  const [fCompany, setFCompany] = useState('')
+  const [fRole, setFRole] = useState('')
+  const [fCity, setFCity] = useState('')
+  const [fConsent, setFConsent] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   function showToast(msg: string, type: Toast['type'] = 'warn') {
     const id = ++toastId
@@ -146,30 +206,52 @@ export default function VotePage() {
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3500)
   }
 
-  // Init: anonymous auth + load active session
   useEffect(() => {
-    // Check existing registration
     const existing = loadRegistration()
-    if (existing) setParticipant(existing)
-    else setShowReg(true)
+    if (existing) {
+      setParticipant(existing)
+      setShowWizard(false)
+    } else {
+      setShowWizard(true)
+    }
   }, [])
 
-  async function handleRegSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const name = regName.trim()
-    if (!name) return
-    setRegSubmitting(true)
+  async function finishRegistration() {
+    const name = fName.trim()
+    if (!name || !fConsent) return
+    setSubmitting(true)
     try {
       const uid = userId ?? `anon-${Date.now()}`
-      const telegram = regTelegram.trim().replace(/^@/, '')
-      const data: ParticipantData = { name, telegram, uid }
+      const data: ParticipantData = {
+        name,
+        phone: fPhone.trim(),
+        telegram: fTelegram.trim().replace(/^@/, ''),
+        company: fCompany.trim(),
+        role: fRole,
+        city: fCity.trim(),
+        uid,
+        consent: true,
+      }
       saveRegistration(data)
       setParticipant(data)
-      setShowReg(false)
+      setShowSuccess(true)
       if (session) await registerParticipant({ ...data, uid: userId ?? uid }, session.id)
+      setTimeout(() => {
+        setShowSuccess(false)
+        setShowWizard(false)
+      }, 2000)
     } finally {
-      setRegSubmitting(false)
+      setSubmitting(false)
     }
+  }
+
+  function nextStep() {
+    if (wizardStep < TOTAL_STEPS) setWizardStep(s => s + 1)
+    else finishRegistration()
+  }
+
+  function prevStep() {
+    if (wizardStep > 1) setWizardStep(s => s - 1)
   }
 
   useEffect(() => {
@@ -184,68 +266,42 @@ export default function VotePage() {
         })
         return
       }
-
       try {
         const uid = await ensureAnonymousAuth()
         setUserId(uid)
-
         const { getFirebaseDb } = await import('@/lib/pulse/firebase/client')
         const { ref, get, onValue } = await import('firebase/database')
         const db = getFirebaseDb()
-
-        // Load frozen state
-        onValue(ref(db, 'event/frozen'), (snap) => {
-          setFrozen(!!snap.val())
-        })
-
-        // Load active session
+        onValue(ref(db, 'event/frozen'), (snap) => setFrozen(!!snap.val()))
         const eventSnap = await get(ref(db, 'event'))
         const eventData = eventSnap.val() as { activeSessionId?: string; frozen?: boolean } | null
         if (!eventData?.activeSessionId) return
-
         const sessionId = eventData.activeSessionId
         const [sessSnap, votesSnap] = await Promise.all([
           get(ref(db, `sessions/${sessionId}`)),
           get(ref(db, `votes/${sessionId}`)),
         ])
-
         const sessData = sessSnap.val() as { title: string; speakerId: string; hall: string } | null
         if (!sessData) return
-
         let speakerName = ''
         try {
           const spSnap = await get(ref(db, `speakers/${sessData.speakerId}`))
           speakerName = (spSnap.val() as { name?: string } | null)?.name ?? ''
         } catch {}
-
         setSession({ id: sessionId, title: sessData.title, speakerName, hall: sessData.hall })
-
-        // Register participant in Firebase if already registered locally
         const existing = loadRegistration()
-        if (existing && uid) {
-          registerParticipant({ ...existing, uid }, sessionId)
-        }
-
-        // Load vote counts + voted state
+        if (existing && uid) registerParticipant({ ...existing, uid }, sessionId)
         const votesData = (votesSnap.val() as Record<string, number> | null) ?? {}
         setTags((prev) => prev.map((t) => ({ ...t, votes: votesData[t.id] ?? 0 })))
-
-        // Restore voted state from localStorage
         const alreadyVoted = new Set<string>()
         tags.forEach((t) => {
-          if (localStorage.getItem(`pulse_voted_${sessionId}_${t.id}_${uid}`) === '1') {
-            alreadyVoted.add(t.id)
-          }
+          if (localStorage.getItem(`pulse_voted_${sessionId}_${t.id}_${uid}`) === '1') alreadyVoted.add(t.id)
         })
         setVotedTags(alreadyVoted)
-
-        // Live vote count updates
         onValue(ref(db, `votes/${sessionId}`), (snap) => {
           const counts = (snap.val() as Record<string, number> | null) ?? {}
           setTags((prev) => prev.map((t) => ({ ...t, votes: counts[t.id] ?? t.votes })))
         })
-
-        // Flush offline queue on reconnect
         flushOfflineQueue()
       } catch (err) {
         console.error('Vote page init error:', err)
@@ -259,30 +315,12 @@ export default function VotePage() {
   const handleVote = useCallback(
     async (tagId: string) => {
       if (!userId || !session) return
-      if (votedTags.has(tagId)) {
-        showToast('Вы уже голосовали за этот тег', 'warn')
-        return
-      }
-      if (frozen) {
-        showToast('Голосование приостановлено', 'warn')
-        return
-      }
+      if (votedTags.has(tagId)) { showToast('Вы уже голосовали за этот тег', 'warn'); return }
+      if (frozen) { showToast('Голосование приостановлено', 'warn'); return }
       if (pendingTags.has(tagId)) return
-
       setPendingTags((prev) => new Set(prev).add(tagId))
-
-      const result: VoteResult = await voteForTag({
-        sessionId: session.id,
-        tagId,
-        userId,
-      })
-
-      setPendingTags((prev) => {
-        const next = new Set(prev)
-        next.delete(tagId)
-        return next
-      })
-
+      const result: VoteResult = await voteForTag({ sessionId: session.id, tagId, userId })
+      setPendingTags((prev) => { const n = new Set(prev); n.delete(tagId); return n })
       if (result.ok) {
         setVotedTags((prev) => new Set(prev).add(tagId))
         setTags((prev) => prev.map((t) => t.id === tagId ? { ...t, votes: t.votes + 1 } : t))
@@ -296,8 +334,7 @@ export default function VotePage() {
       } else if (result.status === 'rate_limited') {
         showToast(`Подождите ${result.retryAfter} сек`, 'warn')
       } else if (result.status === 'frozen') {
-        setFrozen(true)
-        showToast('Голосование приостановлено', 'warn')
+        setFrozen(true); showToast('Голосование приостановлено', 'warn')
       } else if (result.status === 'error') {
         showToast('Ошибка отправки', 'error')
       }
@@ -309,6 +346,219 @@ export default function VotePage() {
     : connection.status === 'offline' ? 'dot-offline'
     : connection.status === 'frozen' ? 'dot-frozen'
     : 'dot-reconnecting'
+
+  // ── Render wizard step content ──
+  function renderStep() {
+    if (showSuccess) {
+      return (
+        <div className="success-screen">
+          <div className="success-emoji">🎉</div>
+          <div className="success-title">Добро пожаловать!</div>
+          <div className="success-sub">Данные сохранены.<br />Голосуйте и участвуйте в аналитике!</div>
+        </div>
+      )
+    }
+
+    const progress = (
+      <div className="wizard-progress">
+        {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+          <div
+            key={i}
+            className={`wizard-dot${i < wizardStep - 1 ? ' done' : i === wizardStep - 1 ? ' active' : ''}`}
+          />
+        ))}
+      </div>
+    )
+
+    const backBtn = wizardStep > 1 ? (
+      <button className="btn-back" onClick={prevStep}>← Назад</button>
+    ) : null
+
+    // Step 1: Name
+    if (wizardStep === 1) return (
+      <div className="wizard-step">
+        {progress}
+        <div className="wizard-emoji">👋</div>
+        <div className="wizard-title">Как вас зовут?</div>
+        <div className="wizard-sub">Имя появится на дашборде конференции</div>
+        <div className="reg-field">
+          <input
+            className="reg-input"
+            type="text"
+            placeholder="Иван Петров"
+            value={fName}
+            onChange={e => setFName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && fName.trim() && nextStep()}
+            autoFocus
+            maxLength={60}
+          />
+        </div>
+        <div className="wizard-actions">
+          <button className="btn-primary" onClick={nextStep} disabled={!fName.trim()}>
+            Далее →
+          </button>
+        </div>
+      </div>
+    )
+
+    // Step 2: Role
+    if (wizardStep === 2) return (
+      <div className="wizard-step">
+        {progress}
+        {backBtn}
+        <div className="wizard-emoji">💼</div>
+        <div className="wizard-title">Ваша роль</div>
+        <div className="wizard-sub">Помогает нам показывать релевантную аналитику</div>
+        <div className="chip-grid">
+          {ROLES.map(r => (
+            <div
+              key={r.id}
+              className={`chip${fRole === r.id ? ' selected' : ''}`}
+              onClick={() => setFRole(r.id)}
+            >
+              {r.icon} {r.label}
+            </div>
+          ))}
+        </div>
+        <div className="wizard-actions">
+          <button className="btn-skip" onClick={() => { setFRole(''); nextStep() }}>Пропустить</button>
+          <button className="btn-primary" onClick={nextStep}>
+            {fRole ? 'Далее →' : 'Далее →'}
+          </button>
+        </div>
+      </div>
+    )
+
+    // Step 3: Company + City
+    if (wizardStep === 3) return (
+      <div className="wizard-step">
+        {progress}
+        {backBtn}
+        <div className="wizard-emoji">🏙️</div>
+        <div className="wizard-title">Откуда вы?</div>
+        <div className="wizard-sub">Для карты активности конференции</div>
+        <div className="reg-field">
+          <label className="reg-label">Город</label>
+          <div className="chip-grid" style={{marginBottom: 10}}>
+            {POPULAR_CITIES.map(c => (
+              <div
+                key={c}
+                className={`chip city${fCity === c ? ' selected' : ''}`}
+                onClick={() => setFCity(fCity === c ? '' : c)}
+              >
+                {c}
+              </div>
+            ))}
+          </div>
+          <input
+            className="reg-input"
+            type="text"
+            placeholder="или введите свой город..."
+            value={fCity}
+            onChange={e => setFCity(e.target.value)}
+            maxLength={40}
+          />
+        </div>
+        <div className="reg-field">
+          <label className="reg-label">Компания <span style={{fontWeight:400,textTransform:'none',letterSpacing:0}}>— необязательно</span></label>
+          <input
+            className="reg-input"
+            type="text"
+            placeholder="ООО Ромашка"
+            value={fCompany}
+            onChange={e => setFCompany(e.target.value)}
+            maxLength={80}
+          />
+        </div>
+        <div className="wizard-actions">
+          <button className="btn-skip" onClick={() => { setFCity(''); setFCompany(''); nextStep() }}>Пропустить</button>
+          <button className="btn-primary" onClick={nextStep}>Далее →</button>
+        </div>
+      </div>
+    )
+
+    // Step 4: Phone + Telegram
+    if (wizardStep === 4) return (
+      <div className="wizard-step">
+        {progress}
+        {backBtn}
+        <div className="wizard-emoji">📱</div>
+        <div className="wizard-title">Контакты</div>
+        <div className="wizard-sub">Для связи после конференции и рассылки материалов</div>
+        <div className="reg-field">
+          <label className="reg-label">Телефон (WhatsApp) <span style={{fontWeight:400,textTransform:'none',letterSpacing:0}}>— необязательно</span></label>
+          <div className="input-with-prefix">
+            <span className="input-prefix">+7</span>
+            <input
+              type="tel"
+              placeholder="900 123 45 67"
+              value={fPhone}
+              onChange={e => setFPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+              maxLength={10}
+            />
+          </div>
+          <div className="reg-hint">Только цифры после +7</div>
+        </div>
+        <div className="reg-field">
+          <label className="reg-label">Telegram <span style={{fontWeight:400,textTransform:'none',letterSpacing:0}}>— необязательно</span></label>
+          <div className="input-with-prefix">
+            <span className="input-prefix">@</span>
+            <input
+              type="text"
+              placeholder="username"
+              value={fTelegram}
+              onChange={e => setFTelegram(e.target.value.replace(/^@/, ''))}
+              maxLength={40}
+            />
+          </div>
+        </div>
+        <div className="wizard-actions">
+          <button className="btn-skip" onClick={() => { setFPhone(''); setFTelegram(''); nextStep() }}>Пропустить</button>
+          <button className="btn-primary" onClick={nextStep}>Далее →</button>
+        </div>
+      </div>
+    )
+
+    // Step 5: Consent + Submit
+    if (wizardStep === 5) return (
+      <div className="wizard-step">
+        {progress}
+        {backBtn}
+        <div className="wizard-emoji">🔐</div>
+        <div className="wizard-title">Последний шаг</div>
+        <div className="wizard-sub">Подтвердите согласие для участия</div>
+        <div className="consent-box">
+          Организатор — ООО «Горы и Город». Ваши данные используются исключительно
+          в рамках конференции «Горы и Город — 2026»: для отображения аналитики,
+          отправки материалов мероприятия и информации о последующих событиях.
+          Данные не передаются третьим лицам. Вы можете отозвать согласие,
+          написав на hello@gory-i-gorod.ru
+        </div>
+        <label className="consent-check">
+          <input
+            type="checkbox"
+            checked={fConsent}
+            onChange={e => setFConsent(e.target.checked)}
+          />
+          <span className="consent-check-label">
+            Я согласен(на) на обработку персональных данных и получение
+            материалов конференции в соответствии с ФЗ-152
+          </span>
+        </label>
+        <div className="wizard-actions" style={{marginTop: 24}}>
+          <button
+            className="btn-primary"
+            onClick={finishRegistration}
+            disabled={!fConsent || submitting}
+          >
+            {submitting ? 'Сохраняем...' : '✓ Войти и голосовать'}
+          </button>
+        </div>
+      </div>
+    )
+
+    return null
+  }
 
   return (
     <>
@@ -330,94 +580,65 @@ export default function VotePage() {
           )}
         </div>
 
-        {/* Freeze banner */}
         {frozen && (
-          <div className="freeze-banner">
-            🔒 Голосование приостановлено
-          </div>
+          <div className="freeze-banner">🔒 Голосование приостановлено</div>
         )}
 
-        {/* Registration screen */}
-        {showReg && (
-          <form className="reg-screen" onSubmit={handleRegSubmit}>
-            <div>
-              <div className="reg-title">Добро пожаловать 👋</div>
-              <div className="reg-subtitle">Введите имя чтобы голосовать и участвовать в аналитике конференции</div>
-            </div>
-            <div className="reg-field">
-              <label className="reg-label">Ваше имя *</label>
-              <input
-                className="reg-input"
-                type="text"
-                placeholder="Иван Петров"
-                value={regName}
-                onChange={e => setRegName(e.target.value)}
-                autoFocus
-                required
-                maxLength={60}
-              />
-            </div>
-            <div className="reg-field">
-              <label className="reg-label">Telegram <span style={{fontWeight:400, textTransform:'none', letterSpacing:0}}>— необязательно</span></label>
-              <input
-                className="reg-input"
-                type="text"
-                placeholder="@username"
-                value={regTelegram}
-                onChange={e => setRegTelegram(e.target.value)}
-                maxLength={40}
-              />
-              <div className="reg-hint">Для связи после конференции</div>
-            </div>
-            <button className="reg-btn" type="submit" disabled={!regName.trim() || regSubmitting}>
-              {regSubmitting ? 'Сохраняем...' : 'Войти и голосовать →'}
-            </button>
-          </form>
+        {/* Wizard */}
+        {showWizard === null && <div className="loading">Загрузка...</div>}
+
+        {showWizard === true && (
+          <div className="wizard">{renderStep()}</div>
         )}
 
-        {/* Greeting bar for registered users */}
-        {!showReg && participant && (
-          <div className="reg-greeting" style={{marginBottom: 16}}>
-            👤 <strong>{participant.name}</strong>
-            {participant.telegram && <span style={{color:'#64748b'}}> · @{participant.telegram}</span>}
-            <span
-              style={{float:'right', color:'#475569', fontSize:'0.8rem', cursor:'pointer'}}
-              onClick={() => { setShowReg(true) }}
-            >изменить</span>
-          </div>
-        )}
+        {/* Main vote UI */}
+        {showWizard === false && !showSuccess && (
+          <>
+            {participant && (
+              <div className="reg-greeting">
+                <span>👤</span>
+                <span>
+                  <strong>{participant.name}</strong>
+                  {participant.city && <span style={{color:'#64748b'}}> · {participant.city}</span>}
+                  {participant.role && <span style={{color:'#475569'}}> · {ROLES.find(r => r.id === participant.role)?.label}</span>}
+                </span>
+                <span
+                  style={{marginLeft:'auto', color:'#334155', fontSize:'0.8rem', cursor:'pointer'}}
+                  onClick={() => { setWizardStep(1); setShowWizard(true) }}
+                >изменить</span>
+              </div>
+            )}
 
-        {/* Tags */}
-        {showReg === null ? (
-          <div className="loading">Загрузка...</div>
-        ) : showReg ? null : !userId ? (
-          <div className="loading">Подключение...</div>
-        ) : (
-          <div className="tags-grid">
-            {tags.map((tag) => {
-              const voted = votedTags.has(tag.id)
-              const pending = pendingTags.has(tag.id)
-              return (
-                <div key={tag.id} className={`tag-card${voted ? ' voted' : ''}`}>
-                  <div className="tag-icon">{tag.icon}</div>
-                  <div className="tag-body">
-                    <div className="tag-name">{tag.name}</div>
-                    <div className={`tag-count${tag.votes > 0 ? ' live' : ''}`}>
-                      {tag.votes > 0 ? `${tag.votes} голосов` : 'Нет голосов'}
+            {!userId ? (
+              <div className="loading">Подключение...</div>
+            ) : (
+              <div className="tags-grid">
+                {tags.map((tag) => {
+                  const voted = votedTags.has(tag.id)
+                  const pending = pendingTags.has(tag.id)
+                  return (
+                    <div key={tag.id} className={`tag-card${voted ? ' voted' : ''}`}>
+                      <div className="tag-icon">{tag.icon}</div>
+                      <div className="tag-body">
+                        <div className="tag-name">{tag.name}</div>
+                        <div className={`tag-count${tag.votes > 0 ? ' live' : ''}`}>
+                          {tag.votes > 0 ? `${tag.votes} голосов` : 'Нет голосов'}
+                        </div>
+                      </div>
+                      <button
+                        className={`vote-btn ${voted ? 'done' : pending ? 'pending' : 'idle'}`}
+                        onClick={() => handleVote(tag.id)}
+                        disabled={voted || pending || frozen}
+                        aria-label={voted ? 'Голос учтён' : `Голосовать за ${tag.name}`}
+                      >
+                        {voted ? '✓' : pending ? '…' : '+'}
+                      </button>
                     </div>
-                  </div>
-                  <button
-                    className={`vote-btn ${voted ? 'done' : pending ? 'pending' : 'idle'}`}
-                    onClick={() => handleVote(tag.id)}
-                    disabled={voted || pending || frozen}
-                    aria-label={voted ? 'Голос учтён' : `Голосовать за ${tag.name}`}
-                  >
-                    {voted ? '✓' : pending ? '…' : '+'}
-                  </button>
-                </div>
-              )
-            })}
-          </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
         )}
 
         {/* Toasts */}
