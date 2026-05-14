@@ -106,6 +106,8 @@ export default function AdminPage() {
   const [dialog, setDialog] = useState<'freeze' | 'unfreeze' | null>(null)
   const [wakeLock, setWakeLock] = useState(false)
   const wakeLockRef = useRef<WakeLockSentinel | null>(null)
+  const [seeding, setSeeding] = useState(false)
+  const [seedResult, setSeedResult] = useState<string | null>(null)
 
   const mode: OperatorMode = frozen ? 'freeze' : 'live'
 
@@ -183,6 +185,20 @@ export default function AdminPage() {
     const { getFirebaseDb } = await import('@/lib/pulse/firebase/client')
     const { ref, set } = await import('firebase/database')
     await set(ref(getFirebaseDb(), 'event/activeSessionId'), id)
+  }
+
+  async function seedSessions() {
+    setSeeding(true)
+    setSeedResult(null)
+    try {
+      const res = await fetch('/api/seed-sessions', { method: 'POST' })
+      const d = await res.json() as { ok: boolean; count?: number; error?: string }
+      setSeedResult(d.ok ? `✅ Загружено ${d.count} сессий` : `❌ ${d.error}`)
+    } catch (e) {
+      setSeedResult(`❌ ${e}`)
+    } finally {
+      setSeeding(false)
+    }
   }
 
   async function applyFrozen(value: boolean) {
@@ -263,7 +279,26 @@ export default function AdminPage() {
         {/* Sessions */}
         <div className="card">
           <h2>Сессии — нажми чтобы сделать LIVE</h2>
+
+          {/* Seed button */}
+          <div style={{ marginBottom: 12 }}>
+            <button className="btn btn-sm btn-cyan" onClick={seedSessions} disabled={seeding}
+              style={{ width: '100%', opacity: seeding ? 0.6 : 1 }}>
+              {seeding ? '⏳ Загружаю...' : '⬆ Загрузить программу в Firebase'}
+            </button>
+            {seedResult && (
+              <div style={{ marginTop: 8, fontSize: '0.8rem', color: seedResult.startsWith('✅') ? '#4ade80' : '#ef4444' }}>
+                {seedResult}
+              </div>
+            )}
+          </div>
+
           {loading && <div style={{ color: '#475569', fontSize: '0.85rem' }}>Загрузка...</div>}
+          {!loading && sessions.length === 0 && (
+            <div style={{ color: '#475569', fontSize: '0.82rem', padding: '8px 0' }}>
+              Нажми кнопку выше чтобы загрузить сессии из программы
+            </div>
+          )}
           {sessions.map((s) => (
             <div key={s.id} className={`session-row${s.id === activeSessionId ? ' active' : ''}`}
               onClick={() => s.id !== activeSessionId && setActiveSession(s.id)}
