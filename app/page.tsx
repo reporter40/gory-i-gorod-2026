@@ -37,8 +37,119 @@ export default function Home() {
       }} />
 
       {/* Hero */}
-      <div className="forum-gradient text-white px-5 pt-12 pb-9 relative z-10">
-        <div className="max-w-md mx-auto">
+      <div className="text-white px-5 pt-12 pb-9 relative overflow-hidden z-10"
+        style={{ background: 'linear-gradient(180deg, #020d1f 0%, #050f22 60%, #07101f 100%)', minHeight: 380 }}>
+
+        {/* ── Animated background art ── */}
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 430 380"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <radialGradient id="orbGlow" cx="50%" cy="42%" r="38%">
+              <stop offset="0%" stopColor="#1a8fc0" stopOpacity="0.22" />
+              <stop offset="60%" stopColor="#0a4a7a" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="#020d1f" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="cityGlow" cx="50%" cy="100%" r="60%">
+              <stop offset="0%" stopColor="#c4974a" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#020d1f" stopOpacity="0" />
+            </radialGradient>
+            <filter id="blur4">
+              <feGaussianBlur stdDeviation="4" />
+            </filter>
+            <filter id="blur2">
+              <feGaussianBlur stdDeviation="2" />
+            </filter>
+            <style>{`
+              @keyframes ring-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+              @keyframes ring-spin-rev { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+              @keyframes orb-pulse {
+                0%,100% { opacity: 0.7; r: 58; }
+                50%      { opacity: 1;   r: 62; }
+              }
+              @keyframes city-flicker {
+                0%,100% { opacity:0.55 } 30% { opacity:0.7 } 70% { opacity:0.5 }
+              }
+              .ring1 { transform-origin: 215px 160px; animation: ring-spin 28s linear infinite; }
+              .ring2 { transform-origin: 215px 160px; animation: ring-spin-rev 18s linear infinite; }
+              .ring3 { transform-origin: 215px 160px; animation: ring-spin 45s linear infinite; }
+              .ring-gold { transform-origin: 215px 160px; animation: ring-spin-rev 60s linear infinite; }
+              .city-lights { animation: city-flicker 4s ease-in-out infinite; }
+            `}</style>
+          </defs>
+
+          {/* Ambient background glow */}
+          <ellipse cx="215" cy="155" rx="220" ry="160" fill="url(#orbGlow)" />
+
+          {/* Outer gold dotted ring */}
+          <circle className="ring-gold" cx="215" cy="160" r="155"
+            fill="none" stroke="#c4974a" strokeWidth="0.6" strokeOpacity="0.25"
+            strokeDasharray="3 18" />
+
+          {/* Outer ring 1 */}
+          <circle className="ring3" cx="215" cy="160" r="135"
+            fill="none" stroke="#2a6a9a" strokeWidth="0.8" strokeOpacity="0.3"
+            strokeDasharray="6 24" />
+
+          {/* Ring 2 — thicker */}
+          <circle className="ring2" cx="215" cy="160" r="108"
+            fill="none" stroke="#1a7ab8" strokeWidth="1.2" strokeOpacity="0.4"
+            strokeDasharray="12 20" />
+
+          {/* Inner glowing ring */}
+          <circle className="ring1" cx="215" cy="160" r="80"
+            fill="none" stroke="#4ab8e0" strokeWidth="2" strokeOpacity="0.6"
+            strokeDasharray="60 140" filter="url(#blur2)" />
+          <circle className="ring1" cx="215" cy="160" r="80"
+            fill="none" stroke="#6ad4f8" strokeWidth="1" strokeOpacity="0.8"
+            strokeDasharray="60 140" />
+
+          {/* Gold arc accent */}
+          <circle className="ring-gold" cx="215" cy="160" r="80"
+            fill="none" stroke="#c4974a" strokeWidth="1.5" strokeOpacity="0.5"
+            strokeDasharray="8 232" />
+
+          {/* Core orb */}
+          <circle cx="215" cy="160" r="58" fill="#020d1f" />
+          <circle cx="215" cy="160" r="58" fill="none" stroke="#4ab8e0" strokeWidth="1.5" strokeOpacity="0.5" />
+          {/* Orb inner glow rim */}
+          <circle cx="215" cy="160" r="57" fill="none" stroke="#6ad4f8" strokeWidth="3" strokeOpacity="0.15" filter="url(#blur2)" />
+          {/* Bright arc on core */}
+          <path d="M 215 102 A 58 58 0 0 1 248 170" fill="none" stroke="#4ab8e0" strokeWidth="3" strokeLinecap="round" strokeOpacity="0.9" filter="url(#blur2)" />
+          <path d="M 215 102 A 58 58 0 0 1 248 170" fill="none" stroke="#9ee8ff" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.8" />
+
+          {/* Stars */}
+          {[[38,28],[90,18],[140,35],[300,22],[360,40],[400,15],[50,70],[380,65],[420,50],[10,45],[200,12],[320,55]].map(([x,y],i) => (
+            <circle key={i} cx={x} cy={y} r={i%3===0?1.2:0.7} fill="white" fillOpacity={0.4+Math.sin(i)*0.3} />
+          ))}
+
+          {/* Mountain silhouette */}
+          <path
+            d="M0 310 L55 240 L100 270 L155 195 L200 245 L240 185 L285 250 L330 210 L375 255 L430 230 L430 310 Z"
+            fill="#030b1a" opacity="0.95"
+          />
+          <path
+            d="M0 320 L80 275 L130 290 L175 255 L215 270 L260 248 L305 268 L360 255 L410 272 L430 265 L430 320 Z"
+            fill="#020d1f" opacity="1"
+          />
+
+          {/* City glow on horizon */}
+          <rect x="0" y="305" width="430" height="8" fill="url(#cityGlow)" filter="url(#blur4)" />
+
+          {/* City lights */}
+          <g className="city-lights">
+            {[[160,300],[175,298],[190,302],[205,297],[220,301],[235,299],[250,303],[265,298],[280,301],[295,300],[175,307],[200,305],[225,308],[250,306],[140,304],[310,303]].map(([x,y],i) => (
+              <rect key={i} x={x} y={y} width={i%4===0?2:1} height={i%3===0?3:2}
+                fill={i%5===0?'#c4974a':'#4ab8e0'} fillOpacity={0.5+Math.sin(i*1.7)*0.3} />
+            ))}
+          </g>
+        </svg>
+
+        {/* Content */}
+        <div className="max-w-md mx-auto relative" style={{ zIndex: 2 }}>
           <div className="flex items-center gap-3 mb-9 opacity-60">
             <LogoInnopolis size={18} />
             <div className="w-px h-3.5" style={{ background: 'rgba(255,255,255,0.25)' }} />
