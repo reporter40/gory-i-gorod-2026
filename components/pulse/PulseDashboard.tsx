@@ -100,6 +100,13 @@ function PulseDashboardInner() {
     ? `${window.location.origin}/pulse/vote`
     : `${PROD_URL}/pulse/vote`
 
+  // Mobile redirect: phone users visiting /pulse during vote mode → go straight to registration
+  useEffect(() => {
+    if (eventMode === 'vote' && typeof window !== 'undefined' && window.innerWidth < 768) {
+      window.location.replace(voteUrl)
+    }
+  }, [eventMode, voteUrl])
+
   const isFrozen = liveState._meta.source === 'frozen'
   const isStale = liveState._meta.staleSince !== null
   const isOffline = liveState.connection.status === 'offline'
