@@ -661,7 +661,7 @@ export default function VotePage() {
               ))}
             </div>
             <div className="wiz-actions">
-              <button className="btn-skip" onClick={()=>{setFRole('');nextStep()}}>Пропустить</button>
+
               <button className="btn-main" onClick={nextStep}>Далее →</button>
             </div>
           </div>
@@ -691,7 +691,7 @@ export default function VotePage() {
                 value={fCompany} onChange={e=>setFCompany(e.target.value)} maxLength={80} />
             </div>
             <div className="wiz-actions">
-              <button className="btn-skip" onClick={()=>{setFCity('');setFCompany('');nextStep()}}>Пропустить</button>
+
               <button className="btn-main" onClick={nextStep}>Далее →</button>
             </div>
           </div>
@@ -721,7 +721,7 @@ export default function VotePage() {
               </div>
             </div>
             <div className="wiz-actions">
-              <button className="btn-skip" onClick={()=>{setFPhone('');setFTelegram('');nextStep()}}>Пропустить</button>
+
               <button className="btn-main" onClick={nextStep}>Далее →</button>
             </div>
           </div>

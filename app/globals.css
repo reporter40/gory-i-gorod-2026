@@ -1,68 +1,112 @@
 @import "tailwindcss";
 
 :root {
-  --navy: #0f1f3d;
-  --navy-mid: #1a3a5c;
-  --azure: #2563eb;
-  --azure-light: #3b82f6;
-  --forest: #166534;
-  --sand: #fafaf9;
-  --border: #e5e7eb;
-  --text: #111827;
-  --muted: #6b7280;
+  --bg:            #07101f;
+  --bg-2:          #0c1a2e;
+  --surface:       rgba(255,255,255,0.045);
+  --surface-2:     rgba(255,255,255,0.08);
+  --border:        rgba(255,255,255,0.08);
+  --border-accent: rgba(74,158,202,0.35);
+  --text:          #eef4ff;
+  --text-2:        rgba(238,244,255,0.55);
+  --text-3:        rgba(238,244,255,0.28);
+  --accent:        #4a9eca;
+  --accent-glow:   rgba(74,158,202,0.18);
+  --gold:          #c4974a;
+  --gold-dim:      rgba(196,151,74,0.12);
+  --navy:          #0f1f3d;
+  --azure:         #2563eb;
+  --radius:        18px;
 }
 
 * { box-sizing: border-box; }
 
 body {
-  background: #f9fafb;
+  background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, 'Inter', system-ui, sans-serif;
+  font-family: -apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   font-size: 14px;
   line-height: 1.5;
 }
 
-/* Typography */
-.display { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
-.heading  { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
-.subhead  { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-
-/* Cards */
-.card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
+/* ── Typography ── */
+.display {
+  font-size: 30px; font-weight: 800;
+  letter-spacing: -0.03em; line-height: 1.1;
 }
-.card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); transform: translateY(-1px); }
-.card-flat { background: #fff; border: 1px solid var(--border); border-radius: 16px; }
+.heading {
+  font-size: 22px; font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.subhead {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-3);
+}
 
-/* Bottom nav spacing */
-.pb-nav { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+/* ── Glass cards ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: border-color 0.2s, background 0.2s;
+}
+.card:active {
+  background: var(--surface-2);
+  border-color: rgba(255,255,255,0.14);
+}
+.card-flat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
 
-/* Forum gradient — refined */
-.forum-gradient { background: linear-gradient(160deg, #0f1f3d 0%, #1a3a5c 55%, #1e4d8c 100%); }
+/* ── Premium header gradient ── */
+.forum-gradient {
+  background: linear-gradient(160deg, #08172e 0%, #0d2240 55%, #102c54 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
 
-/* Tags */
+/* ── Tags ── */
 .tag-pill {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 6px 14px; border-radius: 999px; font-size: 13px;
-  font-weight: 500; cursor: pointer; border: 1.5px solid transparent;
-  transition: all 0.12s; user-select: none;
+  font-weight: 500; cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  transition: all 0.15s; user-select: none;
 }
 .tag-pill:active { transform: scale(0.95); }
 
-/* Divider */
+/* ── Divider ── */
 .divider { height: 1px; background: var(--border); }
 
-/* Pulse animation */
-@keyframes blink { 0%,100% { opacity:1 } 50% { opacity:0.3 } }
+/* ── Pulse / blink ── */
+@keyframes blink { 0%,100% { opacity:1 } 50% { opacity:0.25 } }
 .blink { animation: blink 1.8s ease-in-out infinite; }
 
-/* Heatmap bar */
+/* ── Heatmap ── */
 .heatbar { height: 6px; border-radius: 999px; transition: width 0.5s ease; }
 
-/* Scrollbar hide */
+/* ── Scroll hide ── */
 .no-scroll::-webkit-scrollbar { display: none; }
 .no-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Bottom nav clearance ── */
+.pb-nav { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+
+/* ── Glow chip ── */
+.glow-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--accent-glow);
+  border: 1px solid var(--border-accent);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 10px; font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.08em; text-transform: uppercase;
+}

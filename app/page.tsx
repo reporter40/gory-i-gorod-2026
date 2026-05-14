@@ -3,8 +3,14 @@ import { SESSIONS, SPEAKERS, BLOCK_LABELS, PARTICIPANTS } from '@/lib/data'
 import { PartnersBar, LogoInnopolis, LogoGelendzhikArena, LogoIIntegration } from '@/components/Logos'
 
 const BLOCK_DOT: Record<string, string> = {
-  tourism: '#2563eb', quality: '#16a34a', creative: '#9333ea',
-  infra: '#ea580c', cases: '#0891b2',
+  tourism: '#4a9eca', quality: '#22c55e', creative: '#a855f7',
+  infra: '#f97316', cases: '#06b6d4',
+}
+
+const BLOCK_ACCENT: Record<string, string> = {
+  tourism: 'rgba(74,158,202,0.12)', quality: 'rgba(34,197,94,0.1)',
+  creative: 'rgba(168,85,247,0.1)', infra: 'rgba(249,115,22,0.1)',
+  cases: 'rgba(6,182,212,0.1)',
 }
 
 export default function Home() {
@@ -13,43 +19,61 @@ export default function Home() {
   const speaker = SPEAKERS.find(s => s.id === nextSession.speaker_id)
 
   const quickLinks = [
-    { href: '/program', icon: '▤', title: 'Программа', desc: `${SESSIONS.length} слотов · 2 дня` },
-    { href: '/pulse', icon: '◎', title: 'Городской Пульс', desc: 'AI-синтез идей', accent: true },
-    { href: '/speakers', icon: '◈', title: 'Спикеры', desc: `${SPEAKERS.length} экспертов` },
-    { href: '/network', icon: '◉', title: 'Участники', desc: `${PARTICIPANTS.length} в программе` },
-    { href: '/map', icon: '◫', title: 'Площадка', desc: 'Схема залов' },
-    { href: '/dashboard', icon: '◧', title: 'Аналитика', desc: 'Для организаторов' },
+    { href: '/program',  icon: '▤', title: 'Программа',    desc: `${SESSIONS.length} слотов · 2 дня`,    color: '#4a9eca' },
+    { href: '/pulse',    icon: '◎', title: 'Пульс',         desc: 'AI-синтез идей',  color: '#22c55e', live: true },
+    { href: '/speakers', icon: '◈', title: 'Спикеры',       desc: `${SPEAKERS.length} экспертов`,         color: '#a855f7' },
+    { href: '/network',  icon: '◉', title: 'Участники',     desc: `${PARTICIPANTS.length} в программе`,   color: '#f97316' },
+    { href: '/map',      icon: '◫', title: 'Площадка',      desc: 'Схема залов',                           color: '#06b6d4' },
+    { href: '/dashboard',icon: '◧', title: 'Аналитика',     desc: 'Для организаторов',                     color: '#c4974a' },
   ]
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Hero — минималистичный */}
-      <div className="forum-gradient text-white px-5 pt-10 pb-8">
+    <div className="min-h-screen flex flex-col relative">
+      {/* Ambient glow */}
+      <div style={{
+        position: 'fixed', top: -200, left: '50%', transform: 'translateX(-50%)',
+        width: 600, height: 400, pointerEvents: 'none', zIndex: 0,
+        background: 'radial-gradient(ellipse, rgba(74,158,202,0.07) 0%, transparent 70%)',
+      }} />
+
+      {/* Hero */}
+      <div className="forum-gradient text-white px-5 pt-12 pb-9 relative z-10">
         <div className="max-w-md mx-auto">
-          {/* Логотипы партнёров в хедере */}
-          <div className="flex items-center gap-3 mb-8 opacity-80">
-            <LogoInnopolis size={20} />
-            <div className="w-px h-4 bg-white/30" />
-            <LogoGelendzhikArena size={20} />
-            <div className="w-px h-4 bg-white/30" />
-            <LogoIIntegration size={18} />
+          <div className="flex items-center gap-3 mb-9 opacity-60">
+            <LogoInnopolis size={18} />
+            <div className="w-px h-3.5" style={{ background: 'rgba(255,255,255,0.25)' }} />
+            <LogoGelendzhikArena size={18} />
+            <div className="w-px h-3.5" style={{ background: 'rgba(255,255,255,0.25)' }} />
+            <LogoIIntegration size={16} />
           </div>
 
-          <p className="subhead text-white/50 mb-3">16–17 мая 2026 · Геленджик</p>
-          <h1 className="display text-white mb-2">Горы и Город</h1>
-          <p className="text-white/70 text-base font-light leading-relaxed">
+          <div className="glow-chip mb-4">
+            <span className="blink">●</span> 16–17 мая · Геленджик
+          </div>
+
+          <h1 className="display text-white mb-2">Горы<br />и Город</h1>
+
+          <div style={{ width: 28, height: 2, background: 'linear-gradient(90deg, #c4974a, transparent)', borderRadius: 2, marginBottom: 14 }} />
+
+          <p style={{ color: 'rgba(238,244,255,0.55)', fontSize: 15, fontWeight: 400, lineHeight: 1.6 }}>
             Форум урбанистики — практический опыт<br />создания городской среды
           </p>
         </div>
       </div>
 
-      {/* Счётчик тем */}
-      <div className="bg-white border-b border-gray-100 px-5">
+      {/* Block pills */}
+      <div style={{ background: 'rgba(255,255,255,0.025)', borderBottom: '1px solid rgba(255,255,255,0.06)' }} className="px-5 relative z-10">
         <div className="max-w-md mx-auto">
-          <div className="flex gap-1 py-3 no-scroll overflow-x-auto">
+          <div className="flex gap-1.5 py-3 no-scroll overflow-x-auto">
             {Object.entries(BLOCK_LABELS).map(([key, label]) => (
               <Link key={key} href={`/program?block=${key}`}>
-                <span className="flex-shrink-0 flex items-center gap-1.5 text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-full px-3 py-1.5 hover:bg-gray-100 transition-colors">
+                <span className="flex-shrink-0 flex items-center gap-1.5 text-xs rounded-full px-3 py-1.5 transition-all"
+                  style={{
+                    background: BLOCK_ACCENT[key],
+                    border: `1px solid ${BLOCK_DOT[key]}30`,
+                    color: BLOCK_DOT[key],
+                    fontWeight: 600,
+                  }}>
                   <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: BLOCK_DOT[key] }} />
                   {label}
                 </span>
@@ -59,21 +83,22 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-4 py-5 flex-1 space-y-4">
-        {/* Следующая сессия */}
+      <div className="max-w-md mx-auto px-4 py-5 flex-1 space-y-3 relative z-10 w-full">
+        {/* Opening session card */}
         <Link href="/program">
-          <div className="card p-4 cursor-pointer">
-            <p className="subhead mb-2 text-[#2563eb]">Открывает форум</p>
-            <h2 className="font-semibold text-[#0f1f3d] leading-snug mb-3 text-base">
+          <div className="card p-4 cursor-pointer" style={{ borderColor: 'rgba(74,158,202,0.2)' }}>
+            <div className="glow-chip mb-3" style={{ display: 'inline-flex' }}>Открывает форум</div>
+            <h2 style={{ fontWeight: 700, color: 'var(--text)', lineHeight: 1.35, marginBottom: 14, fontSize: 16 }}>
               {nextSession.title}
             </h2>
             <div className="flex items-center gap-3">
               {speaker && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={speaker.photo_url} alt={speaker.name}
-                  className="w-8 h-8 rounded-full object-cover grayscale" />
+                  className="w-8 h-8 rounded-full object-cover"
+                  style={{ filter: 'grayscale(40%) brightness(1.1)' }} />
               )}
-              <div className="text-sm text-gray-500">
+              <div style={{ fontSize: 13, color: 'var(--text-2)' }}>
                 {speaker?.name} · {nextSession.hall} ·{' '}
                 {new Date(nextSession.starts_at).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })}
               </div>
@@ -81,71 +106,72 @@ export default function Home() {
           </div>
         </Link>
 
-        {/* Сетка разделов */}
-        <div className="grid grid-cols-2 gap-3">
-          {quickLinks.map(({ href, icon, title, desc, accent }) => (
+        {/* Quick links grid */}
+        <div className="grid grid-cols-2 gap-2.5">
+          {quickLinks.map(({ href, icon, title, desc, color, live }) => (
             <Link key={href} href={href}>
-              <div className={`rounded-2xl p-4 h-full border transition-all active:scale-95 ${
-                accent
-                  ? 'forum-gradient border-transparent text-white'
-                  : 'bg-white border-gray-200 hover:border-gray-300'
-              }`}>
-                <span className={`text-xl mb-3 block font-mono ${accent ? 'text-white/80' : 'text-gray-400'}`}>
-                  {icon}
-                </span>
-                <div className={`font-semibold text-sm ${accent ? 'text-white' : 'text-[#0f1f3d]'}`}>{title}</div>
-                <div className={`text-xs mt-0.5 ${accent ? 'text-white/60' : 'text-gray-400'}`}>{desc}</div>
-                {accent && (
-                  <div className="mt-2 inline-flex items-center gap-1 text-[10px] bg-white/15 rounded-full px-2 py-0.5">
-                    <span className="blink">●</span> live
-                  </div>
-                )}
+              <div className="card p-4 h-full cursor-pointer active:scale-95 transition-transform"
+                style={{ borderColor: `${color}22` }}>
+                <div className="flex items-start justify-between mb-3">
+                  <span style={{ fontSize: 22, color: color, fontFamily: 'monospace', lineHeight: 1 }}>
+                    {icon}
+                  </span>
+                  {live && (
+                    <span className="glow-chip" style={{ fontSize: 9, padding: '3px 8px' }}>
+                      <span className="blink">●</span> live
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 3 }}>{title}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{desc}</div>
               </div>
             </Link>
           ))}
         </div>
 
-        {/* О форуме */}
-        <div className="card-flat p-4">
-          <p className="subhead mb-2">О форуме</p>
-          <p className="text-gray-600 text-sm leading-relaxed">
+        {/* About */}
+        <div className="card-flat p-5">
+          <p className="subhead mb-3">О форуме</p>
+          <p style={{ color: 'var(--text-2)', fontSize: 14, lineHeight: 1.7 }}>
             Разговор об урбанистике начинается с разбора конкретных мест
             и готовых решений. Устойчивое развитие, креативная экономика,
             инфраструктура и лучшие практики городского развития.
           </p>
         </div>
 
-        {/* Партнёры */}
+        {/* Partners */}
         <div className="card-flat overflow-hidden">
-          <div className="px-4 pt-4">
-            <p className="subhead mb-3">Партнёры</p>
+          <div className="px-5 pt-5">
+            <p className="subhead mb-4">Партнёры</p>
           </div>
-          <div className="px-4 pb-4 space-y-4">
+          <div className="px-5 pb-5 space-y-4">
             <div>
-              <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-2">Организаторы</p>
+              <p style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>
+                Организаторы
+              </p>
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2.5">
-                  <LogoInnopolis size={28} />
+                  <LogoInnopolis size={26} />
                   <div>
-                    <div className="text-sm font-semibold text-[#0f1f3d]">Иннополис</div>
-                    <div className="text-[10px] text-gray-400">Технополис</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>Иннополис</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)' }}>Технополис</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <LogoGelendzhikArena size={28} />
+                  <LogoGelendzhikArena size={26} />
                   <div>
-                    <div className="text-sm font-semibold text-[#0f1f3d]">Геленджик Арена</div>
-                    <div className="text-[10px] text-gray-400">Площадка</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>Геленджик Арена</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)' }}>Площадка</div>
                   </div>
                 </div>
               </div>
             </div>
             <div className="divider" />
             <div className="flex items-center gap-2.5">
-              <LogoIIntegration size={26} />
+              <LogoIIntegration size={24} />
               <div>
-                <div className="text-sm font-semibold text-[#0f1f3d]">ИИнтеграция</div>
-                <div className="text-[10px] text-gray-400">Консалтингово-аналитическая группа · Креативный партнёр</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>ИИнтеграция</div>
+                <div style={{ fontSize: 10, color: 'var(--text-3)' }}>Консалтингово-аналитическая группа · Креативный партнёр</div>
               </div>
             </div>
           </div>
