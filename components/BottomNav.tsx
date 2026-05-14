@@ -16,25 +16,40 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-t border-gray-200"
+      className="fixed bottom-0 left-0 right-0 z-50"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <div className="flex max-w-lg mx-auto">
+      <div
+        className="mx-3 mb-3 rounded-2xl flex max-w-lg mx-auto"
+        style={{
+          background: 'rgba(7,16,31,0.85)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid rgba(255,255,255,0.09)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.04) inset',
+        }}
+      >
         {NAV.map(({ href, label, svg }) => {
           const active = href === '/' ? path === '/' : path.startsWith(href)
           return (
             <Link
               key={href}
               href={href}
-              className={`relative flex-1 flex flex-col items-center justify-center py-2.5 gap-1 transition-colors ${
-                active ? 'text-[#0f1f3d]' : 'text-gray-400 hover:text-gray-600'
-              }`}
+              className="relative flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-all"
+              style={{ color: active ? '#4a9eca' : 'rgba(238,244,255,0.32)' }}
             >
+              {active && (
+                <span
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-px rounded-full"
+                  style={{ background: 'linear-gradient(90deg, transparent, #4a9eca, transparent)' }}
+                />
+              )}
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.5}>
                 {svg}
               </svg>
-              <span className={`text-[10px] font-medium ${active ? 'text-[#0f1f3d]' : ''}`}>{label}</span>
-              {active && <span className="absolute bottom-[calc(100%+0px)] w-5 h-0.5 rounded-full bg-[#0f1f3d]" />}
+              <span className="text-[9px] font-semibold tracking-wide" style={{ letterSpacing: '0.04em' }}>
+                {label}
+              </span>
             </Link>
           )
         })}

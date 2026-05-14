@@ -5,7 +5,7 @@ import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 
 export const metadata: Metadata = {
   title: 'Горы и Город 2026',
-  description: 'Форум урбанистики в Геленджике — 17–18 сентября 2026',
+  description: 'Форум урбанистики в Геленджике — 16–17 мая 2026',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#1a3a5c',
+  themeColor: '#07101f',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -28,7 +28,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru" className="h-full">
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col" style={{ background: '#07101f' }}>
         <ServiceWorkerRegister />
         <main className="flex-1 pb-nav">{children}</main>
         <BottomNav />
