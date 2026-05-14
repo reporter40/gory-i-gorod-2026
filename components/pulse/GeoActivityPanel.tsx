@@ -1,3 +1,5 @@
+'use client'
+
 import type { PulseGeoRegion } from '@/lib/pulse/pulse-data'
 
 const RUSSIA_PATH =

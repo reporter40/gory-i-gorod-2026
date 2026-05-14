@@ -1,3 +1,5 @@
+'use client'
+
 import type { SessionHeatmap as SessionHeatmapT } from '@/lib/pulse/pulse-data'
 
 function intensityColor(v: number): string {

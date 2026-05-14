@@ -1,3 +1,5 @@
+'use client'
+
 import type { MockPulseState } from '@/lib/pulse/pulse-data'
 
 function FooterSkyline() {

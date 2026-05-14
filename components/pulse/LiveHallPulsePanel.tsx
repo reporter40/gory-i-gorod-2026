@@ -1,3 +1,5 @@
+'use client'
+
 import type { PulseHallPulsePoint } from '@/lib/pulse/pulse-data'
 
 export default function LiveHallPulsePanel({

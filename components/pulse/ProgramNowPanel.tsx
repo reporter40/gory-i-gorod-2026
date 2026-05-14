@@ -1,3 +1,5 @@
+'use client'
+
 import type { PulseSession } from '@/lib/pulse/pulse-data'
 
 function AvatarBubble({ initials, color }: { initials: string; color: string }) {

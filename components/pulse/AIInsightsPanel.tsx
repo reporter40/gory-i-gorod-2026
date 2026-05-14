@@ -1,3 +1,5 @@
+'use client'
+
 import type { PulseAIInsight } from '@/lib/pulse/pulse-data'
 
 export default function AIInsightsPanel({ insights }: { insights: PulseAIInsight[] }) {
