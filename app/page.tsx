@@ -37,100 +37,30 @@ export default function Home() {
       }} />
 
       {/* Hero */}
-      <div className="text-white relative overflow-hidden z-10"
-        style={{ background: 'linear-gradient(175deg, #020c1c 0%, #030f20 55%, #07101f 100%)', minHeight: 440 }}>
+      <div className="text-white relative overflow-hidden z-10" style={{ minHeight: 440 }}>
 
-        {/* ── Background art: ring RIGHT, mountains bottom ── */}
-        <svg aria-hidden="true" viewBox="0 0 430 440"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
-          xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="hOrbGlow" cx="75%" cy="40%" r="42%">
-              <stop offset="0%" stopColor="#1a8fc0" stopOpacity="0.18" />
-              <stop offset="100%" stopColor="#020c1c" stopOpacity="0" />
-            </radialGradient>
-            <radialGradient id="hCityGlow" cx="50%" cy="100%" r="55%">
-              <stop offset="0%" stopColor="#c4974a" stopOpacity="0.2" />
-              <stop offset="100%" stopColor="#020c1c" stopOpacity="0" />
-            </radialGradient>
-            <filter id="hBlur3"><feGaussianBlur stdDeviation="3" /></filter>
-            <filter id="hBlur6"><feGaussianBlur stdDeviation="6" /></filter>
-            <style>{`
-              @keyframes hr1 { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-              @keyframes hr2 { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
-              @keyframes hfl { 0%,100%{opacity:.5} 50%{opacity:.75} }
-              .hr1{transform-origin:318px 185px;animation:hr1 32s linear infinite}
-              .hr2{transform-origin:318px 185px;animation:hr2 20s linear infinite}
-              .hr3{transform-origin:318px 185px;animation:hr1 55s linear infinite}
-              .hrg{transform-origin:318px 185px;animation:hr2 70s linear infinite}
-              .hfl{animation:hfl 4.5s ease-in-out infinite}
-            `}</style>
-          </defs>
+        {/* Photo background */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/hero-bg.jpg"
+          alt=""
+          aria-hidden="true"
+          style={{
+            position: 'absolute', inset: 0,
+            width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: 'center 20%',
+            pointerEvents: 'none',
+          }}
+        />
 
-          {/* Ambient glow behind ring (right side) */}
-          <ellipse cx="318" cy="185" rx="190" ry="170" fill="url(#hOrbGlow)" />
+        {/* Gradient overlay — darkens bottom so content is readable */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: 'linear-gradient(to bottom, rgba(2,12,28,0.35) 0%, rgba(2,12,28,0.55) 60%, rgba(7,16,31,1) 100%)',
+        }} />
 
-          {/* Stars — scattered top half */}
-          {[[22,18],[65,12],[105,30],[155,8],[210,24],[270,14],[340,8],[390,20],[415,35],[420,55],[380,60],[250,45],[150,55],[60,48],[12,38],[340,42]].map(([x,y],i)=>(
-            <circle key={i} cx={x} cy={y} r={i%4===0?1.3:0.75} fill="white" fillOpacity={0.25+((i*7)%10)*0.04}/>
-          ))}
-
-          {/* Outer dotted gold ring */}
-          <circle className="hrg" cx="318" cy="185" r="162"
-            fill="none" stroke="#c4974a" strokeWidth="0.7" strokeOpacity="0.2" strokeDasharray="2 20"/>
-          {/* Outer blue ring */}
-          <circle className="hr3" cx="318" cy="185" r="140"
-            fill="none" stroke="#1e6a96" strokeWidth="0.9" strokeOpacity="0.28" strokeDasharray="8 28"/>
-          {/* Mid ring */}
-          <circle className="hr2" cx="318" cy="185" r="112"
-            fill="none" stroke="#1e82b8" strokeWidth="1.2" strokeOpacity="0.35" strokeDasharray="14 22"/>
-          {/* Inner glow ring (blur copy) */}
-          <circle className="hr1" cx="318" cy="185" r="82"
-            fill="none" stroke="#3ab0d8" strokeWidth="2.5" strokeOpacity="0.5"
-            strokeDasharray="55 159" filter="url(#hBlur3)"/>
-          {/* Inner ring sharp */}
-          <circle className="hr1" cx="318" cy="185" r="82"
-            fill="none" stroke="#6ad8f8" strokeWidth="1.2" strokeOpacity="0.75" strokeDasharray="55 159"/>
-          {/* Gold arc accent */}
-          <circle className="hrg" cx="318" cy="185" r="82"
-            fill="none" stroke="#d4a855" strokeWidth="2" strokeOpacity="0.55" strokeDasharray="9 245"/>
-
-          {/* Core orb dark fill */}
-          <circle cx="318" cy="185" r="60" fill="#020c1c"/>
-          {/* Core rim */}
-          <circle cx="318" cy="185" r="60"
-            fill="none" stroke="#3ab0d8" strokeWidth="1.5" strokeOpacity="0.45"/>
-          {/* Core glow soft */}
-          <circle cx="318" cy="185" r="59"
-            fill="none" stroke="#6ad8f8" strokeWidth="4" strokeOpacity="0.1" filter="url(#hBlur3)"/>
-          {/* Bright arc on core */}
-          <path d="M 318 125 A 60 60 0 0 1 352 197"
-            fill="none" stroke="#4ac8ee" strokeWidth="3.5" strokeLinecap="round" strokeOpacity="0.85" filter="url(#hBlur3)"/>
-          <path d="M 318 125 A 60 60 0 0 1 352 197"
-            fill="none" stroke="#aaeeff" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.9"/>
-          {/* Small gold dot on ring */}
-          <circle cx="377" cy="173" r="3" fill="#d4a855" fillOpacity="0.8" filter="url(#hBlur3)"/>
-          <circle cx="377" cy="173" r="1.5" fill="#f0cc88" fillOpacity="0.95"/>
-
-          {/* Mountains — full bottom */}
-          <path d="M0 360 L45 295 L85 318 L130 258 L175 295 L215 245 L260 290 L300 262 L345 285 L385 255 L430 272 L430 360 Z"
-            fill="#030b1a" opacity="0.98"/>
-          <path d="M0 370 L70 328 L115 342 L155 308 L195 325 L235 300 L270 318 L315 304 L355 318 L400 305 L430 315 L430 370 Z"
-            fill="#020c1c" opacity="1"/>
-
-          {/* City glow */}
-          <rect x="50" y="355" width="330" height="10" fill="url(#hCityGlow)" filter="url(#hBlur6)"/>
-          {/* City lights */}
-          <g className="hfl">
-            {[[150,352],[163,350],[176,353],[189,349],[202,352],[215,350],[228,353],[241,350],[254,352],[267,351],[280,353],[293,350],[165,358],[190,357],[215,359],[240,358]].map(([x,y],i)=>(
-              <rect key={i} x={x} y={y} width={i%5===0?2.5:1.5} height={i%3===0?3.5:2.5}
-                fill={i%4===0?'#d4a855':'#4ac8ee'} fillOpacity={0.45+((i*13)%10)*0.04}/>
-            ))}
-          </g>
-        </svg>
-
-        {/* ── TEXT CONTENT — left side, clear of ring ── */}
-        <div className="relative px-6 pt-14 pb-12" style={{ zIndex: 2, maxWidth: '58%' }}>
+        {/* ── TEXT CONTENT ── */}
+        <div className="relative px-6 pt-14 pb-12" style={{ zIndex: 2, maxWidth: '62%' }}>
 
           {/* Partner labels — text only, no icons */}
           <div className="flex items-center gap-0 mb-10 flex-wrap">
