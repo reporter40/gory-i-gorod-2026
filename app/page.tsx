@@ -62,18 +62,6 @@ export default function Home() {
         {/* ── TEXT CONTENT ── */}
         <div className="relative px-6 pt-14 pb-12" style={{ zIndex: 2, maxWidth: '62%' }}>
 
-          {/* Partner labels — text only, no icons */}
-          <div className="flex items-center gap-0 mb-10 flex-wrap">
-            {[['ИННОПОЛИС','#4a9eca'],['ГЕЛЕНДЖИК АРЕНА','rgba(238,244,255,0.35)'],['IIИНТЕГРАЦИЯ','rgba(238,244,255,0.35)']].map(([name, color], i) => (
-              <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-                {i > 0 && <span style={{ color: 'rgba(255,255,255,0.15)', marginLeft: 8, marginRight: 8, fontSize: 10 }}>·</span>}
-                <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', color: color as string }}>
-                  {name}
-                </span>
-              </span>
-            ))}
-          </div>
-
           {/* Date badge */}
           <div className="glow-chip mb-5" style={{ display: 'inline-flex' }}>
             <span className="blink">●</span> 16–17 МАЯ · ГЕЛЕНДЖИК
