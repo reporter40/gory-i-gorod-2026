@@ -28,6 +28,41 @@ const DEFAULT_TAGS: TagCard[] = [
   { id: 'invest', name: 'Инвестиции', icon: '💰', votes: 0 },
 ]
 
+const REGISTRATION_KEY = 'pulse_participant_v1'
+
+interface ParticipantData {
+  name: string
+  telegram: string
+  uid: string
+}
+
+function loadRegistration(): ParticipantData | null {
+  try {
+    const raw = localStorage.getItem(REGISTRATION_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
+function saveRegistration(data: ParticipantData) {
+  try { localStorage.setItem(REGISTRATION_KEY, JSON.stringify(data)) } catch {}
+}
+
+async function registerParticipant(data: ParticipantData, sessionId: string) {
+  try {
+    const { getFirebaseDb } = await import('@/lib/pulse/firebase/client')
+    const { ref, set } = await import('firebase/database')
+    const db = getFirebaseDb()
+    await set(ref(db, `participants/${data.uid}`), {
+      name: data.name,
+      telegram: data.telegram || null,
+      sessionId,
+      ts: Date.now(),
+    })
+  } catch (e) {
+    console.warn('Registration write failed (non-critical):', e)
+  }
+}
+
 // --- Styles (CSS module via style tag — no external dep) ---
 const css = `
 :root { color-scheme: dark; }
@@ -66,6 +101,20 @@ body { background: #0a0f1a; color: #e2e8f0; font-family: -apple-system, BlinkMac
 .toast.warn { border-color: #f59e0b66; color: #fcd34d; }
 @keyframes slide-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .loading { text-align: center; color: #475569; padding: 40px 0; }
+.reg-screen { display: flex; flex-direction: column; gap: 24px; padding: 8px 0 32px; }
+.reg-title { font-size: 1.3rem; font-weight: 800; color: #f1f5f9; }
+.reg-subtitle { font-size: 0.9rem; color: #64748b; margin-top: 4px; line-height: 1.4; }
+.reg-field { display: flex; flex-direction: column; gap: 8px; }
+.reg-label { font-size: 0.8rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+.reg-input { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 14px 16px; color: #f1f5f9; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+.reg-input:focus { border-color: #00e5ff66; }
+.reg-input::placeholder { color: #475569; }
+.reg-hint { font-size: 0.75rem; color: #475569; }
+.reg-btn { background: #00e5ff; color: #000; font-size: 1rem; font-weight: 700; border: none; border-radius: 14px; padding: 16px; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+.reg-btn:active { transform: scale(0.98); opacity: 0.9; }
+.reg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.reg-greeting { background: #0f172a; border: 1px solid #00e5ff22; border-radius: 12px; padding: 12px 16px; font-size: 0.9rem; color: #94a3b8; }
+.reg-greeting strong { color: #00e5ff; }
 `
 
 // --- Toast ---
@@ -84,6 +133,13 @@ export default function VotePage() {
   const [toasts, setToasts] = useState<Toast[]>([])
   const connection = useConnectionStatus()
 
+  // Registration
+  const [participant, setParticipant] = useState<ParticipantData | null>(null)
+  const [showReg, setShowReg] = useState(false)
+  const [regName, setRegName] = useState('')
+  const [regTelegram, setRegTelegram] = useState('')
+  const [regSubmitting, setRegSubmitting] = useState(false)
+
   function showToast(msg: string, type: Toast['type'] = 'warn') {
     const id = ++toastId
     setToasts((prev) => [...prev, { id, msg, type }])
@@ -91,6 +147,31 @@ export default function VotePage() {
   }
 
   // Init: anonymous auth + load active session
+  useEffect(() => {
+    // Check existing registration
+    const existing = loadRegistration()
+    if (existing) setParticipant(existing)
+    else setShowReg(true)
+  }, [])
+
+  async function handleRegSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const name = regName.trim()
+    if (!name) return
+    setRegSubmitting(true)
+    try {
+      const uid = userId ?? `anon-${Date.now()}`
+      const telegram = regTelegram.trim().replace(/^@/, '')
+      const data: ParticipantData = { name, telegram, uid }
+      saveRegistration(data)
+      setParticipant(data)
+      setShowReg(false)
+      if (session) await registerParticipant({ ...data, uid: userId ?? uid }, session.id)
+    } finally {
+      setRegSubmitting(false)
+    }
+  }
+
   useEffect(() => {
     async function init() {
       if (!hasFirebaseConfig()) {
@@ -138,6 +219,12 @@ export default function VotePage() {
         } catch {}
 
         setSession({ id: sessionId, title: sessData.title, speakerName, hall: sessData.hall })
+
+        // Register participant in Firebase if already registered locally
+        const existing = loadRegistration()
+        if (existing && uid) {
+          registerParticipant({ ...existing, uid }, sessionId)
+        }
 
         // Load vote counts + voted state
         const votesData = (votesSnap.val() as Record<string, number> | null) ?? {}
@@ -250,8 +337,58 @@ export default function VotePage() {
           </div>
         )}
 
+        {/* Registration screen */}
+        {showReg && (
+          <form className="reg-screen" onSubmit={handleRegSubmit}>
+            <div>
+              <div className="reg-title">Добро пожаловать 👋</div>
+              <div className="reg-subtitle">Введите имя чтобы голосовать и участвовать в аналитике конференции</div>
+            </div>
+            <div className="reg-field">
+              <label className="reg-label">Ваше имя *</label>
+              <input
+                className="reg-input"
+                type="text"
+                placeholder="Иван Петров"
+                value={regName}
+                onChange={e => setRegName(e.target.value)}
+                autoFocus
+                required
+                maxLength={60}
+              />
+            </div>
+            <div className="reg-field">
+              <label className="reg-label">Telegram <span style={{fontWeight:400, textTransform:'none', letterSpacing:0}}>— необязательно</span></label>
+              <input
+                className="reg-input"
+                type="text"
+                placeholder="@username"
+                value={regTelegram}
+                onChange={e => setRegTelegram(e.target.value)}
+                maxLength={40}
+              />
+              <div className="reg-hint">Для связи после конференции</div>
+            </div>
+            <button className="reg-btn" type="submit" disabled={!regName.trim() || regSubmitting}>
+              {regSubmitting ? 'Сохраняем...' : 'Войти и голосовать →'}
+            </button>
+          </form>
+        )}
+
+        {/* Greeting bar for registered users */}
+        {!showReg && participant && (
+          <div className="reg-greeting" style={{marginBottom: 16}}>
+            👤 <strong>{participant.name}</strong>
+            {participant.telegram && <span style={{color:'#64748b'}}> · @{participant.telegram}</span>}
+            <span
+              style={{float:'right', color:'#475569', fontSize:'0.8rem', cursor:'pointer'}}
+              onClick={() => { setShowReg(true) }}
+            >изменить</span>
+          </div>
+        )}
+
         {/* Tags */}
-        {!userId ? (
+        {showReg ? null : !userId ? (
           <div className="loading">Загрузка...</div>
         ) : (
           <div className="tags-grid">

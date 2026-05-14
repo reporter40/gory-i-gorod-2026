@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { getSessionsWithSpeakers, BLOCK_LABELS } from '@/lib/data'
+import { getSessionsWithSpeakers, BLOCK_LABELS, SPEAKERS } from '@/lib/data'
 
 const BLOCK_COLOR: Record<string, string> = {
   tourism: '#2563eb', quality: '#16a34a', creative: '#9333ea',
@@ -104,20 +104,40 @@ export default function ProgramPage() {
                 <p className="text-xs text-gray-400 pt-2.5 border-t border-gray-100 leading-relaxed whitespace-pre-line">
                   {session.speaker_row_note}
                 </p>
-              ) : session.speaker_id !== 'org' ||
-                (!session.description?.trim() && Boolean(session.title?.trim())) ? (
-                <div className="flex items-center gap-2.5 pt-2.5 border-t border-gray-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={session.speaker.photo_url} alt={session.speaker.name}
-                    className="w-7 h-7 rounded-full object-cover grayscale opacity-80" />
-                  <div>
-                    <div className="text-xs font-semibold text-gray-800">{session.speaker.name}</div>
-                    {[session.speaker.role, session.speaker.city].filter(Boolean).length > 0 && (
-                      <div className="text-[10px] text-gray-400">
-                        {[session.speaker.role, session.speaker.city].filter(Boolean).join(' · ')}
-                      </div>
-                    )}
+              ) : session.speaker_id !== 'org' || Boolean(session.title?.trim()) ? (
+                <div className="space-y-2 pt-2.5 border-t border-gray-100">
+                  <div className="flex items-center gap-2.5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={session.speaker.photo_url} alt={session.speaker.name}
+                      className="w-7 h-7 rounded-full object-cover grayscale opacity-80" />
+                    <div>
+                      <div className="text-xs font-semibold text-gray-800">{session.speaker.name}</div>
+                      {[session.speaker.role, session.speaker.city].filter(Boolean).length > 0 && (
+                        <div className="text-[10px] text-gray-400">
+                          {[session.speaker.role, session.speaker.city].filter(Boolean).join(' · ')}
+                        </div>
+                      )}
+                    </div>
                   </div>
+                  {session.extra_speaker_ids?.map(id => {
+                    const sp = SPEAKERS.find(x => x.id === id)
+                    if (!sp) return null
+                    return (
+                      <div key={id} className="flex items-center gap-2.5">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={sp.photo_url} alt={sp.name}
+                          className="w-7 h-7 rounded-full object-cover grayscale opacity-80" />
+                        <div>
+                          <div className="text-xs font-semibold text-gray-800">{sp.name}</div>
+                          {[sp.role, sp.city].filter(Boolean).length > 0 && (
+                            <div className="text-[10px] text-gray-400">
+                              {[sp.role, sp.city].filter(Boolean).join(' · ')}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               ) : null}
             </div>

@@ -28,6 +28,8 @@ export interface Session {
   speaker_row_note?: string
   /** `title_only` — в расписании только заголовок (без времени, блока, описания, спикера). */
   program_card?: 'title_only'
+  /** Дополнительные спикеры — рендерятся отдельными чипами после основного. */
+  extra_speaker_ids?: string[]
 }
 
 export interface Participant {

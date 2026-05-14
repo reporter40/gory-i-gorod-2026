@@ -39,6 +39,13 @@
       ".read": true,
       ".write": "auth != null"
     },
+    "participants": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['name','ts'])"
+      }
+    },
     "heartbeat": {
       "$dashboardId": {
         "lastSeen": {
