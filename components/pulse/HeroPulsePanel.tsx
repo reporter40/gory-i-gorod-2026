@@ -246,15 +246,15 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
             <circle cx="110" cy="110" r={ringR} fill="none" stroke="rgba(0,231,253,0.28)" strokeWidth="2.4" />
             <circle cx="110" cy="110" r={ringR} fill="none" stroke="rgba(255,255,255,0.09)" strokeWidth="1.1" />
           </svg>
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pt-2">
-            <div className="text-[66px] font-black leading-none text-white">
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+            <div className="text-[62px] font-black leading-none text-white">
               {pct}
-              <span className="align-top text-[30px] font-extrabold text-cyan-100/95">%</span>
+              <span className="align-top text-[28px] font-extrabold text-cyan-100/95">%</span>
             </div>
-            <div className="mt-2.5 max-w-[286px] text-center text-[10px] font-extrabold uppercase tracking-[0.2em] text-white/52">
+            <div className="mt-1.5 max-w-[148px] text-center text-[9px] font-extrabold uppercase tracking-[0.18em] text-white/52">
               Общая вовлечённость аудитории
             </div>
-            <div className="mt-2.5 rounded-full border border-green-400/40 bg-green-500/18 px-3 py-1 text-[10px] font-bold text-[var(--pulse-accent-green)]">
+            <div className="mt-2 rounded-full border border-green-400/40 bg-green-500/18 px-3 py-1 text-[9px] font-bold text-[var(--pulse-accent-green)]">
               ✦ Высокая активность
             </div>
           </div>
