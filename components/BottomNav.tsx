@@ -12,7 +12,7 @@ const NAV = [
 
 export default function BottomNav() {
   const path = usePathname()
-  if (path === '/pulse') return null
+  if (path.startsWith('/pulse/display')) return null
 
   return (
     <nav
