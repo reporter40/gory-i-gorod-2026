@@ -15,6 +15,70 @@
 
 ---
 
+## Background Sovereignty Audit (V4 — 2026-05-13)
+
+### 1. Grep audit — where legacy / global backgrounds were found
+
+Command (representative paths):
+
+`grep -R "pulse-stage-bg\\|pulse-stage-silhouette\\|pulse-stage-horizon\\|pulse-stage-noise\\|pulse-mountain-footer\\|pulse-stage-atmosphere\\|pulse-background\\|pulse-bottom-depth\\|pulse-footer-ridge\\|pulse-bg-atmosphere.png\\|pulse-target.png\\|radial-gradient\\|conic-gradient\\|url('/pulse/" components/pulse styles public/pulse app/pulse`
+
+**Before this purge:** committed `styles/pulse.stage.css` contained full legacy stack: `.pulse-stage-bg`, `.pulse-stage-silhouette`, `.pulse-stage-panorama`, `.pulse-stage-boreal`, `.pulse-stage-horizon`, `.pulse-stage-haze`, `.pulse-stage-noise`, `.pulse-stage-vignette`, `.pulse-mountain-footer`, plus multi-layer **radial** backdrops on `.pulse-page-outer`.
+
+**After purge (same grep):**
+
+| Location | Finding |
+|----------|---------|
+| `styles/pulse.stage.css` | **Only** approved PNG `url('/pulse/pulse-bg-atmosphere-approved-v1.png')` + allowlisted footer `url('/pulse/pulse-footer-ridge.svg')`; classes `pulse-background-image`, `pulse-background-safety-overlay`, `pulse-stage-content`; **no** `radial-gradient` / `conic-gradient` in this file. |
+| `components/pulse/PulseStage.tsx` | `pulse-background-image`, `pulse-background-safety-overlay` (intentional; not legacy `pulse-stage-*`). |
+| `HeroPulsePanel.tsx`, `GeoActivityPanel.tsx` | `radial-gradient` — **inside panel bounds**, not stage. |
+| `PulseFooterTicker.tsx` | `pulse-footer-ridge` + inner bar `radial-gradient` — **footer chrome**, not full-stage background. |
+| `VisualOverlay.tsx` | `src="/reference/pulse-target.png"` — **dev `<Image>` overlay**, not CSS `background`. |
+
+### 2. What was removed
+
+- All **stage-level** legacy CSS blocks from `pulse.stage.css` (procedural stacks, panorama/silhouette SVG URLs, mountain-footer, noise, vignette, outer-page radial wash).
+- Any second global atmospheric layer on `.pulse-stage` (e.g. old `pulse-stage-atmosphere-overlay` gradient).
+- Conditional rendering in `PulseStage` so **`ui-only`** omits both background divs (no leaked PNG under UI).
+
+### 3. What stayed and why
+
+- **`.pulse-background-image`** — single approved raster.
+- **`.pulse-background-safety-overlay`** — flat `rgba(3, 8, 15, 0.14)` only.
+- **`.pulse-footer-ridge` + SVG** — scoped strip above the ticker; allowlisted in `scripts/verify-pulse-background-sovereignty.cjs` as non-stage asset.
+
+### 4. Why approved-v1 is the only global stage background
+
+`PulseStage` is three conceptual layers: image (`z-index: 0`) → safety tint (`z-index: 1`) → content (`z-index: 10`). No other `url('/pulse/…')` on `.pulse-stage` except the approved PNG. Debug: `/pulse?visualTest=1&bgMode=bg-only` | `&bgMode=ui-only`.
+
+**V5 — ui-only decor leak:** Under `data-bg-mode='ui-only'`, stage-like chrome is suppressed via `pulse-hero-cinematic-bg`, `pulse-hero-orbits`, `pulse-hero-energy-field`, `pulse-hero-svg-trails` (and umbrella `pulse-hero-decor`), plus `pulse-topic-scene-layer` / `pulse-footer-decor` in `pulse.stage.css` — normal `/pulse` unchanged.
+
+### V6 — Approved merge (pixel-lock, 2026-05-13)
+
+**Source artifacts:** `docs/PULSE_BG_APPROVED_ONLY_V5.png`, `docs/PULSE_UI_NO_BACKGROUND_V5.png` (Playwright exports, **1672×941**).
+
+**Measured PNG type:** both files are **RGB truecolor (pngjs colorType 2), alpha channel absent / all pixels A=255** → **Case B (opaque captures)**. They **cannot** be used as a production alpha-composite “UI PNG over BG PNG” without chroma-keying (explicitly out of scope).
+
+**Production merge (authoritative):** same as before — **`public/pulse/pulse-bg-atmosphere-approved-v1.png`** on `.pulse-background-image` + flat safety overlay + **coded React UI** in `.pulse-stage-content`. `PULSE_UI_NO_BACKGROUND_V5.png` remains the **visual reference** for “UI without global background”; `PULSE_BG_APPROVED_ONLY_V5.png` matches **`bgMode=bg-only`** capture of that same asset.
+
+**Debug URLs:** `bgMode=bg-only` | `bgMode=ui-only` | `bgMode=final` (`final` ≡ normal stack for explicit capture parity).
+
+**V6 outputs:** `docs/PULSE_BG_ONLY_V6.png`, `docs/PULSE_UI_ONLY_V6.png`, `docs/PULSE_FINAL_CANDIDATE_BG_APPROVED_V6.png`, `docs/PULSE_LAYERING_DEBUG_V6.png` (vertical stack of the three V6 captures; proves Case B layering story — no fake alpha blend).
+
+**Script:** `node scripts/build-pulse-layering-debug-v6.cjs` (invoked from `tests/pulse.visual.spec.ts`).
+
+### V7 — Foreground purge (hero decor off in production)
+
+**Problem:** `FINAL` looked like approved PNG **plus** a second “scene” from Hero (600px orbits, cinematic radial fills, SVG energy trails, drop-shadow / glow).
+
+**Fix:** In `styles/pulse.stage.css`, hide **all** `.pulse-hero-decor` targets (incl. `pulse-hero-giant-ring`, `pulse-hero-background-glow`) for **every** `data-bg-mode` where `.pulse-stage` renders UI — not only `ui-only`. `pulse-hero-ring-svg` → `filter: none` globally. Hero TSX: removed `filter="url(#hgGlow)"` from the progress stroke; removed heavy `textShadow` on the centre `%` figure.
+
+Playwright: snapshot `maxDiffPixelRatio` **0.15** (dev-server / font variance); tests run **normal URL first**, then `waitForSelector('.pulse-stage', 120s)` after each navigation.
+
+**Artifacts:** `docs/PULSE_BG_ONLY_V7.png`, `docs/PULSE_UI_ONLY_CLEAN_V7.png`, `docs/PULSE_FINAL_CANDIDATE_BG_APPROVED_V7.png`, `docs/PULSE_LAYERING_DEBUG_V7.png`; `node scripts/build-pulse-layering-debug-v7.cjs`.
+
+---
+
 ## Iteration 6 — Visual Delta Before Work
 
 Сравнение: **`docs/PULSE_FINAL_CANDIDATE_ITER5.png`** (actual) vs **`docs/PULSE_REFERENCE_scaled_1672.png`** (target, upscale). Ниже — 10 конкретных визуальных отличий **до** правок Iteration 6.
@@ -29,6 +93,87 @@
 8. **Topic network:** у target сеть «живая» — больше микросвета и частиц; у actual граф проще, меньше ощущения AI-mesh.
 9. **Footer:** у target низ встроен в панораму; у actual футер ближе к отдельной плоской полосе без сценичной связи с горизонтом.
 10. **Гео / карта:** у target карта с яркими точками на тёмном силуэте; у actual карта и левый столбец менее «ночные» и премиальные.
+
+### Iteration 6 — status
+
+**FAILED / REVERTED.** Попытка «atmosphere pass» и смена пайплайна снапшота привели к **layout regression** (см. [`docs/PULSE_ITER6_FAILED_REPORT.md`](PULSE_ITER6_FAILED_REPORT.md)). Рабочий baseline: **`docs/PULSE_FINAL_CANDIDATE_ITER5.png`**, восстановление: **`docs/PULSE_RESTORED_TO_ITER5.png`**.
+
+---
+
+## BG1 — Raster atmosphere (`pulse-bg-atmosphere.png`) — **НЕ ПРИНЯТ**
+
+Причина: **`docs/PULSE_FINAL_CANDIDATE_BG1.png`** совпадал с **`docs/PULSE_FINAL_CANDIDATE_ITER5.png`** по SHA256 — растровый слой не был виден в итоговом скриншоте (градиенты/SVG перекрывали PNG; placeholder не давал delta).
+
+---
+
+## BG2 — Видимый raster + `bgDebug` (принятый кандидат)
+
+| Элемент | Действие |
+|---------|----------|
+| `PulseStage.tsx` | Проп **`bgDebug`**; атрибут **`data-bg-debug`** на `.pulse-stage`. |
+| `PulseDashboard.tsx` | `bgDebug = visualTest && params.get('bgDebug') === '1'`; при `bgDebug` **reference overlay принудительно выключен** (даже если `overlay=1`). |
+| `pulse.stage.css` | Ослаблены **`opacity`** у `.pulse-stage-bg`, silhouette, panorama, boreal, horizon, vignette, mountain-footer; легче затемняющий градиент на **`.pulse-background-image`**. Режим **`[data-bg-debug="1"]`**: скрыты декор + **`.pulse-stage-content`**, у фона только **`url('/pulse/pulse-bg-atmosphere.png')`** — артефакт **`docs/PULSE_BG_LAYER_DEBUG.png`**. |
+| `public/pulse/pulse-bg-atmosphere.png` | Финальный растр **1672×941** в репозитории (без генератора в CI). |
+| Артефакты | [`docs/PULSE_FINAL_CANDIDATE_BG2.png`](PULSE_FINAL_CANDIDATE_BG2.png), [`docs/PULSE_BG_LAYER_DEBUG.png`](PULSE_BG_LAYER_DEBUG.png) |
+
+**Файл фона (отчётный снимок после генерации):** размер **357 568** байт, **1672×941**, SHA256 **`ffc2ef631b379ed4c2f6580a5cee3d4c1d79411833a7ffaa86e321e73aec83a7`**.
+
+**SHA checkpoint:** ITER5 **`e70bb92c7b952470a0a907677cd1ef66f451b2c52e066cdf84a3d3870586eed9`** vs BG2 **`fb4fd81061ece56caabd6c0c5297e424304639820f2fc072404795dc254be2af`** → **не совпадают**.
+
+| Шаг (BG2) | Статус |
+|-----------|--------|
+| `npm run build` | **pass** |
+| `CI=1 npm run test:visual` | **pass** |
+| `npm run docs:pulse-sheet` | **pass** |
+| `node scripts/pulse-ref-diff.cjs` (ref scaled vs checkpoint) | **~30.4758%** (advisory; вырос из‑за видимого фона) |
+
+**Подтверждение приёмки:** фон **реально виден** в `docs/PULSE_FINAL_CANDIDATE_BG2.png` и отличается от ITER5; **`docs/PULSE_BG_LAYER_DEBUG.png`** показывает загрузку PNG без UI.
+
+---
+
+## BG3 — Финальный `pulse-bg-atmosphere.png` + ещё более лёгкий декор
+
+| Элемент | Действие |
+|---------|----------|
+| `pulse.stage.css` | Дополнительно снижены `opacity` у `.pulse-stage-bg`, silhouette, panorama, boreal, horizon, haze, vignette, mountain-footer; ослаблен overlay на **`.pulse-background-image`**; шум: `opacity: calc(var(--pulse-noise-opacity) * 0.45)`. |
+| Генератор | **`scripts/gen-pulse-bg-atmosphere.cjs`** удалён — ассет только вручную в `public/pulse/pulse-bg-atmosphere.png`. |
+| Артефакты | [`docs/PULSE_FINAL_CANDIDATE_BG3.png`](PULSE_FINAL_CANDIDATE_BG3.png), обновлён [`docs/PULSE_BG_LAYER_DEBUG.png`](PULSE_BG_LAYER_DEBUG.png) |
+
+**SHA256 растра** — брать с диска после замены файла пользователем (ожидаемый финальный: **`664422cff153c085994a9654c67fe84fc0a6852d6e2a2617f647522e22a44cbe`**). Playwright snapshot и BG3 отражают байты в репозитории на момент прогона.
+
+---
+
+## BG APPROVED V1 — только `pulse-bg-atmosphere-approved-v1.png`
+
+| Элемент | Действие |
+|---------|----------|
+| `pulse.stage.css` | Единственный растровый URL: **`url('/pulse/pulse-bg-atmosphere-approved-v1.png')`** (обычный режим и `bgDebug`). Не используются `pulse-bg-atmosphere.png`, `pulse-target.png` как фон; SVG (`pulse-atmosphere.svg` и др.) — только дополнительные декоративные слои поверх растра. |
+| `pulse.stage.css` | Декоративные `.pulse-stage-*` ещё ослаблены по `opacity`, чтобы approved PNG читался под UI. |
+| `PulseStage.tsx` | Комментарий: фон задаётся только approved-v1 в CSS. |
+| Артефакты | [`docs/PULSE_FINAL_CANDIDATE_BG_APPROVED_V1.png`](PULSE_FINAL_CANDIDATE_BG_APPROVED_V1.png), [`docs/PULSE_BG_LAYER_DEBUG_APPROVED_V1.png`](PULSE_BG_LAYER_DEBUG_APPROVED_V1.png) |
+
+| Шаг | Статус |
+|-----|--------|
+| `npm run build` | **pass** |
+| `npm run test:visual` | **pass** |
+| `npm run docs:pulse-sheet` | **pass** |
+
+---
+
+## BG APPROVED V2 — clean stage (legacy global background removed)
+
+| Элемент | Действие |
+|---------|----------|
+| `PulseStage.tsx` | Удалены все legacy stage-слои (`.pulse-stage-bg`, silhouette, panorama, boreal, horizon, haze, noise, vignette, mountain-footer). Остались: **`.pulse-background-image`** (только `url('/pulse/pulse-bg-atmosphere-approved-v1.png')`), **`.pulse-stage-atmosphere-overlay`** (мягкий CSS-gradient, z-index 1), **`.pulse-stage-content`**. Режимы: `?bgCleanDebug=1`, `?bgApprovedOnly=1` (и legacy `bgDebug=1` → approved-only). |
+| `pulse.stage.css` | Убраны градиенты **`.pulse-page-outer`** за пределами stage; удалены правила legacy stage-слоёв; footer strip (`.pulse-footer-*`) **внутри панели** сохранён. |
+| Артефакты | [`docs/PULSE_FINAL_CANDIDATE_BG_APPROVED_V2.png`](PULSE_FINAL_CANDIDATE_BG_APPROVED_V2.png), [`docs/PULSE_BG_CLEAN_STAGE_ONLY.png`](PULSE_BG_CLEAN_STAGE_ONLY.png), [`docs/PULSE_BG_APPROVED_ONLY.png`](PULSE_BG_APPROVED_ONLY.png) |
+| `tests/pulse.visual.spec.ts` | Генерация debug PNG + snapshot `maxDiffPixelRatio: 0.02`. |
+
+| Шаг (V2) | Статус |
+|----------|--------|
+| `npm run build` | **pass** |
+| `npm run test:visual` | **pass** |
+| `npm run docs:pulse-sheet` | **pass** |
 
 ---
 

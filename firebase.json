@@ -1,0 +1,5 @@
+{
+  "database": {
+    "rules": "lib/pulse/firebase/rules.json"
+  }
+}

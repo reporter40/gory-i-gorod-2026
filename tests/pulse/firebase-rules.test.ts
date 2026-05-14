@@ -49,8 +49,9 @@ describe('Firebase Rules — structure', () => {
   })
 
   it('frozen is readable without auth', () => {
-    const frozenRead = (rules.rules.event as Record<string, unknown>).frozen as { '.read': boolean }
-    expect(frozenRead['.read']).toBe(true)
+    // event has top-level .read: true which covers frozen
+    const eventRead = (rules.rules.event as Record<string, unknown>)['.read']
+    expect(eventRead).toBe(true)
   })
 
   it('sessions are publicly readable', () => {

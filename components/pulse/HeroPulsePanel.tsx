@@ -31,11 +31,12 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
   const dash = (c * pct) / 100
 
   return (
-    <section className="absolute overflow-visible" style={{ left: 318, top: 76, width: 994, height: 290 }}>
-      <div
-        className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[18px]"
-        style={{
-          background: `
+    <section className="absolute overflow-hidden" style={{ left: 318, top: 76, width: 994, height: 290 }}>
+      <div className="pulse-hero-decor pulse-hero-cinematic-bg pulse-hero-background-glow">
+        <div
+          className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[18px]"
+          style={{
+            background: `
             radial-gradient(circle at 50% 58%, rgba(0, 20, 40, 0.55) 0%, transparent 42%),
             radial-gradient(ellipse 90% 70% at 50% 52%, rgba(0, 100, 150, 0.34) 0%, transparent 54%),
             radial-gradient(ellipse 78% 58% at 50% 56%, rgba(0, 120, 170, 0.28) 0%, transparent 58%),
@@ -43,18 +44,20 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
             radial-gradient(ellipse 55% 44% at 22% 72%, rgba(0, 231, 253, 0.16) 0%, transparent 54%),
             linear-gradient(168deg, rgba(8, 16, 32, 0.62) 0%, rgba(4, 8, 18, 0.28) 38%, rgba(2, 6, 14, 0.72) 100%)
           `,
-          boxShadow: 'inset 0 0 140px rgba(0,0,0,0.62), inset 0 -60px 120px rgba(0,50,90,0.38), inset 0 0 80px rgba(0,231,253,0.06)',
-        }}
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute inset-0 z-[1] overflow-hidden rounded-[18px]"
-        style={{
-          background:
-            'radial-gradient(ellipse 55% 48% at 50% 54%, rgba(0,231,253,0.06) 0%, transparent 50%)',
-        }}
-        aria-hidden
-      />
+            boxShadow:
+              'inset 0 0 140px rgba(0,0,0,0.62), inset 0 -60px 120px rgba(0,50,90,0.38), inset 0 0 80px rgba(0,231,253,0.06)',
+          }}
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-0 z-[1] overflow-hidden rounded-[18px]"
+          style={{
+            background:
+              'radial-gradient(ellipse 55% 48% at 50% 54%, rgba(0,231,253,0.06) 0%, transparent 50%)',
+          }}
+          aria-hidden
+        />
+      </div>
       <div className="relative z-10 flex items-start justify-between gap-7 px-1.5">
         <div>
           <h1 className="text-[46px] font-black uppercase leading-[0.92] tracking-[-0.02em] text-white pulse-glow-text">
@@ -88,7 +91,7 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
       </div>
 
       <div className="relative z-10 mt-3 flex items-center justify-center">
-        <div className="pointer-events-none absolute h-[600px] w-[600px] max-w-[600px]">
+        <div className="pulse-hero-decor pulse-hero-orbits pulse-hero-giant-ring pointer-events-none absolute h-[600px] w-[600px] max-w-[600px]">
           <div
             className="pulse-rotate-slow absolute inset-[-18%] rounded-full border border-cyan-400/32"
             style={{ boxShadow: '0 0 88px rgba(0,231,253,0.32), 0 0 160px rgba(247,168,25,0.1)' }}
@@ -111,10 +114,15 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
 
         <div className="relative z-10 flex flex-col items-center">
           <div
-            className="pointer-events-none absolute -inset-8 rounded-full bg-[radial-gradient(circle,rgba(0,231,253,0.14)_0%,rgba(247,168,25,0.06)_38%,transparent_68%)] blur-2xl"
+            className="pulse-hero-decor pulse-hero-energy-field pointer-events-none absolute -inset-8 rounded-full bg-[radial-gradient(circle,rgba(0,231,253,0.14)_0%,rgba(247,168,25,0.06)_38%,transparent_68%)] blur-2xl"
             aria-hidden
           />
-          <svg width={220} height={220} viewBox="0 0 220 220" className="overflow-visible drop-shadow-[0_0_28px_rgba(0,231,253,0.22)]">
+          <svg
+            width={220}
+            height={220}
+            viewBox="0 0 220 220"
+            className="pulse-hero-ring-svg overflow-visible drop-shadow-[0_0_28px_rgba(0,231,253,0.22)]"
+          >
             <defs>
               <linearGradient id="hg" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="var(--pulse-accent-cyan)" />
@@ -154,72 +162,74 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
                 </feMerge>
               </filter>
             </defs>
-            {/* Decorative gold / cyan arcs (energy field) */}
-            <path
-              d="M 110 12 A 98 98 0 0 1 206 92"
-              fill="none"
-              stroke="rgba(0,231,253,0.26)"
-              strokeWidth="1.35"
-              strokeLinecap="round"
-              filter="url(#hgTrail)"
-            />
-            <path
-              d="M 14 128 A 98 98 0 0 0 110 208"
-              fill="none"
-              stroke="rgba(247,168,25,0.2)"
-              strokeWidth="1.1"
-              strokeLinecap="round"
-              filter="url(#hgTrail)"
-            />
-            <path
-              d="M 196 172 A 82 82 0 0 1 44 172"
-              fill="none"
-              stroke="rgba(0,231,253,0.16)"
-              strokeWidth="0.9"
-              strokeDasharray="4 7"
-              filter="url(#hgTrail)"
-            />
-            <path
-              d="M 110 24 A 86 86 0 0 0 36 118"
-              fill="none"
-              stroke="rgba(0,231,253,0.12)"
-              strokeWidth="0.75"
-              strokeDasharray="2 8"
-            />
-            <path
-              d="M 184 48 A 72 72 0 0 1 48 184"
-              fill="none"
-              stroke="rgba(247,168,25,0.1)"
-              strokeWidth="0.65"
-              strokeDasharray="6 10"
-            />
-            <path
-              d="M 110 18 A 92 92 0 0 1 198 88"
-              fill="none"
-              stroke="rgba(0,231,253,0.22)"
-              strokeWidth="1.2"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 22 132 A 92 92 0 0 0 110 202"
-              fill="none"
-              stroke="rgba(247,168,25,0.18)"
-              strokeWidth="1"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 188 168 A 78 78 0 0 1 48 168"
-              fill="none"
-              stroke="rgba(0,231,253,0.14)"
-              strokeWidth="0.85"
-              strokeDasharray="3 6"
-            />
+            <g className="pulse-hero-decor pulse-hero-svg-trails">
+              {/* Decorative gold / cyan arcs (energy field) */}
+              <path
+                d="M 110 12 A 98 98 0 0 1 206 92"
+                fill="none"
+                stroke="rgba(0,231,253,0.26)"
+                strokeWidth="1.35"
+                strokeLinecap="round"
+                filter="url(#hgTrail)"
+              />
+              <path
+                d="M 14 128 A 98 98 0 0 0 110 208"
+                fill="none"
+                stroke="rgba(247,168,25,0.2)"
+                strokeWidth="1.1"
+                strokeLinecap="round"
+                filter="url(#hgTrail)"
+              />
+              <path
+                d="M 196 172 A 82 82 0 0 1 44 172"
+                fill="none"
+                stroke="rgba(0,231,253,0.16)"
+                strokeWidth="0.9"
+                strokeDasharray="4 7"
+                filter="url(#hgTrail)"
+              />
+              <path
+                d="M 110 24 A 86 86 0 0 0 36 118"
+                fill="none"
+                stroke="rgba(0,231,253,0.12)"
+                strokeWidth="0.75"
+                strokeDasharray="2 8"
+              />
+              <path
+                d="M 184 48 A 72 72 0 0 1 48 184"
+                fill="none"
+                stroke="rgba(247,168,25,0.1)"
+                strokeWidth="0.65"
+                strokeDasharray="6 10"
+              />
+              <path
+                d="M 110 18 A 92 92 0 0 1 198 88"
+                fill="none"
+                stroke="rgba(0,231,253,0.22)"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 22 132 A 92 92 0 0 0 110 202"
+                fill="none"
+                stroke="rgba(247,168,25,0.18)"
+                strokeWidth="1"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 188 168 A 78 78 0 0 1 48 168"
+                fill="none"
+                stroke="rgba(0,231,253,0.14)"
+                strokeWidth="0.85"
+                strokeDasharray="3 6"
+              />
+              <circle cx="110" cy="110" r={ringR + 14} fill="none" stroke="rgba(0,231,253,0.14)" strokeWidth="1.25" filter="url(#hgOuterGlow)" />
+              <circle cx="110" cy="110" r={ringR + 24} fill="none" stroke="rgba(247,168,25,0.12)" strokeWidth="1" strokeDasharray="5 12" />
+              <circle cx="110" cy="110" r={ringR + 32} fill="none" stroke="rgba(0,231,253,0.09)" strokeWidth="0.85" />
+              <circle cx="110" cy="110" r={ringR + 40} fill="none" stroke="rgba(247,168,25,0.06)" strokeWidth="0.65" strokeDasharray="2 10" />
+            </g>
             <circle cx="110" cy="110" r={ringR - 5} fill="url(#hgInner)" opacity={0.95} />
             <circle cx="110" cy="110" r={ringR - 38} fill="url(#hgCore)" opacity={0.85} />
-            <circle cx="110" cy="110" r={ringR + 14} fill="none" stroke="rgba(0,231,253,0.14)" strokeWidth="1.25" filter="url(#hgOuterGlow)" />
-            <circle cx="110" cy="110" r={ringR + 24} fill="none" stroke="rgba(247,168,25,0.12)" strokeWidth="1" strokeDasharray="5 12" />
-            <circle cx="110" cy="110" r={ringR + 32} fill="none" stroke="rgba(0,231,253,0.09)" strokeWidth="0.85" />
-            <circle cx="110" cy="110" r={ringR + 40} fill="none" stroke="rgba(247,168,25,0.06)" strokeWidth="0.65" strokeDasharray="2 10" />
             <circle cx="110" cy="110" r={ringR} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="12" />
             <circle
               cx="110"
@@ -231,14 +241,13 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
               strokeLinecap="round"
               strokeDasharray={`${dash} ${c}`}
               transform="rotate(-90 110 110)"
-              filter="url(#hgGlow)"
               opacity={1}
             />
             <circle cx="110" cy="110" r={ringR} fill="none" stroke="rgba(0,231,253,0.28)" strokeWidth="2.4" />
             <circle cx="110" cy="110" r={ringR} fill="none" stroke="rgba(255,255,255,0.09)" strokeWidth="1.1" />
           </svg>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pt-2">
-            <div className="text-[66px] font-black leading-none text-white" style={{ textShadow: 'var(--pulse-glow-strong)' }}>
+            <div className="text-[66px] font-black leading-none text-white">
               {pct}
               <span className="align-top text-[30px] font-extrabold text-cyan-100/95">%</span>
             </div>

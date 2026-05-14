@@ -10,14 +10,14 @@ main.flex-1.pb-nav:has(.pulse-shell) {
 }
 
 .pulse-page-outer {
-  min-height: 100vh;
+  position: fixed;
+  inset: 0;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 0;
-  background: radial-gradient(120% 85% at 50% -8%, rgba(0, 231, 253, 0.1), transparent 48%),
-    radial-gradient(90% 50% at 50% 100%, rgba(247, 168, 25, 0.05), transparent 42%),
-    linear-gradient(180deg, var(--pulse-bg-primary) 0%, var(--pulse-bg-deep) 44%, #050c16 100%);
+  overflow: hidden;
+  background: #03080f;
+  z-index: 50;
 }
 
 .pulse-stage {
@@ -28,126 +28,74 @@ main.flex-1.pb-nav:has(.pulse-shell) {
   overflow: hidden;
   font-size: var(--pulse-font-body);
   isolation: isolate;
+  background: #03080f;
+  transform: scale(var(--pulse-stage-scale, 1));
+  transform-origin: center center;
 }
 
-/* Iteration 6 — cinematic depth (no reference PNG as background) */
-.pulse-stage-bg {
+.pulse-background-image {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  filter: brightness(1.03) saturate(1.06);
-  background:
-    radial-gradient(ellipse 78% 52% at 50% 100%, rgba(0, 40, 80, 0.38), transparent 62%),
-    radial-gradient(ellipse 95% 48% at 50% 108%, rgba(0, 120, 160, 0.28), transparent 58%),
-    radial-gradient(ellipse 50% 36% at 88% 94%, rgba(247, 168, 25, 0.14), transparent 52%),
-    radial-gradient(ellipse 55% 42% at 12% 90%, rgba(0, 231, 253, 0.12), transparent 50%),
-    radial-gradient(ellipse 65% 58% at 50% 36%, rgba(0, 0, 0, 0.52), transparent 72%),
-    linear-gradient(188deg, #010308 0%, #030a14 32%, #081c2e 58%, #02060c 100%);
-}
-
-.pulse-stage-silhouette {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: min(56%, 528px);
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.88;
-  background-image: url('/pulse/pulse-atmosphere.svg');
+  background-image: url('/pulse/pulse-bg-atmosphere-approved-v1.png');
+  background-size: cover;
+  background-position: center center;
   background-repeat: no-repeat;
-  background-position: center bottom;
-  background-size: 100% auto;
-  mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.28) 14%, #000 100%);
 }
 
-.pulse-stage-panorama {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: min(64%, 602px);
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.96;
-  filter: saturate(1.12) contrast(1.03);
-  background-image: url('/pulse/pulse-city-mountains.svg');
-  background-repeat: no-repeat;
-  background-position: center bottom;
-  background-size: 100% auto;
-  mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.42) 12%, #000 100%);
-  mix-blend-mode: normal;
-}
-
-.pulse-stage-boreal {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: min(68%, 640px);
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.94;
-  background-image: url('/pulse/pulse-bottom-depth.svg');
-  background-repeat: no-repeat;
-  background-position: center bottom;
-  background-size: 100% auto;
-  mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.35) 8%, #000 100%);
-}
-
-.pulse-stage-horizon {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 148px;
-  height: 180px;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 130% 100% at 50% 100%, rgba(0, 231, 253, 0.26), transparent 60%),
-    linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(247, 168, 25, 0.1) 36%,
-      rgba(0, 231, 253, 0.18) 64%,
-      rgba(0, 0, 0, 0) 100%
-    );
-  opacity: 0.72;
-  filter: blur(2px);
-}
-
-.pulse-stage-haze {
+.pulse-background-safety-overlay {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
-  opacity: 0.22;
-  background: radial-gradient(ellipse 90% 55% at 50% 72%, rgba(0, 90, 120, 0.35), transparent 55%);
-  mix-blend-mode: soft-light;
+  background: rgba(3, 8, 15, 0.14);
 }
 
-.pulse-stage-noise {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: var(--pulse-noise-opacity);
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 180px 180px;
+.pulse-stage-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
 }
 
-.pulse-stage-vignette {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 82% 70% at 50% 44%, transparent 0%, rgba(0, 0, 8, 0.42) 100%),
-    linear-gradient(180deg, rgba(0, 0, 12, 0.38) 0%, transparent 28%, transparent 62%, rgba(0, 0, 10, 0.55) 100%);
-  mix-blend-mode: multiply;
-  opacity: 0.78;
+.pulse-stage[data-bg-mode='bg-only'] .pulse-background-safety-overlay,
+.pulse-stage[data-bg-mode='bg-only'] .pulse-stage-content {
+  display: none;
+}
+
+.pulse-stage[data-bg-mode='ui-only'] .pulse-background-image,
+.pulse-stage[data-bg-mode='ui-only'] .pulse-background-safety-overlay {
+  display: none;
+}
+
+/* Foreground purge: Hero must not paint a second scene; approved raster is the only atmosphere. */
+.pulse-stage .pulse-hero-decor,
+.pulse-stage .pulse-hero-orbits,
+.pulse-stage .pulse-hero-cinematic-bg,
+.pulse-stage .pulse-hero-energy-field,
+.pulse-stage .pulse-hero-svg-trails,
+.pulse-stage .pulse-hero-giant-ring,
+.pulse-stage .pulse-hero-background-glow {
+  display: none !important;
+}
+
+.pulse-stage .pulse-hero-ring-svg {
+  filter: none !important;
+}
+
+/* ui-only: topic mesh + footer skyline strip (clean UI plate on #03080f). */
+.pulse-stage[data-bg-mode='ui-only'] .pulse-topic-decor,
+.pulse-stage[data-bg-mode='ui-only'] .pulse-topic-scene-layer,
+.pulse-stage[data-bg-mode='ui-only'] .pulse-footer-decor {
+  display: none !important;
+}
+
+.pulse-stage[data-bg-mode='ui-only'] footer.pulse-footer-scene {
+  background: linear-gradient(180deg, rgba(3, 10, 22, 0.92) 0%, rgba(1, 5, 12, 0.99) 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(0, 231, 253, 0.1),
+    inset 0 -1px 0 rgba(247, 168, 25, 0.06) !important;
 }
 
 .pulse-panel {
@@ -178,25 +126,7 @@ main.flex-1.pb-nav:has(.pulse-shell) {
   color: var(--pulse-text-secondary);
 }
 
-.pulse-mountain-footer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 68px;
-  height: 96px;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.78;
-  background:
-    radial-gradient(ellipse 125% 95% at 50% 100%, rgba(0, 231, 253, 0.16), transparent 52%),
-    linear-gradient(180deg, transparent 0%, rgba(247, 168, 25, 0.07) 28%, rgba(0, 231, 253, 0.1) 48%, rgba(0, 0, 0, 0.62) 100%),
-    linear-gradient(90deg, transparent 2%, rgba(247, 168, 25, 0.08) 48%, rgba(0, 231, 253, 0.06) 52%, transparent 98%),
-    linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.72));
-  mask-image: linear-gradient(90deg, transparent, black 4%, black 96%, transparent);
-  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.48), 0 -3px 32px rgba(0, 231, 253, 0.09);
-}
-
-/* Footer bar: skyline strip + scene (used inside PulseFooterTicker) */
+/* Footer bar chrome (inside PulseFooterTicker — not a stage panorama layer). */
 .pulse-footer-scene {
   position: relative;
 }

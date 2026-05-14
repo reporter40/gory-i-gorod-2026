@@ -9,7 +9,7 @@ function getInitialState(): PulseState | null {
   if (typeof window === 'undefined') return null
   // Load snapshot from localStorage for instant display
   try {
-    const raw = localStorage.getItem('pulse_last_good_state')
+    const raw = localStorage.getItem('pulse_last_good_state_v2')
     if (raw) {
       const parsed = JSON.parse(raw) as PulseState
       return { ...parsed, _meta: { ...parsed._meta, source: 'snapshot' } }

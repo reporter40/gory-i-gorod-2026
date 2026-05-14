@@ -22,6 +22,7 @@ import { PulseErrorBoundary } from '@/lib/pulse/reliability/errorBoundary'
 import { startTabKeepAlive } from '@/lib/pulse/reliability/tabKeepAlive'
 import { startHeartbeat } from '@/lib/pulse/reliability/heartbeat'
 import { startSnapshotSaver } from '@/lib/pulse/reliability/stateSnapshot'
+import { useEventMode } from '@/lib/pulse/useEventMode'
 
 function PulseDashboardInner() {
   const params = useSearchParams()
@@ -91,19 +92,77 @@ function PulseDashboardInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const eventMode = useEventMode()
+  const voteUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/pulse/vote`
+    : 'https://gory-i-gorod-2026.vercel.app/pulse/vote'
+
   const isFrozen = liveState._meta.source === 'frozen'
   const isStale = liveState._meta.staleSince !== null
+  const isOffline = liveState.connection.status === 'offline'
+  const isReconnecting = liveState.connection.status === 'reconnecting'
 
   return (
     <div className="pulse-shell">
-      {isFrozen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: '#1e1b4b', borderBottom: '1px solid #4f46e5', padding: '8px', textAlign: 'center', color: '#a5b4fc', fontSize: '0.85rem' }}>
-          🔒 Данные зафиксированы
+      {/* Connection dot — top right, only when disconnected, hidden in visualTest */}
+      {!visualTest && (isOffline || isReconnecting) && (
+        <div style={{
+          position: 'fixed', top: 12, right: 12, zIndex: 9999,
+          width: 10, height: 10, borderRadius: '50%',
+          background: isReconnecting ? '#fbbf24' : '#ef4444',
+          boxShadow: `0 0 8px ${isReconnecting ? '#fbbf2488' : '#ef444488'}`,
+        }} />
+      )}
+
+      {/* Stale indicator — bottom right, hidden in visualTest */}
+      {!visualTest && isStale && !isFrozen && (
+        <div style={{
+          position: 'fixed', bottom: 0, right: 20, zIndex: 9998,
+          background: 'rgba(0,0,0,0.75)', color: '#fbbf24',
+          padding: '6px 14px', borderRadius: '8px 8px 0 0',
+          fontSize: '12px',
+        }}>
+          Обновлено {Math.round((Date.now() - (liveState._meta.staleSince ?? Date.now())) / 60000)} мин назад
         </div>
       )}
-      {isStale && !isFrozen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: '#1c1917', borderBottom: '1px solid #78716c44', padding: '6px', textAlign: 'center', color: '#78716c', fontSize: '0.75rem' }}>
-          Обновлено {Math.floor((Date.now() - (liveState._meta.staleSince ?? Date.now())) / 60000)} мин назад
+
+      {/* Freeze banner — bottom, amber, silent for audience, hidden in visualTest */}
+      {!visualTest && isFrozen && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
+          background: 'rgba(245,158,11,0.92)', color: '#000',
+          textAlign: 'center', padding: '8px',
+          fontSize: '13px', fontWeight: 600,
+        }}>
+          Данные зафиксированы
+        </div>
+      )}
+
+      {/* VOTE mode: full-screen QR overlay — operator triggers via Telegram /vote */}
+      {eventMode === 'vote' && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 100,
+          background: 'linear-gradient(135deg, #050a18 0%, #0a0f2e 50%, #050a18 100%)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: '32px',
+        }}>
+          <div style={{ color: '#00e5ff', fontSize: 'clamp(1.4rem, 3vw, 2.2rem)', fontWeight: 800, letterSpacing: '0.04em', textAlign: 'center' }}>
+            Сканируй и голосуй
+          </div>
+          <div style={{ background: '#fff', padding: '20px', borderRadius: '20px', boxShadow: '0 0 60px #00e5ff44' }}>
+            {/* QR via Google Charts API — no JS dependency */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`https://chart.googleapis.com/chart?cht=qr&chs=280x280&chl=${encodeURIComponent(voteUrl)}&choe=UTF-8`}
+              alt="QR code"
+              width={280}
+              height={280}
+              style={{ display: 'block' }}
+            />
+          </div>
+          <div style={{ color: '#94a3b8', fontSize: 'clamp(0.9rem, 1.5vw, 1.1rem)', textAlign: 'center', maxWidth: '500px' }}>
+            {voteUrl}
+          </div>
         </div>
       )}
       <div className="pulse-page-outer">

@@ -10,6 +10,7 @@
     "test:visual": "PLAYWRIGHT_BROWSERS_PATH=./.pw-browser playwright test tests/pulse.visual.spec.ts",
     "test:visual:update": "PLAYWRIGHT_BROWSERS_PATH=./.pw-browser playwright test tests/pulse.visual.spec.ts --update-snapshots",
     "docs:pulse-sheet": "node scripts/build-pulse-review-sheet.cjs",
+    "pulse:bg:verify": "node scripts/verify-pulse-background-sovereignty.cjs",
     "test": "vitest run tests/pulse/"
   },
   "dependencies": {

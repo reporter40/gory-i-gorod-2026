@@ -167,6 +167,48 @@ export function createFirebasePulseAdapter(): PulseAdapter {
   }, { onlyOnce: true })
   unsubscribers.push(() => off(speakersRef, 'value', speakersUnsub as Parameters<typeof off>[2]))
 
+  // event/stats — operator-updated stats (audience, hall activity, engagement, pulse)
+  let remoteStats: Partial<PulseState['stats']> & { hallPulseCurrent?: number; hallPulseTimeline?: Record<string, { time: string; value: number }> } = {}
+
+  const statsRef = ref(db, 'event/stats')
+  const statsUnsub = onValue(statsRef, (snap: DataSnapshot) => {
+    const raw = snap.val() as Record<string, unknown> | null
+    if (!raw) return
+    remoteStats = {
+      onlineParticipants: typeof raw.onlineParticipants === 'number' ? raw.onlineParticipants : undefined,
+      hallActivity: typeof raw.hallActivity === 'number' ? raw.hallActivity : undefined,
+      engagement: typeof raw.engagement === 'number' ? raw.engagement : undefined,
+      overallEngagement: typeof raw.hallActivity === 'number' ? raw.hallActivity : undefined,
+      hallPulseCurrent: typeof raw.hallPulseCurrent === 'number' ? raw.hallPulseCurrent : undefined,
+      hallPulseTimeline: raw.hallPulseTimeline as Record<string, { time: string; value: number }> | undefined,
+    }
+    if (currentState) {
+      const merged = buildStatsUpdate()
+      emit(mergeFirebaseUpdate(merged))
+    }
+  })
+  unsubscribers.push(() => off(statsRef, 'value', statsUnsub as Parameters<typeof off>[2]))
+
+  function buildStatsUpdate(): Partial<PulseState> {
+    const base = currentState
+    if (!base) return {}
+    const stats = { ...base.stats }
+    if (remoteStats.onlineParticipants !== undefined) stats.onlineParticipants = remoteStats.onlineParticipants
+    if (remoteStats.hallActivity !== undefined) { stats.hallActivity = remoteStats.hallActivity; stats.overallEngagement = remoteStats.hallActivity }
+    if (remoteStats.engagement !== undefined) stats.engagement = remoteStats.engagement
+
+    const hallPulse = remoteStats.hallPulseCurrent !== undefined
+      ? {
+          current: remoteStats.hallPulseCurrent,
+          timeline: remoteStats.hallPulseTimeline
+            ? Object.values(remoteStats.hallPulseTimeline).sort((a, b) => a.time.localeCompare(b.time))
+            : base.hallPulse.timeline,
+        }
+      : base.hallPulse
+
+    return { stats, hallPulse }
+  }
+
   // event/activeSessionId → drives vote listener
   let activeSessionId = ''
   let votesUnsub: Unsubscribe | null = null
@@ -200,6 +242,7 @@ export function createFirebasePulseAdapter(): PulseAdapter {
         event: { ...(currentState?.event ?? { name: 'Горы и Город — 2026', expectedAudience: 1700, updatedAt: Date.now(), frozen }), activeSessionId, frozen },
         topTags,
         sessions,
+        ...buildStatsUpdate(),
       }))
     })
     votesUnsub = () => off(votesRef, 'value', votesCb as Parameters<typeof off>[2])

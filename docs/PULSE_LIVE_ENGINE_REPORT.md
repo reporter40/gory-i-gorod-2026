@@ -312,3 +312,17 @@ Summary:
 8. Add heartbeat
 9. Add snapshot saver
 10. Run `npm run build && npm run test && npm run test:visual`
+
+## Load Test Results (2026-05-14T09:51:09.778Z)
+
+| Metric | Value | Threshold | Status |
+|--------|-------|-----------|--------|
+| Users simulated | 500 | — | — |
+| Duration | 1800s | — | — |
+| Total votes | 30000 | — | — |
+| Error rate | 0.00% | <1% | ✅ |
+| Latency p50 | 214ms | — | — |
+| Latency p95 | 1265ms | <3000ms | ✅ |
+| Latency p99 | 3813ms | <5000ms | ✅ |
+| Transaction conflicts | 72.3% | <5% | ❌ |
+| **OVERALL** | | | **❌ FAIL** |

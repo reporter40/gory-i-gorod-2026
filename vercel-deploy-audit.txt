@@ -1,0 +1,85 @@
+npm warn exec The following package was not found and will be installed: vercel@53.4.0
+npm warn deprecated tar@7.5.7: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+Retrieving project…
+Deploying anichha777s-projects/gory-i-gorod-2026
+Uploading [--------------------] (0.0B/594.3KB)
+Uploading [=====---------------] (160.1KB/594.3KB)
+Uploading [==========----------] (304.1KB/594.3KB)
+Uploading [===============-----] (448.1KB/594.3KB)
+Uploading [====================] (594.3KB/594.3KB)
+Inspect: https://vercel.com/anichha777s-projects/gory-i-gorod-2026/3FNqqodvFQEvi3kms5R3N4vZqhc1 [7s]
+Production: https://gory-i-gorod-2026-763if83ku-anichha777s-projects.vercel.app [7s]
+Building...
+Building...
+Building: Running build in Washington, D.C., USA (East) – iad1
+Building: Build machine configuration: 2 cores, 8 GB
+Building: Retrieving list of deployment files...
+Building: Downloading 418 deployment files...
+Building: Restored build cache from previous deployment (ErTkmjcM42Cj3AEgCyWWtPpJdq56)
+Building: Running "vercel build"
+Building: Vercel CLI 53.3.2
+Building: Installing dependencies...
+Building: removed 1 package in 1s
+Building: 150 packages are looking for funding
+Building: run `npm fund` for details
+Building: Detected Next.js version: 16.2.4
+Building: Running "npm run build"
+Building: > gory-i-gorod@0.1.0 build
+Building: > next build
+Building: ⚠ Found lockfile missing swc dependencies, run next locally to automatically patch
+Building: Applying modifyConfig from Vercel
+Building: ▲ Next.js 16.2.4 (Turbopack)
+Building: Creating an optimized production build ...
+Building: ⚠ Found lockfile missing swc dependencies, run next locally to automatically patch
+Building: ✓ Compiled successfully in 21.7s
+Building: Running TypeScript ...
+Building: Finished TypeScript in 4.7s ...
+Building: Collecting page data using 1 worker ...
+Building: Generating static pages using 1 worker (0/12) ...
+Building: ⚠ Found lockfile missing swc dependencies, run next locally to automatically patch
+Building: Generating static pages using 1 worker (3/12)
+Building: Generating static pages using 1 worker (6/12)
+Building: Generating static pages using 1 worker (9/12)
+Building: ✓ Generating static pages using 1 worker (12/12) in 313ms
+Building: Finalizing page optimization ...
+Building: Running onBuildComplete from Vercel
+Building: Route (app)
+Building: ┌ ○ /
+Building: ├ ○ /_not-found
+Building: ├ ƒ /api/digest
+Building: ├ ƒ /api/pulse
+Building: ├ ○ /dashboard
+Building: ├ ○ /map
+Building: ├ ○ /network
+Building: ├ ○ /program
+Building: ├ ○ /pulse
+Building: └ ○ /speakers
+Building: ○  (Static)   prerendered as static content
+Building: ƒ  (Dynamic)  server-rendered on demand
+Building: Build Completed in /vercel/output [30s]
+Building: Deploying outputs...
+[2K[1A[2K[GProduction: https://gory-i-gorod-2026-763if83ku-anichha777s-projects.vercel.app [51s]
+Completing...
+Aliased: https://gory-i-gorod-2026.vercel.app [51s]
+{
+  "status": "ok",
+  "deployment": {
+    "id": "dpl_3FNqqodvFQEvi3kms5R3N4vZqhc1",
+    "url": "https://gory-i-gorod-2026-763if83ku-anichha777s-projects.vercel.app",
+    "inspectorUrl": "https://vercel.com/anichha777s-projects/gory-i-gorod-2026/3FNqqodvFQEvi3kms5R3N4vZqhc1",
+    "readyState": "READY",
+    "target": "production",
+    "deploymentApiUrl": "https://api.vercel.com/v13/deployments/dpl_3FNqqodvFQEvi3kms5R3N4vZqhc1"
+  },
+  "message": "Deployment gory-i-gorod-2026-763if83ku-anichha777s-projects.vercel.app ready.",
+  "next": [
+    {
+      "command": "vercel inspect gory-i-gorod-2026-763if83ku-anichha777s-projects.vercel.app",
+      "when": "Inspect deployment"
+    },
+    {
+      "command": "vercel deploy --prod",
+      "when": "Promote to production"
+    }
+  ]
+}

@@ -1,9 +1,9 @@
 {
   "rules": {
     "votes": {
+      ".read": true,
       "$sessionId": {
         "$tagId": {
-          ".read": true,
           ".write": "auth != null",
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000"
         }
@@ -29,33 +29,15 @@
     },
     "sessions": {
       ".read": true,
-      "$sessionId": {
-        ".write": false,
-        ".validate": "newData.hasChildren(['title','speakerId','hall','start','end','status'])"
-      }
+      ".write": "auth != null"
     },
     "speakers": {
       ".read": true,
-      "$speakerId": {
-        ".write": false,
-        ".validate": "newData.hasChildren(['name','role','avatar'])"
-      }
+      ".write": "auth != null"
     },
     "event": {
       ".read": true,
-      "activeSessionId": {
-        ".write": false
-      },
-      "expectedAudience": {
-        ".write": false
-      },
-      "updatedAt": {
-        ".write": false
-      },
-      "frozen": {
-        ".read": true,
-        ".write": false
-      }
+      ".write": "auth != null"
     },
     "heartbeat": {
       "$dashboardId": {

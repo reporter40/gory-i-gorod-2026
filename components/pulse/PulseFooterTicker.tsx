@@ -57,8 +57,10 @@ export default function PulseFooterTicker({ footer }: Pick<MockPulseState, 'foot
           '0 -28px 72px rgba(0,0,0,0.62), inset 0 1px 0 rgba(0,231,253,0.16), inset 0 -1px 0 rgba(247,168,25,0.09), 0 0 48px rgba(0,231,253,0.04)',
       }}
     >
-      <div className="pulse-footer-ridge" aria-hidden />
-      <FooterSkyline />
+      <div className="pulse-footer-decor" aria-hidden>
+        <div className="pulse-footer-ridge" aria-hidden />
+        <FooterSkyline />
+      </div>
       <div className="relative z-10 flex min-w-0 flex-[1.05] items-center gap-3 border-r border-white/[0.1] pr-5">
         <span className="shrink-0 text-[10px] font-extrabold uppercase tracking-[0.14em] text-cyan-400/90">Цитата дня</span>
         <div className="min-w-0">

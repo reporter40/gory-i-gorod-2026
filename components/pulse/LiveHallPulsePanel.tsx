@@ -36,8 +36,12 @@ export default function LiveHallPulsePanel({
           <h2 className="pulse-panel-title mb-1">Live-пульс зала</h2>
           <p className="text-[11px] text-white/45">Общий уровень вовлечённости</p>
         </div>
-        <span className="whitespace-nowrap rounded-full bg-green-500/20 px-2 py-0.5 text-[10px] font-semibold text-[var(--pulse-accent-green)]">
-          Высокая активность
+        <span className="whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold"
+          style={{
+            background: current >= 70 ? 'rgba(34,197,94,0.2)' : current >= 45 ? 'rgba(251,191,36,0.2)' : 'rgba(100,116,139,0.2)',
+            color: current >= 70 ? 'var(--pulse-accent-green)' : current >= 45 ? '#fbbf24' : '#94a3b8',
+          }}>
+          {current >= 70 ? 'Высокая активность' : current >= 45 ? 'Средняя активность' : current > 0 ? 'Низкая активность' : 'Ожидание'}
         </span>
       </div>
       <div className="mt-2 flex items-end gap-3">

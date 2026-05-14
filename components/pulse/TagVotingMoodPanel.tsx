@@ -104,12 +104,6 @@ export default function TagVotingMoodPanel({
               {a.initials}
             </div>
           ))}
-          <span className="relative z-[1] ml-2 flex items-center rounded-full border border-white/10 bg-white/10 px-2 py-1 text-[10px] font-bold text-white">
-            +342
-          </span>
-          <span className="relative z-[2] flex items-center rounded-full border border-white/10 bg-white/10 px-2 py-1 text-[10px] font-bold text-white">
-            +218
-          </span>
         </div>
         <button
           type="button"

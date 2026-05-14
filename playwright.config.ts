@@ -15,7 +15,8 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], deviceScaleFactor: 1 } }],
   webServer: {
-    command: 'NEXT_TELEMETRY_DISABLED=1 npm run dev -- -p 3320',
+    /** Webpack avoids Turbopack EMFILE in CI; same port 3320 as baseline — Pulse UI unchanged. */
+    command: 'NEXT_TELEMETRY_DISABLED=1 npx next dev --webpack -p 3320',
     url: 'http://localhost:3320/pulse',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

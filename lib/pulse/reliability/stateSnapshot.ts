@@ -4,7 +4,7 @@
 
 import type { PulseState } from '../types'
 
-const SNAPSHOT_KEY = 'pulse_last_good_state'
+const SNAPSHOT_KEY = 'pulse_last_good_state_v2'
 const SAVE_INTERVAL_MS = 5 * 60_000
 const MAX_AGE_MS = 30 * 60_000
 

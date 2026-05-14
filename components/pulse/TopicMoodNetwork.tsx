@@ -168,47 +168,61 @@ export default function TopicMoodNetwork({ nodes }: { nodes: PulseTopicNode[] })
             </feMerge>
           </filter>
         </defs>
-        <rect x="0" y="0" width="342" height="296" fill="url(#pulseTopicGrid)" opacity={0.14} />
-        <rect x="0" y="0" width="342" height="296" fill="url(#pulseTopicMesh)" opacity={0.24} />
-        <rect x="0" y="0" width="342" height="296" fill="url(#pulseTopicMeshFade)" opacity={0.64} />
-        {filaments.map(([x1, y1, x2, y2], i) => (
-          <line
-            key={`f-${i}`}
-            x1={x1}
-            y1={y1}
-            x2={x2}
-            y2={y2}
-            stroke={i % 3 === 0 ? 'rgba(247,168,25,0.06)' : 'rgba(0,231,253,0.065)'}
-            strokeWidth={0.38}
-          />
-        ))}
-        {weakEdges.map(([a, b], i) => {
-          const pa = coords.get(a)
-          const pb = coords.get(b)
-          if (!pa || !pb) return null
-          return (
+        <g className="pulse-topic-decor pulse-topic-scene-layer">
+          <rect x="0" y="0" width="342" height="296" fill="url(#pulseTopicGrid)" opacity={0.14} />
+          <rect x="0" y="0" width="342" height="296" fill="url(#pulseTopicMesh)" opacity={0.24} />
+          <rect x="0" y="0" width="342" height="296" fill="url(#pulseTopicMeshFade)" opacity={0.64} />
+          {filaments.map(([x1, y1, x2, y2], i) => (
             <line
-              key={`w-${i}`}
-              x1={pa.x}
-              y1={pa.y}
-              x2={pb.x}
-              y2={pb.y}
-              stroke="rgba(0,231,253,0.13)"
-              strokeWidth={0.52}
+              key={`f-${i}`}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              stroke={i % 3 === 0 ? 'rgba(247,168,25,0.06)' : 'rgba(0,231,253,0.065)'}
+              strokeWidth={0.38}
             />
-          )
-        })}
-        {sparkWeb.map(([x1, y1, x2, y2], i) => (
-          <line
-            key={`sw-${i}`}
-            x1={x1}
-            y1={y1}
-            x2={x2}
-            y2={y2}
-            stroke="rgba(247,168,25,0.09)"
-            strokeWidth={0.42}
-          />
-        ))}
+          ))}
+          {weakEdges.map(([a, b], i) => {
+            const pa = coords.get(a)
+            const pb = coords.get(b)
+            if (!pa || !pb) return null
+            return (
+              <line
+                key={`w-${i}`}
+                x1={pa.x}
+                y1={pa.y}
+                x2={pb.x}
+                y2={pb.y}
+                stroke="rgba(0,231,253,0.13)"
+                strokeWidth={0.52}
+              />
+            )
+          })}
+          {sparkWeb.map(([x1, y1, x2, y2], i) => (
+            <line
+              key={`sw-${i}`}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              stroke="rgba(247,168,25,0.09)"
+              strokeWidth={0.42}
+            />
+          ))}
+          {sparks.map((s, i) => (
+            <circle
+              key={`spark-${i}`}
+              cx={s.x}
+              cy={s.y}
+              r={s.r}
+              fill="rgba(0,231,253,0.55)"
+              stroke="rgba(247,168,25,0.25)"
+              strokeWidth={0.35}
+              filter="url(#pulseSparkGlow)"
+            />
+          ))}
+        </g>
         {edges.map(([a, b], i) => {
           const pa = coords.get(a)
           const pb = coords.get(b)
@@ -226,18 +240,6 @@ export default function TopicMoodNetwork({ nodes }: { nodes: PulseTopicNode[] })
             />
           )
         })}
-        {sparks.map((s, i) => (
-          <circle
-            key={`spark-${i}`}
-            cx={s.x}
-            cy={s.y}
-            r={s.r}
-            fill="rgba(0,231,253,0.55)"
-            stroke="rgba(247,168,25,0.25)"
-            strokeWidth={0.35}
-            filter="url(#pulseSparkGlow)"
-          />
-        ))}
         {LAYOUT.map(({ nodeId }) => {
           const n = byId.get(nodeId)
           const p = coords.get(nodeId)
