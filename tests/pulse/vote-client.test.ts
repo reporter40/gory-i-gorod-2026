@@ -60,3 +60,40 @@ describe('voteForTag', () => {
     expect(result.status).toBe('rate_limited')
   })
 })
+
+describe('voteForTag — input validation', () => {
+  it('rejects vote with empty sessionId', async () => {
+    const result = await voteForTag({ sessionId: '', tagId: 't1', userId: 'u1' })
+    expect(result.ok).toBe(false)
+    expect(result.status).toBe('error')
+    if (result.status === 'error') expect(result.message).toContain('sessionId')
+  })
+
+  it('rejects vote with empty tagId', async () => {
+    const result = await voteForTag({ sessionId: 's1', tagId: '', userId: 'u1' })
+    expect(result.ok).toBe(false)
+    expect(result.status).toBe('error')
+    if (result.status === 'error') expect(result.message).toContain('tagId')
+  })
+
+  it('rejects vote with empty userId', async () => {
+    const result = await voteForTag({ sessionId: 's1', tagId: 't1', userId: '' })
+    expect(result.ok).toBe(false)
+    expect(result.status).toBe('error')
+    if (result.status === 'error') expect(result.message).toContain('userId')
+  })
+})
+
+describe('offline queue — idempotency key', () => {
+  it('does not enqueue same eventId twice', async () => {
+    const { enqueueVote, getQueue, clearQueue, makeEventId } = await import('../../lib/pulse/reliability/offlineQueue')
+    clearQueue()
+    const vote = { sessionId: 's-idem', tagId: 't-idem', userId: 'u-idem' }
+    const eventId = makeEventId(vote.userId, vote.sessionId, vote.tagId)
+    enqueueVote({ ...vote, eventId })
+    enqueueVote({ ...vote, eventId }) // duplicate
+    const q = getQueue()
+    expect(q.filter(e => e.eventId === eventId).length).toBe(1)
+    clearQueue()
+  })
+})

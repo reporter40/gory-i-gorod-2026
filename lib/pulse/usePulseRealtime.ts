@@ -46,6 +46,15 @@ export function usePulseRealtime(): PulseState {
     adapterRef.current = adapter
 
     const unsub = adapter.subscribe((newState) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.group('[PulseDashboard]')
+        console.log('source:', newState._meta.source)
+        console.log('eventsCount (topTags total votes):', newState.topTags.reduce((s, t) => s + t.votes, 0))
+        console.log('sessionsCount:', newState.sessions.length)
+        console.log('reactionsBySession:', newState.topTags.map(t => `${t.id}:${t.votes}`).join(', '))
+        console.log('heatmapInput cells:', newState.heatmap.length)
+        console.groupEnd()
+      }
       setState(newState)
     })
 

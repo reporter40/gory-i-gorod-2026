@@ -514,7 +514,15 @@ export default function VotePage() {
     if (!name || !fConsent) return
     setSubmitting(true)
     try {
-      const uid = userId ?? `anon-${Date.now()}`
+      // Ensure Firebase Auth uid is resolved before saving — never save anon-timestamp as uid
+      let resolvedUid = userId
+      if (!resolvedUid && hasFirebaseConfig()) {
+        try {
+          resolvedUid = await ensureAnonymousAuth()
+          setUserId(resolvedUid)
+        } catch { /* network unavailable — uid stays null */ }
+      }
+      const uid = resolvedUid ?? `anon-${Date.now()}`
       const data: ParticipantData = {
         name, phone: fPhone.trim(),
         telegram: fTelegram.trim().replace(/^@/, ''),
@@ -524,7 +532,7 @@ export default function VotePage() {
       saveRegistration(data)
       setParticipant(data)
       setShowSuccess(true)
-      if (session) await registerParticipant({ ...data, uid: userId ?? uid }, session.id)
+      if (session) await registerParticipant(data, session.id)
       setTimeout(() => { setShowSuccess(false); setShowWizard(false) }, 1800)
     } finally { setSubmitting(false) }
   }
@@ -545,29 +553,45 @@ export default function VotePage() {
         const { getFirebaseDb } = await import('@/lib/pulse/firebase/client')
         const { ref, get, onValue } = await import('firebase/database')
         const db = getFirebaseDb()
+
         onValue(ref(db,'event/frozen'), s => setFrozen(!!s.val()))
-        const ev = await get(ref(db,'event'))
-        const evData = ev.val() as { activeSessionId?:string }|null
-        if (!evData?.activeSessionId) return
-        const sid = evData.activeSessionId
-        const [ss, vs] = await Promise.all([get(ref(db,`sessions/${sid}`)), get(ref(db,`votes/${sid}`))])
-        const sd = ss.val() as {title:string;speakerId:string;hall:string}|null
-        if (!sd) return
-        let spName = ''
-        try { const sp = await get(ref(db,`speakers/${sd.speakerId}`)); spName = (sp.val() as {name?:string}|null)?.name??'' } catch {}
-        setSession({ id:sid, title:sd.title, speakerName:spName, hall:sd.hall })
-        const ex = loadRegistration()
-        if (ex && uid) registerParticipant({ ...ex, uid }, sid)
-        const vd = (vs.val() as Record<string,number>|null)??{}
-        setTags(p => p.map(t => ({ ...t, votes: vd[t.id]??0 })))
-        const av = new Set<string>()
-        tags.forEach(t => { if (localStorage.getItem(`pulse_voted_${sid}_${t.id}_${uid}`)===`1`) av.add(t.id) })
-        setVotedTags(av)
-        onValue(ref(db,`votes/${sid}`), s => {
-          const c = (s.val() as Record<string,number>|null)??{}
-          setTags(p => p.map(t => ({ ...t, votes: c[t.id]??t.votes })))
+
+        // Track current votes listener so we can detach when activeSessionId changes
+        let currentVotesUnsub: (() => void) | null = null
+
+        async function attachSession(sid: string) {
+          if (!sid) return
+          const [ss, vs] = await Promise.all([
+            get(ref(db,`sessions/${sid}`)),
+            get(ref(db,`votes/${sid}`)),
+          ])
+          const sd = ss.val() as {title:string;speakerId:string;hall:string}|null
+          if (!sd) return
+          let spName = ''
+          try { const sp = await get(ref(db,`speakers/${sd.speakerId}`)); spName = (sp.val() as {name?:string}|null)?.name??'' } catch {}
+          setSession({ id:sid, title:sd.title, speakerName:spName, hall:sd.hall })
+          const ex = loadRegistration()
+          if (ex && uid) registerParticipant({ ...ex, uid }, sid)
+          const vd = (vs.val() as Record<string,number>|null)??{}
+          setTags(p => p.map(t => ({ ...t, votes: vd[t.id]??0 })))
+          const av = new Set<string>()
+          DEFAULT_TAGS.forEach(t => { if (localStorage.getItem(`pulse_voted_${sid}_${t.id}_${uid}`)===`1`) av.add(t.id) })
+          setVotedTags(av)
+          // Detach previous votes listener before attaching new one
+          if (currentVotesUnsub) currentVotesUnsub()
+          const unsub = onValue(ref(db,`votes/${sid}`), s => {
+            const c = (s.val() as Record<string,number>|null)??{}
+            setTags(p => p.map(t => ({ ...t, votes: c[t.id]??t.votes })))
+          })
+          currentVotesUnsub = () => unsub()
+          flushOfflineQueue()
+        }
+
+        // Live subscription to activeSessionId — reacts when operator changes session
+        onValue(ref(db,'event/activeSessionId'), async s => {
+          const sid = (s.val() as string) ?? ''
+          if (sid) await attachSession(sid)
         })
-        flushOfflineQueue()
       } catch(e) { console.error(e); toast('Ошибка подключения','error') }
     }
     init()

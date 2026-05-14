@@ -4,7 +4,7 @@
 // Check order: frozen → rate_limited → localStorage duplicate → offline → Firebase transaction
 
 import { checkRateLimit, recordVote } from './reliability/rateLimiter'
-import { enqueueVote, getQueue, removeFromQueue } from './reliability/offlineQueue'
+import { enqueueVote, getQueue, removeFromQueue, makeEventId } from './reliability/offlineQueue'
 
 export type VoteResult =
   | { ok: true; status: 'voted' }
@@ -96,6 +96,27 @@ export async function voteForTag(input: {
 }): Promise<VoteResult> {
   const { sessionId, tagId, userId } = input
 
+  // 0. Validate required fields — never silently drop incomplete events
+  if (!sessionId || !tagId || !userId) {
+    const missing = [!sessionId && 'sessionId', !tagId && 'tagId', !userId && 'userId'].filter(Boolean).join(', ')
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[PulseVote] rejected — missing required fields:', missing)
+    }
+    return { ok: false, status: 'error', message: `missing required fields: ${missing}` }
+  }
+
+  const firebasePath = `votes/${sessionId}/${tagId}`
+  if (process.env.NODE_ENV === 'development') {
+    console.group('[PulseVote]')
+    console.log('participantId:', userId)
+    console.log('sessionId:', sessionId)
+    console.log('tagId:', tagId)
+    console.log('firebasePath:', firebasePath)
+    console.groupCollapsed('call stack')
+    console.trace()
+    console.groupEnd()
+  }
+
   // 1. Check frozen
   if (await isFrozen()) {
     return { ok: false, status: 'frozen' }
@@ -115,7 +136,12 @@ export async function voteForTag(input: {
   // 4. Online check
   const online = await isOnline()
   if (!online) {
-    enqueueVote({ sessionId, tagId, userId })
+    const eventId = makeEventId(userId, sessionId, tagId)
+    enqueueVote({ sessionId, tagId, userId, eventId })
+    if (process.env.NODE_ENV === 'development') {
+      console.log('writeResult: queued offline, eventId:', eventId)
+      console.groupEnd()
+    }
     return { ok: false, status: 'offline', queued: true }
   }
 
@@ -133,14 +159,20 @@ export async function voteForTag(input: {
     // 8. Push mood event (best-effort)
     pushMoodEvent(sessionId, tagId, userId)
 
+    if (process.env.NODE_ENV === 'development') {
+      console.log('writeResult: ok — voted, path:', firebasePath)
+      console.groupEnd()
+    }
     return { ok: true, status: 'voted' }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     // Firebase rules blocked duplicate → treat as duplicate
     if (msg.includes('PERMISSION_DENIED')) {
       markVotedLocally(sessionId, tagId, userId)
+      if (process.env.NODE_ENV === 'development') { console.log('writeResult: duplicate (PERMISSION_DENIED)'); console.groupEnd() }
       return { ok: false, status: 'duplicate' }
     }
+    if (process.env.NODE_ENV === 'development') { console.error('writeResult: error', msg); console.groupEnd() }
     return { ok: false, status: 'error', message: msg }
   }
 }

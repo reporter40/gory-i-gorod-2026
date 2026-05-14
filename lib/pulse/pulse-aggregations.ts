@@ -69,3 +69,47 @@ export function getAiInsights(insights: PulseInsight[]): string[] {
 export function buildPulseStateFromRaw(raw: Partial<PulseState>, base: PulseState): PulseState {
   return { ...base, ...raw }
 }
+
+// ─── Pure aggregation for testability ────────────────────────────────────────
+// Represents a single raw reaction event (canonical contract).
+export interface PulseReactionEvent {
+  id: string
+  participantId: string
+  sessionId: string
+  tagId: string
+  tagLabel: string
+  createdAt: number
+  source: 'mobile'
+}
+
+export interface AggregatedReactions {
+  // tagId → count for this session
+  byTag: Record<string, number>
+  // sessionId → tagId → count
+  bySession: Record<string, Record<string, number>>
+  totalVotes: number
+}
+
+/**
+ * Pure aggregation over a list of PulseReactionEvents.
+ * Used for unit tests and future batch processing.
+ * Rejects events with missing participantId / sessionId / tagId.
+ */
+export function aggregatePulseEvents(events: PulseReactionEvent[]): AggregatedReactions {
+  const byTag: Record<string, number> = {}
+  const bySession: Record<string, Record<string, number>> = {}
+  let totalVotes = 0
+
+  for (const e of events) {
+    if (!e.participantId || !e.sessionId || !e.tagId) continue
+
+    byTag[e.tagId] = (byTag[e.tagId] ?? 0) + 1
+
+    if (!bySession[e.sessionId]) bySession[e.sessionId] = {}
+    bySession[e.sessionId][e.tagId] = (bySession[e.sessionId][e.tagId] ?? 0) + 1
+
+    totalVotes++
+  }
+
+  return { byTag, bySession, totalVotes }
+}

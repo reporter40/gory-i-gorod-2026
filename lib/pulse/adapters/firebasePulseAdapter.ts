@@ -56,12 +56,13 @@ export function createFirebasePulseAdapter(): PulseAdapter {
   }
 
   function buildTagStats(votes: Record<string, number>): PulseTagStat[] {
+    // Must match DEFAULT_TAGS in app/pulse/vote/page.tsx — keep in sync
     const TAG_META: Record<string, { name: string; icon: string }> = {
-      actual: { name: 'Актуально', icon: '🔥' },
-      ppp: { name: 'ГЧП / Партнёрство', icon: '🤝' },
-      innovation: { name: 'Инновации', icon: '💡' },
-      cases: { name: 'Кейсы / Практика', icon: '📋' },
-      invest: { name: 'Инвестиции', icon: '💰' },
+      implement:  { name: 'Хочу внедрить',  icon: '🔥' },
+      discovery:  { name: 'Открытие',        icon: '💡' },
+      partner:    { name: 'Ищу партнёров',   icon: '🤝' },
+      question:   { name: 'Есть вопрос',     icon: '❓' },
+      applicable: { name: 'Применимо у нас', icon: '📍' },
     }
     return Object.entries(votes).map(([id, count]) => ({
       id,
