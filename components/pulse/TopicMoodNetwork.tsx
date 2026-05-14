@@ -1,3 +1,5 @@
+'use client'
+
 import type { PulseTopicNode } from '@/lib/pulse/pulse-data'
 
 const LAYOUT: { nodeId: PulseTopicNode['id']; x: number; y: number }[] = [
@@ -251,7 +253,7 @@ export default function TopicMoodNetwork({ nodes }: { nodes: PulseTopicNode[] })
           const n = byId.get(nodeId)
           const p = coords.get(nodeId)
           if (!n || !p) return null
-          const bw = Math.min(196, Math.max(120, Math.round((n.value / 100) * 196)))
+          const bw = 160
           const bh = 58
           return (
             <g key={n.id}>
