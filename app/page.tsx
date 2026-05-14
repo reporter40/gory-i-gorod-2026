@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { SESSIONS, SPEAKERS, BLOCK_LABELS, PARTICIPANTS } from '@/lib/data'
-import { PartnersBar, LogoInnopolis, LogoGelendzhikArena, LogoIIntegration } from '@/components/Logos'
+import { LogoInnopolis, LogoGelendzhikArena, LogoIIntegration } from '@/components/Logos'
 
 const BLOCK_DOT: Record<string, string> = {
   tourism: '#4a9eca', quality: '#22c55e', creative: '#a855f7',
@@ -37,137 +37,138 @@ export default function Home() {
       }} />
 
       {/* Hero */}
-      <div className="text-white px-5 pt-12 pb-9 relative overflow-hidden z-10"
-        style={{ background: 'linear-gradient(180deg, #020d1f 0%, #050f22 60%, #07101f 100%)', minHeight: 380 }}>
+      <div className="text-white relative overflow-hidden z-10"
+        style={{ background: 'linear-gradient(175deg, #020c1c 0%, #030f20 55%, #07101f 100%)', minHeight: 440 }}>
 
-        {/* ── Animated background art ── */}
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 430 380"
+        {/* ── Background art: ring RIGHT, mountains bottom ── */}
+        <svg aria-hidden="true" viewBox="0 0 430 440"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
-          xmlns="http://www.w3.org/2000/svg"
-        >
+          xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <radialGradient id="orbGlow" cx="50%" cy="42%" r="38%">
-              <stop offset="0%" stopColor="#1a8fc0" stopOpacity="0.22" />
-              <stop offset="60%" stopColor="#0a4a7a" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#020d1f" stopOpacity="0" />
+            <radialGradient id="hOrbGlow" cx="75%" cy="40%" r="42%">
+              <stop offset="0%" stopColor="#1a8fc0" stopOpacity="0.18" />
+              <stop offset="100%" stopColor="#020c1c" stopOpacity="0" />
             </radialGradient>
-            <radialGradient id="cityGlow" cx="50%" cy="100%" r="60%">
-              <stop offset="0%" stopColor="#c4974a" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#020d1f" stopOpacity="0" />
+            <radialGradient id="hCityGlow" cx="50%" cy="100%" r="55%">
+              <stop offset="0%" stopColor="#c4974a" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#020c1c" stopOpacity="0" />
             </radialGradient>
-            <filter id="blur4">
-              <feGaussianBlur stdDeviation="4" />
-            </filter>
-            <filter id="blur2">
-              <feGaussianBlur stdDeviation="2" />
-            </filter>
+            <filter id="hBlur3"><feGaussianBlur stdDeviation="3" /></filter>
+            <filter id="hBlur6"><feGaussianBlur stdDeviation="6" /></filter>
             <style>{`
-              @keyframes ring-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-              @keyframes ring-spin-rev { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
-              @keyframes orb-pulse {
-                0%,100% { opacity: 0.7; r: 58; }
-                50%      { opacity: 1;   r: 62; }
-              }
-              @keyframes city-flicker {
-                0%,100% { opacity:0.55 } 30% { opacity:0.7 } 70% { opacity:0.5 }
-              }
-              .ring1 { transform-origin: 215px 160px; animation: ring-spin 28s linear infinite; }
-              .ring2 { transform-origin: 215px 160px; animation: ring-spin-rev 18s linear infinite; }
-              .ring3 { transform-origin: 215px 160px; animation: ring-spin 45s linear infinite; }
-              .ring-gold { transform-origin: 215px 160px; animation: ring-spin-rev 60s linear infinite; }
-              .city-lights { animation: city-flicker 4s ease-in-out infinite; }
+              @keyframes hr1 { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+              @keyframes hr2 { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+              @keyframes hfl { 0%,100%{opacity:.5} 50%{opacity:.75} }
+              .hr1{transform-origin:318px 185px;animation:hr1 32s linear infinite}
+              .hr2{transform-origin:318px 185px;animation:hr2 20s linear infinite}
+              .hr3{transform-origin:318px 185px;animation:hr1 55s linear infinite}
+              .hrg{transform-origin:318px 185px;animation:hr2 70s linear infinite}
+              .hfl{animation:hfl 4.5s ease-in-out infinite}
             `}</style>
           </defs>
 
-          {/* Ambient background glow */}
-          <ellipse cx="215" cy="155" rx="220" ry="160" fill="url(#orbGlow)" />
+          {/* Ambient glow behind ring (right side) */}
+          <ellipse cx="318" cy="185" rx="190" ry="170" fill="url(#hOrbGlow)" />
 
-          {/* Outer gold dotted ring */}
-          <circle className="ring-gold" cx="215" cy="160" r="155"
-            fill="none" stroke="#c4974a" strokeWidth="0.6" strokeOpacity="0.25"
-            strokeDasharray="3 18" />
-
-          {/* Outer ring 1 */}
-          <circle className="ring3" cx="215" cy="160" r="135"
-            fill="none" stroke="#2a6a9a" strokeWidth="0.8" strokeOpacity="0.3"
-            strokeDasharray="6 24" />
-
-          {/* Ring 2 — thicker */}
-          <circle className="ring2" cx="215" cy="160" r="108"
-            fill="none" stroke="#1a7ab8" strokeWidth="1.2" strokeOpacity="0.4"
-            strokeDasharray="12 20" />
-
-          {/* Inner glowing ring */}
-          <circle className="ring1" cx="215" cy="160" r="80"
-            fill="none" stroke="#4ab8e0" strokeWidth="2" strokeOpacity="0.6"
-            strokeDasharray="60 140" filter="url(#blur2)" />
-          <circle className="ring1" cx="215" cy="160" r="80"
-            fill="none" stroke="#6ad4f8" strokeWidth="1" strokeOpacity="0.8"
-            strokeDasharray="60 140" />
-
-          {/* Gold arc accent */}
-          <circle className="ring-gold" cx="215" cy="160" r="80"
-            fill="none" stroke="#c4974a" strokeWidth="1.5" strokeOpacity="0.5"
-            strokeDasharray="8 232" />
-
-          {/* Core orb */}
-          <circle cx="215" cy="160" r="58" fill="#020d1f" />
-          <circle cx="215" cy="160" r="58" fill="none" stroke="#4ab8e0" strokeWidth="1.5" strokeOpacity="0.5" />
-          {/* Orb inner glow rim */}
-          <circle cx="215" cy="160" r="57" fill="none" stroke="#6ad4f8" strokeWidth="3" strokeOpacity="0.15" filter="url(#blur2)" />
-          {/* Bright arc on core */}
-          <path d="M 215 102 A 58 58 0 0 1 248 170" fill="none" stroke="#4ab8e0" strokeWidth="3" strokeLinecap="round" strokeOpacity="0.9" filter="url(#blur2)" />
-          <path d="M 215 102 A 58 58 0 0 1 248 170" fill="none" stroke="#9ee8ff" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.8" />
-
-          {/* Stars */}
-          {[[38,28],[90,18],[140,35],[300,22],[360,40],[400,15],[50,70],[380,65],[420,50],[10,45],[200,12],[320,55]].map(([x,y],i) => (
-            <circle key={i} cx={x} cy={y} r={i%3===0?1.2:0.7} fill="white" fillOpacity={0.4+Math.sin(i)*0.3} />
+          {/* Stars — scattered top half */}
+          {[[22,18],[65,12],[105,30],[155,8],[210,24],[270,14],[340,8],[390,20],[415,35],[420,55],[380,60],[250,45],[150,55],[60,48],[12,38],[340,42]].map(([x,y],i)=>(
+            <circle key={i} cx={x} cy={y} r={i%4===0?1.3:0.75} fill="white" fillOpacity={0.25+((i*7)%10)*0.04}/>
           ))}
 
-          {/* Mountain silhouette */}
-          <path
-            d="M0 310 L55 240 L100 270 L155 195 L200 245 L240 185 L285 250 L330 210 L375 255 L430 230 L430 310 Z"
-            fill="#030b1a" opacity="0.95"
-          />
-          <path
-            d="M0 320 L80 275 L130 290 L175 255 L215 270 L260 248 L305 268 L360 255 L410 272 L430 265 L430 320 Z"
-            fill="#020d1f" opacity="1"
-          />
+          {/* Outer dotted gold ring */}
+          <circle className="hrg" cx="318" cy="185" r="162"
+            fill="none" stroke="#c4974a" strokeWidth="0.7" strokeOpacity="0.2" strokeDasharray="2 20"/>
+          {/* Outer blue ring */}
+          <circle className="hr3" cx="318" cy="185" r="140"
+            fill="none" stroke="#1e6a96" strokeWidth="0.9" strokeOpacity="0.28" strokeDasharray="8 28"/>
+          {/* Mid ring */}
+          <circle className="hr2" cx="318" cy="185" r="112"
+            fill="none" stroke="#1e82b8" strokeWidth="1.2" strokeOpacity="0.35" strokeDasharray="14 22"/>
+          {/* Inner glow ring (blur copy) */}
+          <circle className="hr1" cx="318" cy="185" r="82"
+            fill="none" stroke="#3ab0d8" strokeWidth="2.5" strokeOpacity="0.5"
+            strokeDasharray="55 159" filter="url(#hBlur3)"/>
+          {/* Inner ring sharp */}
+          <circle className="hr1" cx="318" cy="185" r="82"
+            fill="none" stroke="#6ad8f8" strokeWidth="1.2" strokeOpacity="0.75" strokeDasharray="55 159"/>
+          {/* Gold arc accent */}
+          <circle className="hrg" cx="318" cy="185" r="82"
+            fill="none" stroke="#d4a855" strokeWidth="2" strokeOpacity="0.55" strokeDasharray="9 245"/>
 
-          {/* City glow on horizon */}
-          <rect x="0" y="305" width="430" height="8" fill="url(#cityGlow)" filter="url(#blur4)" />
+          {/* Core orb dark fill */}
+          <circle cx="318" cy="185" r="60" fill="#020c1c"/>
+          {/* Core rim */}
+          <circle cx="318" cy="185" r="60"
+            fill="none" stroke="#3ab0d8" strokeWidth="1.5" strokeOpacity="0.45"/>
+          {/* Core glow soft */}
+          <circle cx="318" cy="185" r="59"
+            fill="none" stroke="#6ad8f8" strokeWidth="4" strokeOpacity="0.1" filter="url(#hBlur3)"/>
+          {/* Bright arc on core */}
+          <path d="M 318 125 A 60 60 0 0 1 352 197"
+            fill="none" stroke="#4ac8ee" strokeWidth="3.5" strokeLinecap="round" strokeOpacity="0.85" filter="url(#hBlur3)"/>
+          <path d="M 318 125 A 60 60 0 0 1 352 197"
+            fill="none" stroke="#aaeeff" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.9"/>
+          {/* Small gold dot on ring */}
+          <circle cx="377" cy="173" r="3" fill="#d4a855" fillOpacity="0.8" filter="url(#hBlur3)"/>
+          <circle cx="377" cy="173" r="1.5" fill="#f0cc88" fillOpacity="0.95"/>
 
+          {/* Mountains — full bottom */}
+          <path d="M0 360 L45 295 L85 318 L130 258 L175 295 L215 245 L260 290 L300 262 L345 285 L385 255 L430 272 L430 360 Z"
+            fill="#030b1a" opacity="0.98"/>
+          <path d="M0 370 L70 328 L115 342 L155 308 L195 325 L235 300 L270 318 L315 304 L355 318 L400 305 L430 315 L430 370 Z"
+            fill="#020c1c" opacity="1"/>
+
+          {/* City glow */}
+          <rect x="50" y="355" width="330" height="10" fill="url(#hCityGlow)" filter="url(#hBlur6)"/>
           {/* City lights */}
-          <g className="city-lights">
-            {[[160,300],[175,298],[190,302],[205,297],[220,301],[235,299],[250,303],[265,298],[280,301],[295,300],[175,307],[200,305],[225,308],[250,306],[140,304],[310,303]].map(([x,y],i) => (
-              <rect key={i} x={x} y={y} width={i%4===0?2:1} height={i%3===0?3:2}
-                fill={i%5===0?'#c4974a':'#4ab8e0'} fillOpacity={0.5+Math.sin(i*1.7)*0.3} />
+          <g className="hfl">
+            {[[150,352],[163,350],[176,353],[189,349],[202,352],[215,350],[228,353],[241,350],[254,352],[267,351],[280,353],[293,350],[165,358],[190,357],[215,359],[240,358]].map(([x,y],i)=>(
+              <rect key={i} x={x} y={y} width={i%5===0?2.5:1.5} height={i%3===0?3.5:2.5}
+                fill={i%4===0?'#d4a855':'#4ac8ee'} fillOpacity={0.45+((i*13)%10)*0.04}/>
             ))}
           </g>
         </svg>
 
-        {/* Content */}
-        <div className="max-w-md mx-auto relative" style={{ zIndex: 2 }}>
-          <div className="flex items-center gap-3 mb-9 opacity-60">
-            <LogoInnopolis size={18} />
-            <div className="w-px h-3.5" style={{ background: 'rgba(255,255,255,0.25)' }} />
-            <LogoGelendzhikArena size={18} />
-            <div className="w-px h-3.5" style={{ background: 'rgba(255,255,255,0.25)' }} />
-            <LogoIIntegration size={16} />
+        {/* ── TEXT CONTENT — left side, clear of ring ── */}
+        <div className="relative px-6 pt-14 pb-12" style={{ zIndex: 2, maxWidth: '58%' }}>
+
+          {/* Partner labels — text only, no icons */}
+          <div className="flex items-center gap-0 mb-10 flex-wrap">
+            {[['ИННОПОЛИС','#4a9eca'],['ГЕЛЕНДЖИК АРЕНА','rgba(238,244,255,0.35)'],['IIИНТЕГРАЦИЯ','rgba(238,244,255,0.35)']].map(([name, color], i) => (
+              <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                {i > 0 && <span style={{ color: 'rgba(255,255,255,0.15)', marginLeft: 8, marginRight: 8, fontSize: 10 }}>·</span>}
+                <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', color: color as string }}>
+                  {name}
+                </span>
+              </span>
+            ))}
           </div>
 
-          <div className="glow-chip mb-4">
-            <span className="blink">●</span> 16–17 мая · Геленджик
+          {/* Date badge */}
+          <div className="glow-chip mb-5" style={{ display: 'inline-flex' }}>
+            <span className="blink">●</span> 16–17 МАЯ · ГЕЛЕНДЖИК
           </div>
 
-          <h1 className="display text-white mb-2">Горы<br />и Город</h1>
+          {/* Main title */}
+          <h1 style={{
+            fontSize: 42, fontWeight: 900,
+            letterSpacing: '-0.04em', lineHeight: 1.0,
+            color: '#ffffff',
+            marginBottom: 12,
+          }}>
+            Горы<br />и Город
+          </h1>
 
-          <div style={{ width: 28, height: 2, background: 'linear-gradient(90deg, #c4974a, transparent)', borderRadius: 2, marginBottom: 14 }} />
+          {/* Gold accent line */}
+          <div style={{
+            width: 36, height: 2,
+            background: 'linear-gradient(90deg, #d4a855, rgba(212,168,85,0))',
+            borderRadius: 2, marginBottom: 16,
+          }} />
 
-          <p style={{ color: 'rgba(238,244,255,0.55)', fontSize: 15, fontWeight: 400, lineHeight: 1.6 }}>
-            Форум урбанистики — практический опыт<br />создания городской среды
+          {/* Subtitle */}
+          <p style={{ color: 'rgba(238,244,255,0.5)', fontSize: 13, fontWeight: 400, lineHeight: 1.65 }}>
+            Форум урбанистики<br />и городской среды
           </p>
         </div>
       </div>
