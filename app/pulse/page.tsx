@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { SPEAKERS } from '@/lib/data'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { voteForTag, flushOfflineQueue, type VoteResult } from '@/lib/pulse/vote-client'
 import { ensureAnonymousAuth, hasFirebaseConfig } from '@/lib/pulse/firebase/client'
 
@@ -14,13 +13,8 @@ const TAGS = [
 ]
 
 interface ActiveSession {
-  id: string
-  title: string
-  speakerName: string
-  speakerId?: string
-  hall: string
+  id: string; title: string; speakerName: string; hall: string; speakerRole?: string; photoUrl?: string
 }
-
 type ToastType = 'success' | 'warn' | 'error'
 
 export default function PulsePage() {
@@ -32,6 +26,8 @@ export default function PulsePage() {
   const [votedTags, setVotedTags]     = useState<Set<string>>(new Set())
   const [pendingTags, setPendingTags] = useState<Set<string>>(new Set())
   const [toasts, setToasts]           = useState<{ text: string; type: ToastType; id: number }[]>([])
+  const activeSessionRef              = useRef<string | null>(null)
+  const unsubVotesRef                 = useRef<(() => void) | null>(null)
 
   function toast(text: string, type: ToastType = 'success') {
     const id = Date.now()
@@ -39,72 +35,98 @@ export default function PulsePage() {
     setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 2800)
   }
 
+  async function loadSession(sid: string, uid: string) {
+    try {
+      const { getFirebaseDb } = await import('@/lib/pulse/firebase/client')
+      const { ref, get, onValue, off } = await import('firebase/database')
+      const db = getFirebaseDb()
+
+      const [ss, vs] = await Promise.all([
+        get(ref(db, `sessions/${sid}`)),
+        get(ref(db, `votes/${sid}`)),
+      ])
+
+      const sd = ss.val() as { title?: string; speakerId?: string; hall?: string; speakerName?: string } | null
+      if (!sd?.title) { setSession(null); setLoading(false); return }
+
+      let spName = sd.speakerName ?? ''
+      let spRole = ''
+      let photoUrl = ''
+      if (sd.speakerId) {
+        try {
+          const spSnap = await get(ref(db, `speakers/${sd.speakerId}`))
+          const spData = spSnap.val() as { name?: string; role?: string; photo_url?: string } | null
+          if (spData) { spName = spData.name ?? spName; spRole = spData.role ?? ''; photoUrl = spData.photo_url ?? '' }
+        } catch { /* ok */ }
+      }
+
+      setSession({ id: sid, title: sd.title, speakerName: spName, hall: sd.hall ?? '', speakerRole: spRole, photoUrl })
+      setTagCounts((vs.val() as Record<string, number> | null) ?? {})
+
+      const av = new Set<string>()
+      TAGS.forEach(t => {
+        if (typeof localStorage !== 'undefined' && localStorage.getItem(`pulse_voted_${sid}_${t.id}_${uid}`) === '1') av.add(t.id)
+      })
+      setVotedTags(av)
+      setPendingTags(new Set())
+      setLoading(false)
+
+      // Subscribe to live vote counts, unsubscribe previous
+      if (unsubVotesRef.current) { unsubVotesRef.current(); unsubVotesRef.current = null }
+      const votesRef = ref(db, `votes/${sid}`)
+      const handler = onValue(votesRef, s => {
+        setTagCounts((s.val() as Record<string, number> | null) ?? {})
+      })
+      unsubVotesRef.current = () => off(votesRef, 'value', handler)
+    } catch (e) {
+      console.error('loadSession error', e)
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
+    let mounted = true
+
     async function init() {
-      // Mock mode (no Firebase config)
       if (!hasFirebaseConfig()) {
         setUserId('mock-user')
-        setSession({ id: 'mock-1', title: 'Будущее городов в новой реальности', speakerName: 'А. Иванова', hall: 'Главный зал' })
+        setSession({ id: 'mock-1', title: 'Будущее городов в новой реальности', speakerName: 'А. Иванова', hall: 'Главный зал', speakerRole: 'Директор института урбанистики' })
         setLoading(false)
         return
       }
 
       try {
         const uid = await ensureAnonymousAuth()
+        if (!mounted) return
         setUserId(uid)
+
         const { getFirebaseDb } = await import('@/lib/pulse/firebase/client')
-        const { ref, get, onValue } = await import('firebase/database')
+        const { ref, onValue } = await import('firebase/database')
         const db = getFirebaseDb()
 
-        // Subscribe to frozen state
-        onValue(ref(db, 'event/frozen'), s => setFrozen(!!s.val()))
+        onValue(ref(db, 'event/frozen'), s => { if (mounted) setFrozen(!!s.val()) })
 
-        // Subscribe to active session changes (organizer switches speaker)
-        onValue(ref(db, 'event/activeSessionId'), async snap => {
-          const sid = snap.val() as string | null
+        onValue(ref(db, 'event/activeSessionId'), s => {
+          const sid = s.val() as string | null
+          if (!mounted) return
           if (!sid) { setSession(null); setLoading(false); return }
-
-          const [ss, vs] = await Promise.all([
-            get(ref(db, `sessions/${sid}`)),
-            get(ref(db, `votes/${sid}`)),
-          ])
-          const sd = ss.val() as { title: string; speakerId?: string; hall: string } | null
-          if (!sd) { setSession(null); setLoading(false); return }
-
-          let spName = ''
-          if (sd.speakerId) {
-            try {
-              const sp = await get(ref(db, `speakers/${sd.speakerId}`))
-              spName = (sp.val() as { name?: string } | null)?.name ?? ''
-            } catch {}
-          }
-
-          setSession({ id: sid, title: sd.title, speakerName: spName, speakerId: sd.speakerId, hall: sd.hall })
-          setTagCounts((vs.val() as Record<string, number> | null) ?? {})
-
-          // Restore voted tags from localStorage
-          const av = new Set<string>()
-          TAGS.forEach(t => {
-            if (localStorage.getItem(`pulse_voted_${sid}_${t.id}_${uid}`) === '1') av.add(t.id)
-          })
-          setVotedTags(av)
-          setPendingTags(new Set())
-          setLoading(false)
-
-          // Live vote counts for this session
-          onValue(ref(db, `votes/${sid}`), s => {
-            setTagCounts((s.val() as Record<string, number> | null) ?? {})
-          })
+          if (sid === activeSessionRef.current) return
+          activeSessionRef.current = sid
+          loadSession(sid, uid)
         })
 
         flushOfflineQueue()
       } catch (e) {
-        console.error(e)
-        toast('Ошибка подключения', 'error')
-        setLoading(false)
+        console.error('pulse init error', e)
+        if (mounted) { toast('Ошибка подключения', 'error'); setLoading(false) }
       }
     }
+
     init()
+    return () => {
+      mounted = false
+      if (unsubVotesRef.current) unsubVotesRef.current()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -131,7 +153,6 @@ export default function PulsePage() {
   }, [userId, session, votedTags, frozen, pendingTags])
 
   const totalVotes = Object.values(tagCounts).reduce((a, b) => a + b, 0)
-  const speaker = session?.speakerId ? SPEAKERS.find(s => s.id === session.speakerId) : null
 
   return (
     <div className="min-h-screen pb-nav">
@@ -162,30 +183,29 @@ export default function PulsePage() {
 
       <div className="max-w-md mx-auto px-4 py-5 space-y-5">
 
-        {/* Current speaker card */}
         {loading ? (
           <div className="card p-5" style={{ textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>
-            Загрузка...
+            Подключение...
           </div>
         ) : !session ? (
           <div className="card p-6" style={{ textAlign: 'center' }}>
             <p style={{ fontSize: 28, marginBottom: 12 }}>⏳</p>
             <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>Сессия ещё не началась</p>
             <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6 }}>
-              Когда организаторы запустят сессию,<br />здесь появится спикер и кнопки голосования
+              Когда организаторы запустят сессию,<br />здесь появится спикер и голосование
             </p>
           </div>
         ) : (
           <>
-            {/* Speaker on stage */}
+            {/* Current speaker */}
             <div className="card p-5" style={{ borderColor: 'rgba(245,197,24,0.25)' }}>
               <p style={{ fontSize: 10, fontWeight: 700, color: '#f5c518', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
                 ⚡ Сейчас на сцене
               </p>
               <div className="flex items-start gap-3">
-                {speaker?.photo_url && (
+                {session.photoUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={speaker.photo_url} alt={speaker.name}
+                  <img src={session.photoUrl} alt={session.speakerName}
                     className="w-12 h-12 rounded-2xl object-cover flex-shrink-0"
                     style={{ filter: 'grayscale(20%) brightness(1.05)' }} />
                 )}
@@ -193,19 +213,19 @@ export default function PulsePage() {
                   <h2 style={{ fontWeight: 800, fontSize: 16, color: 'var(--text)', lineHeight: 1.3, marginBottom: 6 }}>
                     {session.title}
                   </h2>
-                  <p style={{ fontSize: 12, color: 'var(--text-2)' }}>
-                    {[session.speakerName, session.hall].filter(Boolean).join(' · ')}
-                  </p>
-                  {speaker?.role && (
-                    <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 3, lineHeight: 1.4 }}>
-                      {speaker.role}
-                    </p>
+                  {session.speakerName && (
+                    <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>{session.speakerName}</p>
+                  )}
+                  {session.speakerRole && (
+                    <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2, lineHeight: 1.4 }}>{session.speakerRole}</p>
+                  )}
+                  {session.hall && (
+                    <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>{session.hall}</p>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Voting */}
             {frozen ? (
               <div className="card p-5" style={{ textAlign: 'center', borderColor: 'rgba(239,68,68,0.3)' }}>
                 <p style={{ fontSize: 20, marginBottom: 8 }}>⏸</p>
@@ -257,7 +277,6 @@ export default function PulsePage() {
                     )
                   })}
                 </div>
-
                 {totalVotes > 0 && (
                   <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-3)', marginTop: 16 }}>
                     {totalVotes} {totalVotes === 1 ? 'голос' : totalVotes < 5 ? 'голоса' : 'голосов'} по этой сессии
