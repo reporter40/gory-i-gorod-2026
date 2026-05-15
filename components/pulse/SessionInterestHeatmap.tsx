@@ -5,31 +5,32 @@ import type { SessionHeatmap as SessionHeatmapT } from '@/lib/pulse/pulse-data'
 import { hasFirebaseConfig, getFirebaseDb } from '@/lib/pulse/firebase/client'
 
 function intensityColor(v: number): string {
-  if (v <= 0) return 'rgba(10,16,32,0.4)'
-  const t = v / 100
+  if (v <= 0) return 'rgba(6,12,24,0.55)'
+  const t = Math.min(1, v / 100)
+  // dark → deep blue → cyan → bright cyan/white
   let r: number, g: number, b: number
-  if (t < 0.35) {
-    const s = t / 0.35
-    r = Math.round(10 + s * (0 - 10))
-    g = Math.round(16 + s * (160 - 16))
-    b = Math.round(32 + s * (140 - 32))
-  } else if (t < 0.65) {
-    const s = (t - 0.35) / 0.30
-    r = Math.round(0 + s * (30 - 0))
-    g = Math.round(160 + s * (210 - 160))
-    b = Math.round(140 + s * (80 - 140))
+  if (t < 0.3) {
+    const s = t / 0.3
+    r = Math.round(6  + s * (0  - 6))
+    g = Math.round(12 + s * (40 - 12))
+    b = Math.round(24 + s * (120 - 24))
+  } else if (t < 0.6) {
+    const s = (t - 0.3) / 0.3
+    r = Math.round(0  + s * (0   - 0))
+    g = Math.round(40 + s * (160 - 40))
+    b = Math.round(120 + s * (220 - 120))
   } else if (t < 0.85) {
-    const s = (t - 0.65) / 0.20
-    r = Math.round(30 + s * (240 - 30))
-    g = Math.round(210 + s * (180 - 210))
-    b = Math.round(80 + s * (20 - 80))
+    const s = (t - 0.6) / 0.25
+    r = Math.round(0  + s * (30  - 0))
+    g = Math.round(160 + s * (220 - 160))
+    b = Math.round(220 + s * (255 - 220))
   } else {
     const s = (t - 0.85) / 0.15
-    r = Math.round(240 + s * (255 - 240))
-    g = Math.round(180 + s * (220 - 180))
-    b = Math.round(20 + s * (0 - 20))
+    r = Math.round(30  + s * (180 - 30))
+    g = Math.round(220 + s * (245 - 220))
+    b = Math.round(255)
   }
-  const a = 0.25 + t * 0.75
+  const a = 0.2 + t * 0.8
   return `rgba(${r},${g},${b},${a})`
 }
 
@@ -235,7 +236,7 @@ export default function SessionInterestHeatmap({
         {/* Legend */}
         <div className="shrink-0 flex items-center gap-3 pt-1 text-[9px] text-white/40">
           <span className="shrink-0">Низкий</span>
-          <span className="h-1.5 flex-1 rounded-full bg-gradient-to-r from-[#0a1020] via-[#00a078] via-[#1ed760] to-[#ffdc00]" />
+          <span className="h-1.5 flex-1 rounded-full bg-gradient-to-r from-[#060c18] via-[#0028a0] via-[#00a0dc] to-[#00e5ff]" />
           <span className="shrink-0">Высокий</span>
         </div>
       </div>
