@@ -12,21 +12,26 @@ export default function LiveHallPulsePanel({
   const w = 270
   const h = 78
   const pad = 10
-  const values = timeline.map(t => t.value)
+  const hasData = timeline.length > 0
+  const values = hasData ? timeline.map(t => t.value) : [0]
   const minV = Math.min(...values)
   const maxV = Math.max(...values)
   const norm = (v: number) => (maxV === minV ? 0.5 : (v - minV) / (maxV - minV))
 
   let d = ''
-  timeline.forEach((pt, i) => {
-    const x = pad + (i / Math.max(1, timeline.length - 1)) * (w - pad * 2)
-    const y = h - pad - norm(pt.value) * (h - pad * 2)
-    d += `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)} `
-  })
+  if (hasData) {
+    timeline.forEach((pt, i) => {
+      const x = pad + (i / Math.max(1, timeline.length - 1)) * (w - pad * 2)
+      const y = h - pad - norm(pt.value) * (h - pad * 2)
+      d += `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)} `
+    })
+  }
 
-  const peakIdx = timeline.reduce((best, pt, idx) => (pt.value > timeline[best].value ? idx : best), 0)
-  const peakX = pad + (peakIdx / Math.max(1, timeline.length - 1)) * (w - pad * 2)
-  const peakY = h - pad - norm(timeline[peakIdx].value) * (h - pad * 2)
+  const peakIdx = hasData
+    ? timeline.reduce((best, pt, idx) => (pt.value > timeline[best].value ? idx : best), 0)
+    : 0
+  const peakX = hasData ? pad + (peakIdx / Math.max(1, timeline.length - 1)) * (w - pad * 2) : w / 2
+  const peakY = hasData ? h - pad - norm(timeline[peakIdx].value) * (h - pad * 2) : h / 2
 
   const firstT = timeline[0]?.time ?? '09:00'
   const lastT = timeline[timeline.length - 1]?.time ?? '15:00'
