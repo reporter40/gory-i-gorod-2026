@@ -22,8 +22,6 @@ import { PulseErrorBoundary } from '@/lib/pulse/reliability/errorBoundary'
 import { startTabKeepAlive } from '@/lib/pulse/reliability/tabKeepAlive'
 import { startHeartbeat } from '@/lib/pulse/reliability/heartbeat'
 import { startSnapshotSaver } from '@/lib/pulse/reliability/stateSnapshot'
-import { useEventMode } from '@/lib/pulse/useEventMode'
-import QRCode from 'react-qr-code'
 
 /** Stable mock fixture — avoid new object identity every render */
 const STATIC_MOCK_DASHBOARD = defaultPulseMock()
@@ -142,20 +140,6 @@ function PulseDashboardInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const eventMode = useEventMode()
-  // Always use production URL for QR — localhost is unreachable from phones
-  const PROD_URL = 'https://gory-i-gorod-2026.vercel.app'
-  const voteUrl = (typeof window !== 'undefined' && !window.location.hostname.includes('localhost'))
-    ? `${window.location.origin}/pulse/vote`
-    : `${PROD_URL}/pulse/vote`
-
-  // Mobile redirect: phone users opening the live dashboard during vote mode → go straight to registration
-  useEffect(() => {
-    if (eventMode === 'vote' && typeof window !== 'undefined' && window.innerWidth < 768) {
-      window.location.replace(voteUrl)
-    }
-  }, [eventMode, voteUrl])
-
   const isFrozen = liveState.event.frozen
   const isStale = liveState._meta.staleSince !== null
   const isOffline = liveState.connection.status === 'offline'
@@ -197,25 +181,6 @@ function PulseDashboardInner() {
         </div>
       )}
 
-      {/* VOTE mode: full-screen QR overlay — operator triggers via Telegram /vote */}
-      {eventMode === 'vote' && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 100,
-          background: 'linear-gradient(135deg, #050a18 0%, #0a0f2e 50%, #050a18 100%)',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          gap: '32px',
-        }}>
-          <div style={{ color: '#00e5ff', fontSize: 'clamp(1.4rem, 3vw, 2.2rem)', fontWeight: 800, letterSpacing: '0.04em', textAlign: 'center' }}>
-            Сканируй и голосуй
-          </div>
-          <div style={{ background: '#fff', padding: '20px', borderRadius: '20px', boxShadow: '0 0 60px #00e5ff44' }}>
-            <QRCode value={voteUrl} size={280} bgColor="#ffffff" fgColor="#000000" />
-          </div>
-          <div style={{ color: '#94a3b8', fontSize: 'clamp(0.9rem, 1.5vw, 1.1rem)', textAlign: 'center', maxWidth: '500px' }}>
-            {voteUrl}
-          </div>
-        </div>
-      )}
       <div className="pulse-page-outer">
         <PulseStage visualTest={visualTest} bgDebug={bgDebug}>
           <PulseHeader />
