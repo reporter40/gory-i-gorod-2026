@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
       `/reset — 🗑 Обнулить все голоса`,
       ``,
       `<b>Участники:</b>`,
+      `/clearparticipants — 🧹 Очистить всех участников`,
       `/engage — 🎯 Вовлечённость (статистика)`,
       `/seteng 72 — ✏️ Установить вручную`,
       `/geo — 🗺 Статистика городов`,
@@ -231,6 +232,17 @@ export async function POST(req: NextRequest) {
       if (activeId) tasks.push(rtdbWrite(`votes/${activeId}`, zeros))
       await Promise.all(tasks)
       await send(chatId, `🗑 <b>Голоса обнулены</b>\nТеги: 0. Рейтинг спикеров: очищен. Карта: сброшена.`)
+    } catch (e) {
+      await send(chatId, `❌ ${e}`)
+    }
+    return NextResponse.json({ ok: true })
+  }
+
+  if (text === '/clearparticipants') {
+    if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
+    try {
+      await rtdbWrite('participants', null)
+      await send(chatId, `🧹 <b>Участники очищены</b>\nСписок /network пуст.`)
     } catch (e) {
       await send(chatId, `❌ ${e}`)
     }
