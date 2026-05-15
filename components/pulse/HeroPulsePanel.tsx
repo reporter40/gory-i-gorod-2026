@@ -61,7 +61,7 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
           aria-hidden
         />
       </div>
-      <div className="relative z-40 flex flex-col items-center gap-2">
+      <div className="relative z-40 flex flex-col items-center gap-2" style={{ marginTop: 24 }}>
         <div className="text-center">
           <h1
             className="text-[38px] font-black uppercase leading-[0.92] tracking-[-0.02em] text-white"
