@@ -17,6 +17,14 @@ async function send(chatId: number, text: string) {
   })
 }
 
+async function sendCsv(chatId: number, filename: string, content: string, caption?: string) {
+  const form = new FormData()
+  form.append('chat_id', String(chatId))
+  form.append('document', new Blob(['﻿' + content], { type: 'text/csv' }), filename)
+  if (caption) form.append('caption', caption)
+  await fetch(`https://api.telegram.org/bot${TOKEN}/sendDocument`, { method: 'POST', body: form })
+}
+
 async function ensureAdmin(chatId: number): Promise<boolean> {
   if (!getAdminApp()) {
     await send(
@@ -66,6 +74,7 @@ export async function POST(req: NextRequest) {
       ``,
       `<b>Экстренный режим:</b>`,
       `/snapshot — 📸 Ссылка на снимок (если экран погас)`,
+      `/save — 💾 Скачать данные форума (CSV)`,
       ``,
       `/status — текущее состояние`,
     ].join('\n'))
@@ -260,6 +269,96 @@ export async function POST(req: NextRequest) {
       if (liveId) await rtdbWrite('event/activeSessionId', liveId)
       lines.push(``, liveId ? `✅ Дашборд обновлён` : `⏳ Активных сессий нет`)
       await send(chatId, lines.join('\n'))
+    } catch (e) {
+      await send(chatId, `❌ ${e}`)
+    }
+    return NextResponse.json({ ok: true })
+  }
+
+  if (text === '/save') {
+    if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
+    try {
+      await send(chatId, '💾 Собираю данные форума...')
+
+      const [votesRaw, timelineRaw, participantsRaw, geoRaw, speakerVotesRaw] = await Promise.all([
+        rtdbRead('votes'),
+        rtdbRead('voteTimeline'),
+        rtdbRead('participants'),
+        rtdbRead('geo'),
+        rtdbRead('speakerVotes'),
+      ])
+
+      const TAG_NAMES: Record<string, string> = {
+        implement: 'Хочу внедрить',
+        discovery: 'Открытие',
+        partner: 'Ищу партнёров',
+        question: 'Есть вопрос',
+        applicable: 'Применимо у нас',
+      }
+
+      // --- votes.csv ---
+      const voteLines = ['Сессия,Тег,Название тега,Голосов']
+      const votesObj = votesRaw as Record<string, Record<string, number>> | null
+      if (votesObj) {
+        for (const [sessionId, tags] of Object.entries(votesObj)) {
+          for (const [tagId, count] of Object.entries(tags)) {
+            voteLines.push(`${sessionId},${tagId},"${TAG_NAMES[tagId] ?? tagId}",${count}`)
+          }
+        }
+      }
+
+      // --- timeline.csv ---
+      const tlLines = ['Тег,Название тега,Час,Голосов']
+      const tlObj = timelineRaw as Record<string, Record<string, number>> | null
+      if (tlObj) {
+        for (const [tagId, slots] of Object.entries(tlObj)) {
+          for (const [slot, count] of Object.entries(slots).sort()) {
+            tlLines.push(`${tagId},"${TAG_NAMES[tagId] ?? tagId}",${slot},${count}`)
+          }
+        }
+      }
+
+      // --- participants.csv ---
+      const partLines = ['Имя,Город,Дата регистрации']
+      const partObj = participantsRaw as Record<string, { name?: string; city?: string; createdAt?: number }> | null
+      if (partObj) {
+        for (const p of Object.values(partObj)) {
+          const name = (p.name ?? '').replace(/"/g, '""')
+          const city = (p.city ?? '').replace(/"/g, '""')
+          const date = p.createdAt ? new Date(p.createdAt).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : ''
+          partLines.push(`"${name}","${city}","${date}"`)
+        }
+      }
+
+      // --- geo.csv ---
+      const geoLines = ['Город,Участников']
+      const geoObj = geoRaw as Record<string, number> | null
+      if (geoObj) {
+        for (const [city, count] of Object.entries(geoObj).sort(([, a], [, b]) => b - a)) {
+          geoLines.push(`"${city}",${count}`)
+        }
+      }
+
+      // --- speaker_votes.csv ---
+      const spLines = ['Спикер,Тег,Название тега,Голосов']
+      const spObj = speakerVotesRaw as Record<string, { counts?: Record<string, number> }> | null
+      if (spObj) {
+        for (const [speakerId, data] of Object.entries(spObj)) {
+          const counts = data?.counts ?? {}
+          for (const [tagId, count] of Object.entries(counts)) {
+            spLines.push(`${speakerId},${tagId},"${TAG_NAMES[tagId] ?? tagId}",${count}`)
+          }
+        }
+      }
+
+      const now = new Date().toLocaleDateString('ru-RU', { timeZone: 'Europe/Moscow' }).replace(/\./g, '-')
+
+      await sendCsv(chatId, `votes_${now}.csv`, voteLines.join('\n'), '📊 Голоса по тегам и сессиям')
+      await sendCsv(chatId, `timeline_${now}.csv`, tlLines.join('\n'), '⏱ Активность по времени')
+      await sendCsv(chatId, `participants_${now}.csv`, partLines.join('\n'), `👥 Участники (${partLines.length - 1} чел.)`)
+      await sendCsv(chatId, `geo_${now}.csv`, geoLines.join('\n'), '🗺 Города')
+      await sendCsv(chatId, `speaker_votes_${now}.csv`, spLines.join('\n'), '🎤 Голоса за спикеров')
+
     } catch (e) {
       await send(chatId, `❌ ${e}`)
     }
