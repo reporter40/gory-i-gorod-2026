@@ -8,6 +8,20 @@
 
 ---
 
+## Release target (код)
+
+```text
+Code release minimum: 60d5afc
+Manual checklist version: 3dc63e7
+Recommended deploy target: 3dc63e7 or newer
+```
+
+- **Минимальный коммит на проде:** **`60d5afc`** или новее (`master`); рекомендуется деплой **`3dc63e7`** или новее, чтобы версия чеклиста в репозитории совпадала с документом **Manual checklist version**.
+- **Production smoke** (маршруты `/pulse`, `/pulse/vote`, `/pulse/results`, `/pulse/live`, security gate) и правила эвиденса для Sprint Report — в **`docs/PULSE_RTD_ACCESS_MODEL.md`** → раздел **Production smoke (manual)**.
+- **SPRINT-PULSE-05** не начинать до **полного GO** по этому smoke.
+
+---
+
 ## За день до форума — Репетиция
 
 ```bash
@@ -22,13 +36,14 @@ npx tsx scripts/pulse-rehearsal.ts
 
 ## Перед форумом (за 1 час)
 
-1. Открыть `/pulse` на экране проектора в Chrome, полный экран (`F11`)
+1. Открыть **`/pulse/live`** на экране проектора в Chrome, полный экран (`F11`) — стабильный URL монитора (лендинг участника остаётся на `/pulse`).
 2. Открыть `/pulse/admin` на своём ноутбуке
 3. Проверить: **зелёная точка "Connected"** в admin
 4. Проверить: **heartbeat dashboard < 5 сек** (зелёный)
 5. Открыть `/pulse/health` в отдельном табе — должен быть `"status": "ok"`
-6. Положить рядом телефон с `/pulse/vote` — сделать тестовый голос
-7. Убедиться что QR-код ведёт на `/pulse/vote`
+6. На телефоне открыть **`/pulse`** — лендинг участника; проверить блок активной сессии или empty state и оба CTA (**«Протегировать выступление»**, **«Смотреть итоги»**).
+7. Пройти **`/pulse/vote`** → регистрация → тестовый голос **`implement`**; убедиться, что после успеха есть CTA **«Смотреть итоги»**; проверить **`/pulse/results`** и что монитор **`/pulse/live`** обновил реакции и heatmap (полный чеклист — в `docs/PULSE_RTD_ACCESS_MODEL.md`).
+8. Убедиться что QR-код ведёт на **`/pulse/vote`** (или на **`/pulse`**, если так задумано сценарием).
 
 ---
 
@@ -44,7 +59,7 @@ npx tsx scripts/pulse-rehearsal.ts
 
 - Heartbeat dashboard: **должен быть зелёным** (<15 сек)
 - Если heartbeat **жёлтый** > 1 мин → обновить страницу dashboard (`F5`)
-- Если heartbeat **красный** > 2 мин → переоткрыть `/pulse` в новом табе
+- Если heartbeat **красный** > 2 мин → переоткрыть **`/pulse/live`** в новом табе
 
 ---
 
@@ -57,8 +72,8 @@ npx tsx scripts/pulse-rehearsal.ts
 ### Шаг 2 — Попробовать лёгкие решения
 
 ```
-1. F5 на странице /pulse
-2. Открыть /pulse в инкогнито-окне
+1. F5 на странице `/pulse/live`
+2. Открыть `/pulse/live` в инкогнито-окне
 3. Перезагрузить вкладку admin
 ```
 
@@ -69,7 +84,7 @@ npx tsx scripts/pulse-rehearsal.ts
 3. Dashboard зафиксирует текущие числа. **Выглядит рабочим.**
 4. Аудитория ничего не заметит.
 
-### Шаг 4 — Если /pulse совсем не загружается
+### Шаг 4 — Если `/pulse/live` совсем не загружается
 
 1. Открыть файл `pulse-fallback.html` в браузере
 2. Статичная версия дашборда — работает без интернета

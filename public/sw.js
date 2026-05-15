@@ -1,5 +1,5 @@
 const CACHE = 'gig2026-v1'
-const STATIC = ['/', '/program', '/speakers', '/map', '/pulse', '/network']
+const STATIC = ['/', '/program', '/speakers', '/map', '/pulse', '/pulse/live', '/network']
 
 self.addEventListener('install', e => {
   e.waitUntil(

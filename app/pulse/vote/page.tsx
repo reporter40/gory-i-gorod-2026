@@ -1,12 +1,22 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { voteForTag, flushOfflineQueue, type VoteResult } from '@/lib/pulse/vote-client'
 import { ensureAnonymousAuth, hasFirebaseConfig } from '@/lib/pulse/firebase/client'
+import { useActiveSessionVotes } from '@/lib/pulse/useActiveSessionVotes'
 import { useConnectionStatus } from '@/lib/pulse/useConnectionStatus'
 
 interface TagCard { id: string; name: string; icon: string; votes: number }
-interface SessionInfo { id: string; title: string; speakerName: string; hall: string }
+
+/** Dev fallback when NEXT_PUBLIC_FIREBASE_* unset — UI only */
+const MOCK_SESSION_UI = {
+  id: 'session-1',
+  title: 'Будущее городов в новой реальности',
+  speakerName: 'А. Иванова',
+  hall: 'Главный зал',
+  timeLabel: '',
+} as const
 
 const DEFAULT_TAGS: TagCard[] = [
   { id: 'implement',  name: 'Хочу внедрить',  icon: '🔥', votes: 0 },
@@ -420,6 +430,22 @@ body {
 .tag-votes { font-size: 0.78rem; color: rgba(255,255,255,0.28); margin-top: 3px; }
 .tag-votes.live { color: #00d4ff; }
 
+.results-cta {
+  margin-top: 20px;
+  display: block;
+  text-align: center;
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(0,212,255,0.35);
+  background: rgba(0,212,255,0.08);
+  color: #7dd3fc;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.results-cta:active { transform: scale(0.98); }
+
 /* vote button */
 .vote-btn {
   width: 44px; height: 44px; border-radius: 12px;
@@ -475,14 +501,57 @@ let toastId = 0
 const TOTAL_STEPS = 5
 
 export default function VotePage() {
-  const [userId, setUserId]       = useState<string | null>(null)
-  const [session, setSession]     = useState<SessionInfo | null>(null)
+  const pulse = useActiveSessionVotes()
+  const sessionIdForVotes = hasFirebaseConfig() ? pulse.activeSessionId : MOCK_SESSION_UI.id
+
+  const [userId, setUserId]       = useState<string | null>(() => (hasFirebaseConfig() ? null : 'mock-user'))
   const [tags, setTags]           = useState<TagCard[]>(DEFAULT_TAGS)
-  const [votedTags, setVotedTags] = useState<Set<string>>(new Set())
+  const [voteStorageEpoch, setVoteStorageEpoch] = useState(0)
+  const bumpVoteStorageEpoch = useCallback(() => setVoteStorageEpoch((e) => e + 1), [])
+  const votedTags = useMemo(() => {
+    void voteStorageEpoch
+    if (!userId || !sessionIdForVotes) return new Set<string>()
+    if (typeof window === 'undefined') return new Set<string>()
+    const sid = sessionIdForVotes
+    const av = new Set<string>()
+    for (const t of DEFAULT_TAGS) {
+      if (localStorage.getItem(`pulse_voted_${sid}_${t.id}_${userId}`) === '1') av.add(t.id)
+    }
+    return av
+  }, [userId, sessionIdForVotes, voteStorageEpoch])
+
+  /** Offline queue marks votes in UI before localStorage dedupe (vote-client avoids marking until sent). */
+  const [offlineQueuedTags, setOfflineQueuedTags] = useState<Set<string>>(new Set())
+  const effectiveVotedTags = useMemo(
+    () => new Set([...votedTags, ...offlineQueuedTags]),
+    [votedTags, offlineQueuedTags],
+  )
   const [pendingTags, setPendingTags] = useState<Set<string>>(new Set())
-  const [frozen, setFrozen]       = useState(false)
+  const [showResultsCta, setShowResultsCta] = useState(false)
   const [toasts, setToasts]       = useState<Toast[]>([])
   const connection                = useConnectionStatus()
+
+  const frozen = hasFirebaseConfig() ? pulse.frozen : false
+
+  const sessionUi = !hasFirebaseConfig()
+    ? MOCK_SESSION_UI
+    : pulse.activeSessionId && pulse.session
+      ? {
+          id: pulse.activeSessionId,
+          title: pulse.session.title,
+          speakerName: pulse.session.speakerName,
+          hall: pulse.session.hall,
+          timeLabel: pulse.session.timeLabel,
+        }
+      : pulse.activeSessionId
+        ? {
+            id: pulse.activeSessionId,
+            title: 'Сессия',
+            speakerName: '',
+            hall: '',
+            timeLabel: '',
+          }
+        : null
 
   const [participant, setParticipant] = useState<ParticipantData | null>(null)
   const [showWizard, setShowWizard]   = useState<boolean | null>(null)
@@ -498,6 +567,14 @@ export default function VotePage() {
   const [fConsent, setFConsent]   = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
+  const displayTags = useMemo(() => {
+    if (!hasFirebaseConfig()) return tags
+    return tags.map((t) => {
+      const row = pulse.tagStats.find((s) => s.tagId === t.id)
+      return { ...t, votes: row?.votes ?? t.votes }
+    })
+  }, [tags, pulse.tagStats])
+
   function toast(msg: string, type: Toast['type'] = 'warn') {
     const id = ++toastId
     setToasts(p => [...p, { id, msg, type }])
@@ -505,8 +582,15 @@ export default function VotePage() {
   }
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- hydrate wizard from localStorage once after mount (SSR-safe) */
     const e = loadRegistration()
-    if (e) { setParticipant(e); setShowWizard(false) } else setShowWizard(true)
+    if (e) {
+      setParticipant(e)
+      setShowWizard(false)
+    } else {
+      setShowWizard(true)
+    }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [])
 
   async function finishRegistration() {
@@ -514,7 +598,15 @@ export default function VotePage() {
     if (!name || !fConsent) return
     setSubmitting(true)
     try {
-      const uid = userId ?? `anon-${Date.now()}`
+      // Ensure Firebase Auth uid is resolved before saving — never save anon-timestamp as uid
+      let resolvedUid = userId
+      if (!resolvedUid && hasFirebaseConfig()) {
+        try {
+          resolvedUid = await ensureAnonymousAuth()
+          setUserId(resolvedUid)
+        } catch { /* network unavailable — uid stays null */ }
+      }
+      const uid = resolvedUid ?? `anon-${Date.now()}`
       const data: ParticipantData = {
         name, phone: fPhone.trim(),
         telegram: fTelegram.trim().replace(/^@/, ''),
@@ -524,7 +616,8 @@ export default function VotePage() {
       saveRegistration(data)
       setParticipant(data)
       setShowSuccess(true)
-      if (session) await registerParticipant({ ...data, uid: userId ?? uid }, session.id)
+      const regSid = hasFirebaseConfig() ? pulse.activeSessionId : MOCK_SESSION_UI.id
+      if (regSid) await registerParticipant(data, regSid)
       setTimeout(() => { setShowSuccess(false); setShowWizard(false) }, 1800)
     } finally { setSubmitting(false) }
   }
@@ -533,70 +626,54 @@ export default function VotePage() {
   function prevStep() { if (wizardStep > 1) setWizardStep(s => s - 1) }
 
   useEffect(() => {
-    async function init() {
-      if (!hasFirebaseConfig()) {
-        setUserId('mock-user')
-        setSession({ id:'session-1', title:'Будущее городов в новой реальности', speakerName:'А. Иванова', hall:'Главный зал' })
-        return
-      }
-      try {
-        const uid = await ensureAnonymousAuth()
-        setUserId(uid)
-        const { getFirebaseDb } = await import('@/lib/pulse/firebase/client')
-        const { ref, get, onValue } = await import('firebase/database')
-        const db = getFirebaseDb()
-        onValue(ref(db,'event/frozen'), s => setFrozen(!!s.val()))
-        const ev = await get(ref(db,'event'))
-        const evData = ev.val() as { activeSessionId?:string }|null
-        if (!evData?.activeSessionId) return
-        const sid = evData.activeSessionId
-        const [ss, vs] = await Promise.all([get(ref(db,`sessions/${sid}`)), get(ref(db,`votes/${sid}`))])
-        const sd = ss.val() as {title:string;speakerId:string;hall:string}|null
-        if (!sd) return
-        let spName = ''
-        try { const sp = await get(ref(db,`speakers/${sd.speakerId}`)); spName = (sp.val() as {name?:string}|null)?.name??'' } catch {}
-        setSession({ id:sid, title:sd.title, speakerName:spName, hall:sd.hall })
-        const ex = loadRegistration()
-        if (ex && uid) registerParticipant({ ...ex, uid }, sid)
-        const vd = (vs.val() as Record<string,number>|null)??{}
-        setTags(p => p.map(t => ({ ...t, votes: vd[t.id]??0 })))
-        const av = new Set<string>()
-        tags.forEach(t => { if (localStorage.getItem(`pulse_voted_${sid}_${t.id}_${uid}`)===`1`) av.add(t.id) })
-        setVotedTags(av)
-        onValue(ref(db,`votes/${sid}`), s => {
-          const c = (s.val() as Record<string,number>|null)??{}
-          setTags(p => p.map(t => ({ ...t, votes: c[t.id]??t.votes })))
-        })
-        flushOfflineQueue()
-      } catch(e) { console.error(e); toast('Ошибка подключения','error') }
-    }
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!hasFirebaseConfig()) return
+    void ensureAnonymousAuth().then(setUserId).catch(() => {})
   }, [])
 
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- clear offline-only UI votes when session or identity changes */
+    setOfflineQueuedTags(new Set())
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [sessionIdForVotes, userId])
+
+  useEffect(() => {
+    if (!hasFirebaseConfig() || !pulse.activeSessionId || !userId) return
+    const ex = loadRegistration()
+    if (ex) void registerParticipant({ ...ex, uid: userId }, pulse.activeSessionId)
+  }, [pulse.activeSessionId, userId])
+
+  useEffect(() => {
+    if (hasFirebaseConfig() && pulse.activeSessionId && userId) {
+      void flushOfflineQueue().then(() => bumpVoteStorageEpoch())
+    }
+  }, [pulse.activeSessionId, userId, bumpVoteStorageEpoch])
+
   const handleVote = useCallback(async (tagId: string) => {
-    if (!userId || !session) return
-    if (votedTags.has(tagId)) { toast('Вы уже голосовали','warn'); return }
+    const sid = hasFirebaseConfig() ? pulse.activeSessionId : MOCK_SESSION_UI.id
+    if (!userId || !sid) return
+    if (effectiveVotedTags.has(tagId)) { toast('Вы уже голосовали','warn'); return }
     if (frozen) { toast('Голосование приостановлено','warn'); return }
     if (pendingTags.has(tagId)) return
     setPendingTags(p => new Set(p).add(tagId))
-    const r: VoteResult = await voteForTag({ sessionId:session.id, tagId, userId })
+    const r: VoteResult = await voteForTag({ sessionId: sid, tagId, userId })
     setPendingTags(p => { const n=new Set(p); n.delete(tagId); return n })
     if (r.ok) {
-      setVotedTags(p => new Set(p).add(tagId))
       setTags(p => p.map(t => t.id===tagId?{...t,votes:t.votes+1}:t))
+      setShowResultsCta(true)
       toast('Голос принят!','success')
+      bumpVoteStorageEpoch()
     } else if (r.status==='duplicate') {
-      setVotedTags(p => new Set(p).add(tagId)); toast('Уже проголосовали','warn')
+      bumpVoteStorageEpoch()
+      toast('Уже проголосовали','warn')
     } else if (r.status==='offline') {
       toast('Сохранено, отправится при подключении','warn')
-      if (r.queued) setVotedTags(p => new Set(p).add(tagId))
+      if (r.queued) setOfflineQueuedTags((p) => new Set(p).add(tagId))
     } else if (r.status==='rate_limited') {
       toast(`Подождите ${r.retryAfter} сек`,'warn')
     } else if (r.status==='frozen') {
-      setFrozen(true); toast('Голосование приостановлено','warn')
+      toast('Голосование приостановлено','warn')
     } else { toast('Ошибка отправки','error') }
-  }, [userId, session, votedTags, pendingTags, frozen])
+  }, [userId, pulse.activeSessionId, effectiveVotedTags, pendingTags, frozen, bumpVoteStorageEpoch])
 
   const dotCls = connection.status==='connected'?'cdot-connected':connection.status==='offline'?'cdot-offline':connection.status==='frozen'?'cdot-frozen':'cdot-reconnecting'
   const fillPct = `${Math.round((wizardStep / TOTAL_STEPS) * 100)}%`
@@ -771,6 +848,18 @@ export default function VotePage() {
           </div>
           <div className="vp-forum-name">Горы и Город — 2026</div>
           <div className="vp-session-meta" style={{marginTop: 5}}>ООО «Горы и Город» · Форум городского развития</div>
+          {sessionUi && (
+            <>
+              <div className="vp-session-title" style={{ marginTop: 14 }}>
+                {sessionUi.title || 'Активная сессия'}
+              </div>
+              {(sessionUi.speakerName || sessionUi.timeLabel || sessionUi.hall) && (
+                <div className="vp-session-meta" style={{ marginTop: 6 }}>
+                  {[sessionUi.speakerName, sessionUi.timeLabel, sessionUi.hall].filter(Boolean).join(' · ')}
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {frozen && <div className="freeze-bar">🔒 Голосование приостановлено</div>}
@@ -806,8 +895,8 @@ export default function VotePage() {
               <>
                 <div className="vote-section-title">Выберите тему доклада</div>
                 <div className="tags">
-                  {tags.map(tag => {
-                    const voted   = votedTags.has(tag.id)
+                  {displayTags.map(tag => {
+                    const voted   = effectiveVotedTags.has(tag.id)
                     const pending = pendingTags.has(tag.id)
                     return (
                       <div key={tag.id} className={`tag-card${voted?' voted':''}`}>
@@ -830,6 +919,11 @@ export default function VotePage() {
                     )
                   })}
                 </div>
+                {showResultsCta && (
+                  <Link href="/pulse/results" className="results-cta">
+                    Смотреть итоги
+                  </Link>
+                )}
               </>
             )}
           </div>

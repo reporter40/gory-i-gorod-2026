@@ -7,6 +7,8 @@ import {
   getTopicMood,
   getHeatmapMatrix,
   getAiInsights,
+  aggregatePulseEvents,
+  type PulseReactionEvent,
 } from '../../lib/pulse/pulse-aggregations'
 import type { PulseTagStat, PulseTopicNode, PulseHeatmapCell, PulseInsight, PulseState } from '../../lib/pulse/types'
 
@@ -88,5 +90,66 @@ describe('getAiInsights', () => {
   it('formats insights as icon+text', () => {
     const insights: PulseInsight[] = [{ icon: '📈', text: 'Тест' }]
     expect(getAiInsights(insights)[0]).toBe('📈 Тест')
+  })
+})
+
+// ─── aggregatePulseEvents ─────────────────────────────────────────────────────
+
+const makeEvent = (overrides: Partial<PulseReactionEvent> = {}): PulseReactionEvent => ({
+  id: 'ev1',
+  participantId: 'p1',
+  sessionId: 's1',
+  tagId: 'implement',
+  tagLabel: 'Хочу внедрить',
+  createdAt: Date.now(),
+  source: 'mobile',
+  ...overrides,
+})
+
+describe('aggregatePulseEvents — counts', () => {
+  it('counts tag votes correctly by sessionId', () => {
+    const events: PulseReactionEvent[] = [
+      makeEvent({ participantId: 'p1', sessionId: 's1', tagId: 'implement' }),
+      makeEvent({ id: 'ev2', participantId: 'p2', sessionId: 's1', tagId: 'implement' }),
+      makeEvent({ id: 'ev3', participantId: 'p3', sessionId: 's1', tagId: 'discovery' }),
+      makeEvent({ id: 'ev4', participantId: 'p4', sessionId: 's2', tagId: 'implement' }),
+    ]
+    const result = aggregatePulseEvents(events)
+    expect(result.bySession['s1']['implement']).toBe(2)
+    expect(result.bySession['s1']['discovery']).toBe(1)
+    expect(result.bySession['s2']['implement']).toBe(1)
+    expect(result.totalVotes).toBe(4)
+  })
+
+  it('rejects events with missing participantId', () => {
+    const events: PulseReactionEvent[] = [
+      makeEvent({ participantId: '' }),
+      makeEvent({ id: 'ev2', participantId: 'p1' }),
+    ]
+    const result = aggregatePulseEvents(events)
+    expect(result.totalVotes).toBe(1)
+  })
+
+  it('rejects events with missing sessionId', () => {
+    const events: PulseReactionEvent[] = [
+      makeEvent({ sessionId: '' }),
+    ]
+    const result = aggregatePulseEvents(events)
+    expect(result.totalVotes).toBe(0)
+  })
+
+  it('rejects events with missing tagId', () => {
+    const events: PulseReactionEvent[] = [
+      makeEvent({ tagId: '' }),
+    ]
+    const result = aggregatePulseEvents(events)
+    expect(result.totalVotes).toBe(0)
+  })
+
+  it('returns empty aggregation for empty input', () => {
+    const result = aggregatePulseEvents([])
+    expect(result.totalVotes).toBe(0)
+    expect(result.byTag).toEqual({})
+    expect(result.bySession).toEqual({})
   })
 })

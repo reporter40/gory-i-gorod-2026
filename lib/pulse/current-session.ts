@@ -12,5 +12,5 @@ export function getSessionTags(sessionId: string): string[] {
   // In live mode these come from Firebase votes/{sessionId}.
   // In mock mode returns default tag set.
   void sessionId
-  return ['actual', 'ppp', 'innovation', 'cases', 'invest']
+  return ['implement', 'discovery', 'partner', 'question', 'applicable']
 }

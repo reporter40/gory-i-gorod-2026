@@ -3,6 +3,7 @@
 // Max age: 30 minutes. Older → ignore, use mock.
 
 import type { PulseState } from '../types'
+import { validatePulseSnapshot } from './dataValidator'
 
 const SNAPSHOT_KEY = 'pulse_last_good_state_v3'
 const SAVE_INTERVAL_MS = 5 * 60_000
@@ -28,7 +29,7 @@ export function loadSnapshot(): PulseState | null {
       localStorage.removeItem(SNAPSHOT_KEY)
       return null
     }
-    return { ...state, _meta: { ...state._meta, source: 'snapshot' } }
+    return validatePulseSnapshot(state)
   } catch {
     return null
   }

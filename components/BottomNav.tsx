@@ -12,7 +12,8 @@ const NAV = [
 
 export default function BottomNav() {
   const path = usePathname()
-  if (path.startsWith('/pulse/display')) return null
+  /** Conference monitor uses full viewport; participant hub stays at `/pulse`. */
+  if (path === '/pulse/live' || path.startsWith('/pulse/live/')) return null
 
   return (
     <nav

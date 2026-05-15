@@ -43,6 +43,17 @@ export default function SessionInterestHeatmap({
   heat: SessionHeatmapT
   speakerDots: { initials: string; color: string }[]
 }) {
+  if (!heat.halls.length || !heat.times.length) {
+    return (
+      <section className="pulse-panel absolute flex flex-col overflow-hidden p-3" style={{ left: 804, top: 538, width: 508, height: 319 }}>
+        <h2 className="pulse-panel-title mb-2 shrink-0">Карта интереса к сессиям</h2>
+        <div className="relative min-h-0 flex-1 flex items-center justify-center text-[11px] text-white/35 px-6 text-center">
+          Нет данных голосования для активной сессии
+        </div>
+      </section>
+    )
+  }
+
   const cellW = 54
   const cellH = 22
   const ox = 86

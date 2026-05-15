@@ -3,7 +3,7 @@
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app'
 import { getDatabase, type Database } from 'firebase/database'
-import { getAuth, signInAnonymously } from 'firebase/auth'
+import { getAuth, signInAnonymously, type Auth } from 'firebase/auth'
 
 const REQUIRED_ENV = [
   'NEXT_PUBLIC_FIREBASE_API_KEY',
@@ -41,12 +41,16 @@ export function getFirebaseDb(): Database {
   return getDatabase(getFirebaseApp())
 }
 
+export function getFirebaseAuth(): Auth {
+  return getAuth(getFirebaseApp())
+}
+
 let cachedUserId: string | null = null
 
 export async function ensureAnonymousAuth(): Promise<string> {
   if (cachedUserId) return cachedUserId
 
-  const auth = getAuth(getFirebaseApp())
+  const auth = getFirebaseAuth()
   if (auth.currentUser) {
     cachedUserId = auth.currentUser.uid
     return cachedUserId

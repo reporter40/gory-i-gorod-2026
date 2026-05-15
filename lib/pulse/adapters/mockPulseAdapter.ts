@@ -1,5 +1,6 @@
 import type { PulseAdapter, PulseConnectionState, PulseState } from '../types'
 import { mockPulseState } from '../pulse-data'
+import { buildPulseStateMeta } from '../pulse-aggregations'
 
 const STATIC_CONNECTION: PulseConnectionState = {
   status: 'connected',
@@ -58,12 +59,12 @@ function buildMockPulseState(): PulseState {
       nextRecommendation: m.footer.nextRecommendation,
     },
     connection: STATIC_CONNECTION,
-    _meta: {
-      source: 'mock',
+    _meta: buildPulseStateMeta({
+      mode: 'mock',
+      activeSessionId: m.event.activeSessionId || null,
+      topTags: m.topTags.map((t) => ({ ...t })),
       lastUpdated: 1747123200000,
-      staleSince: null,
-      errors: [],
-    },
+    }),
   }
 }
 
