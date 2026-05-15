@@ -217,6 +217,7 @@ export async function POST(req: NextRequest) {
     if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
     try {
       const { SESSIONS } = await import('@/lib/data')
+      const day1Ids = SESSIONS.filter(s => s.day === 1).map(s => s.id)
       const day2 = SESSIONS.filter(s => s.day === 2).sort(
         (a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
       )
@@ -225,14 +226,19 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true })
       }
       const firstId = day2[0].id
-      await rtdbWrite('event/activeSessionId', firstId)
+      // Mark all Day 1 sessions ended, first Day 2 session live
+      await Promise.all([
+        rtdbWrite('event/activeSessionId', firstId),
+        rtdbWrite(`sessions/${firstId}/status`, 'live'),
+        ...day1Ids.map(id => rtdbWrite(`sessions/${id}/status`, 'ended')),
+      ])
       await send(chatId, [
         `📅 <b>День 2 активирован</b>`,
         ``,
-        `Первая сессия: <b>${day2[0].title}</b>`,
+        `▶ LIVE: <b>${day2[0].title}</b>`,
         `ID: <code>${firstId}</code>`,
         ``,
-        `Дашборд переключится автоматически.`,
+        `День 1 помечен завершённым.`,
         `Голоса обнулить: /reset`,
       ].join('\n'))
     } catch (e) {
