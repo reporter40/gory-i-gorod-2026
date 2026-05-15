@@ -19,7 +19,7 @@ export default function TopTagsPanel({
         {topTags.slice(0, 5).map(tag => (
           <div
             key={tag.id}
-            className="flex items-center gap-3 rounded-[10px] border border-white/[0.22] bg-gradient-to-b from-white/[0.18] to-white/[0.06] px-3 py-1.5 backdrop-blur-sm"
+            className="flex items-center gap-3 rounded-[10px] border border-cyan-400/[0.45] bg-gradient-to-b from-white/[0.18] to-white/[0.06] px-3 py-1.5 backdrop-blur-sm"
             style={{ boxShadow: '0 6px 20px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.35)' }}
           >
             <span className="text-[18px] shrink-0" aria-hidden>{tag.icon}</span>
