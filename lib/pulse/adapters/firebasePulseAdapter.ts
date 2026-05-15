@@ -182,11 +182,12 @@ export function createFirebasePulseAdapter(): PulseAdapter {
   })
   unsubscribers.push(() => off(frozenRef, 'value', frozenUnsub as Parameters<typeof off>[2]))
 
-  // sessions (one-time, cached)
+  // sessions — live subscription so bot status changes (day1/day2/next) reflect immediately
   const sessionsRef = ref(db, FB_PATHS.sessions())
   const sessionsUnsub = onValue(sessionsRef, (snap: DataSnapshot) => {
     sessionsCache = (snap.val() as Record<string, FirebaseSession>) ?? {}
-  }, { onlyOnce: true })
+    if (currentState) emit(mergeFirebaseUpdate({ sessions: buildSessions() }))
+  })
   unsubscribers.push(() => off(sessionsRef, 'value', sessionsUnsub as Parameters<typeof off>[2]))
 
   // speakers (one-time, cached)
