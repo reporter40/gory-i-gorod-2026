@@ -16,7 +16,7 @@ const DOTS: { cx: number; cy: number; r: number }[] = [
 
 export default function GeoActivityPanel({ regions }: { regions: PulseGeoRegion[] }) {
   return (
-    <section className="absolute flex flex-col p-3" style={{ left: 12, top: 620, width: 298, height: 235 }}>
+    <section className="pulse-panel absolute flex flex-col p-3" style={{ left: 12, top: 620, width: 298, height: 235 }}>
       <div className="mb-2 flex items-center justify-between">
         <h2 className="pulse-panel-title">Геоактивность участников</h2>
       </div>

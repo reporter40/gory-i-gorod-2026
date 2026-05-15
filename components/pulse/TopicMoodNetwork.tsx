@@ -140,7 +140,7 @@ export default function TopicMoodNetwork({ nodes }: { nodes: PulseTopicNode[] })
   ]
 
   return (
-    <section className="absolute overflow-hidden p-3" style={{ left: 1326, top: 76, width: 334, height: 420 }}>
+    <section className="pulse-panel absolute overflow-hidden p-3" style={{ left: 1326, top: 76, width: 334, height: 420 }}>
       <div className="mb-2 flex items-start justify-between gap-2">
         <div>
           <h2 className="pulse-panel-title mb-1">Настроение по темам</h2>

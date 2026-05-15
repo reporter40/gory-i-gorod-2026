@@ -17,7 +17,7 @@ function AvatarBubble({ initials, color }: { initials: string; color: string }) 
 export default function ProgramNowPanel({ sessions }: { sessions: PulseSession[] }) {
   return (
     <section
-      className="absolute flex flex-col overflow-hidden px-[11px] pb-2.5 pt-2.5"
+      className="pulse-panel absolute flex flex-col overflow-hidden px-[11px] pb-2.5 pt-2.5"
       style={{ left: 12, top: 76, width: 298, height: 536 }}
     >
       <div className="mb-1.5 flex items-center justify-between gap-2">
