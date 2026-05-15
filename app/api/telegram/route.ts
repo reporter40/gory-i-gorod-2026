@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
       ``,
       `<b>Сессии:</b>`,
       `/program — 📋 Программа + обновить дашборд`,
+      `/day1 — 📅 Переключить на День 1`,
       `/day2 — 📅 Переключить на День 2`,
       ``,
       `<b>Голоса:</b>`,
@@ -209,6 +210,39 @@ export async function POST(req: NextRequest) {
       await send(chatId, `🎯 <b>Вовлечённость установлена: ${n}%</b>\nОбновлено на дашборде.`)
     } catch (e) {
       await send(chatId, `❌ ${e}`)
+    }
+    return NextResponse.json({ ok: true })
+  }
+
+  if (text === '/day1') {
+    if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
+    try {
+      const { SESSIONS } = await import('@/lib/data')
+      const day2Ids = SESSIONS.filter(s => s.day === 2).map(s => s.id)
+      const day1 = SESSIONS.filter(s => s.day === 1).sort(
+        (a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
+      )
+      if (day1.length === 0) {
+        await send(chatId, `❌ Сессии первого дня не найдены`)
+        return NextResponse.json({ ok: true })
+      }
+      const firstId = day1[0].id
+      await Promise.all([
+        rtdbWrite('event/activeSessionId', firstId),
+        rtdbWrite(`sessions/${firstId}/status`, 'live'),
+        ...day2Ids.map(id => rtdbWrite(`sessions/${id}/status`, 'upcoming')),
+      ])
+      await send(chatId, [
+        `📅 <b>День 1 активирован</b>`,
+        ``,
+        `▶ LIVE: <b>${day1[0].title}</b>`,
+        `ID: <code>${firstId}</code>`,
+        ``,
+        `День 2 сброшен в upcoming.`,
+        `Голоса обнулить: /reset`,
+      ].join('\n'))
+    } catch (e) {
+      await send(chatId, `❌ /day1 ошибка: ${e}`)
     }
     return NextResponse.json({ ok: true })
   }
