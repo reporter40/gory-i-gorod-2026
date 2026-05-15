@@ -156,7 +156,13 @@ Visual tests use `?visualTest=1` → mock adapter → deterministic output.
 
 ## Smoke Test
 
-**Release target:** deploy **`master`** at commit **`60d5afc` or newer**. Full operator checklist (participant flows + monitor + security gate + evidence rules) — **`docs/PULSE_RTD_ACCESS_MODEL.md`** → **Production smoke (manual)**.
+```text
+Code release minimum: 60d5afc
+Manual checklist version: 3dc63e7
+Recommended deploy target: 3dc63e7 or newer
+```
+
+Deploy **`master`** accordingly (**recommended deploy target** includes checklist/docs alignment). Full operator checklist (participant flows + monitor + security gate + evidence rules) — **`docs/PULSE_RTD_ACCESS_MODEL.md`** → **Production smoke (manual)**.
 
 1. **`/pulse`** → participant landing (not dashboard); active session or empty state; CTAs **«Протегировать выступление»** and **«Смотреть итоги»**.
 2. **`/pulse/live`** without `?visualTest` → live AI Pulse dashboard for monitor (or mock if no Firebase).

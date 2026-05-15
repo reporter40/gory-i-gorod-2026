@@ -10,7 +10,13 @@
 
 ## Release target (код)
 
-- **Минимальный коммит на проде:** **`60d5afc`** или новее (`master`).
+```text
+Code release minimum: 60d5afc
+Manual checklist version: 3dc63e7
+Recommended deploy target: 3dc63e7 or newer
+```
+
+- **Минимальный коммит на проде:** **`60d5afc`** или новее (`master`); рекомендуется деплой **`3dc63e7`** или новее, чтобы версия чеклиста в репозитории совпадала с документом **Manual checklist version**.
 - **Production smoke** (маршруты `/pulse`, `/pulse/vote`, `/pulse/results`, `/pulse/live`, security gate) и правила эвиденса для Sprint Report — в **`docs/PULSE_RTD_ACCESS_MODEL.md`** → раздел **Production smoke (manual)**.
 - **SPRINT-PULSE-05** не начинать до **полного GO** по этому smoke.
 

@@ -8,6 +8,14 @@
 - **Program seed:** `POST /api/seed-sessions` uses Admin SDK (`sessions` tree).
 - **Participant vs monitor:** участники заходят на **`/pulse`**; экран зала / проектор — **`/pulse/live`** (стабильный URL дашборда).
 
+## Release versions
+
+```text
+Code release minimum: 60d5afc
+Manual checklist version: 3dc63e7
+Recommended deploy target: 3dc63e7 or newer
+```
+
 ## Environment variables
 
 ### Vercel — required for Pulse (checklist)
@@ -33,7 +41,7 @@
 ## Deployment Order
 
 1. Set **all** Vercel env vars from the table above (Production + Preview if needed).
-2. Deploy **`master`** at or after commit **`60d5afc`** (`fix(pulse): separate participant flow from live dashboard`).
+2. Deploy **`master`** at or after **code release minimum** **`60d5afc`**; **recommended deploy target** is **`3dc63e7`** or newer (aligns shipped revision with **manual checklist version** in `docs/PULSE_RTD_ACCESS_MODEL.md`).
 3. In Firebase Console → Realtime Database → **Rules**, publish contents of `lib/pulse/firebase/rules.json`.
 4. Verify `POST /api/pulse/vote` returns **not** `503` when `FIREBASE_SERVICE_ACCOUNT_JSON` is set (e.g. missing body still yields `400`, not missing-config `503`).
 5. Verify `POST /api/pulse/operator` **without** `x-pulse-operator-key` returns **401** (`unauthorized`).
@@ -129,7 +137,13 @@ Vitest rule **structure** tests live in `tests/pulse/firebase-rules.test.ts`; th
 
 ### Release target
 
-- **Required git commit:** **`60d5afc` or newer** on deployed **`master`** (verify Vercel deployment revision / `git rev-parse HEAD` on the release artifact).
+```text
+Code release minimum: 60d5afc
+Manual checklist version: 3dc63e7
+Recommended deploy target: 3dc63e7 or newer
+```
+
+Verify deployed **`master`** is at or above **code release minimum** (Vercel deployment revision / `git rev-parse HEAD` on the release artifact). Use documentation at **manual checklist version** when interpreting steps below.
 
 After deploy, record **git commit hash**, **production URL** (Vercel), and confirm env vars; set `event/activeSessionId` via Telegram or `POST /api/pulse/operator` before exercising participant flows.
 
