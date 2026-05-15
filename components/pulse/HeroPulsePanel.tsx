@@ -82,7 +82,7 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
           </h1>
         </div>
 
-      <div className="relative z-10 mt-36 flex items-center justify-center">
+      <div className="relative z-10 mt-28 flex items-center justify-center">
         <div className="pulse-hero-decor pulse-hero-orbits pulse-hero-giant-ring pointer-events-none absolute h-[600px] w-[600px] max-w-[600px]">
           <div
             className="pulse-rotate-slow absolute inset-[-18%] rounded-full border border-cyan-400/32"
