@@ -55,6 +55,12 @@ export default function PulseStage({
         </>
       )}
       <div className="pulse-stage-content">{children}</div>
+      <img
+        src="/pulse/logo-ii.svg"
+        alt="ИИ Интеграция"
+        className="pointer-events-none absolute"
+        style={{ right: 16, bottom: 12, width: 180, opacity: 0.7, zIndex: 20 }}
+      />
     </div>
   )
 }
