@@ -63,7 +63,7 @@ export default function TagVotingMoodPanel({
   avatarSlices: readonly { id: string; initials: string; color: string }[]
 }) {
   return (
-    <section className="pulse-panel absolute flex flex-col p-3" style={{ left: 318, top: 538, width: 482, height: 317, backgroundImage: 'url(/pulse/tag-mood-bg.png)', backgroundSize: 'cover', backgroundPosition: '52% 58%' }}>
+    <section className="pulse-panel absolute flex flex-col p-3" style={{ left: 318, top: 538, width: 482, height: 317, backgroundImage: 'url(/pulse/tag-mood-bg.png)', backgroundSize: 'cover', backgroundPosition: '37% 58%' }}>
       <h2 className="pulse-panel-title mb-2 shrink-0">Настроение по тегам / Голосование</h2>
       <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
         <div className="flex shrink-0 gap-5">
