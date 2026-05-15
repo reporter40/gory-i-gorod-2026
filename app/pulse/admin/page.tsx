@@ -285,6 +285,22 @@ export default function AdminPage() {
           </span>
         </div>
 
+        {/* Dashboard link */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+          <a href="/pulse/live" target="_blank" rel="noopener noreferrer"
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              background: '#0a1a2e', border: '1px solid #00e5ff33', borderRadius: 12,
+              padding: '12px 16px', color: '#00e5ff', fontSize: '0.82rem', fontWeight: 700,
+              textDecoration: 'none', letterSpacing: '0.03em' }}>
+            🖥 Дашборд для монитора
+          </a>
+          <button onClick={() => { navigator.clipboard.writeText(window.location.origin + '/pulse/live') }}
+            style={{ background: '#0a1a2e', border: '1px solid #1e293b', borderRadius: 12,
+              padding: '12px 14px', color: '#64748b', fontSize: '0.8rem', cursor: 'pointer' }}>
+            📋
+          </button>
+        </div>
+
         {/* Operator API key — matches PULSE_OPERATOR_SECRET on server; never commit */}
         <div className="card">
           <h2>Operator API</h2>
