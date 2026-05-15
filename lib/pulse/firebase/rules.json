@@ -37,7 +37,20 @@
     },
     "event": {
       ".read": true,
-      ".write": false
+      ".write": false,
+      "stats": {
+        "registeredCount": {
+          ".write": "auth != null",
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        }
+      }
+    },
+    "geo": {
+      ".read": true,
+      "$city": {
+        ".write": "auth != null",
+        ".validate": "newData.isNumber() && newData.val() >= 0"
+      }
     },
     "speakerVotes": {
       ".read": true,
