@@ -53,13 +53,16 @@ export async function POST(req: NextRequest) {
       `/freeze — ⏸ Заморозить (тихо, зрители не видят)`,
       ``,
       `<b>Сессии:</b>`,
-      `/program — 📋 показать программу + обновить дашборд`,
-      `/session 1 ... /session 5`,
+      `/program — 📋 Программа + обновить дашборд`,
+      `/day2 — 📅 Переключить на День 2`,
       `/next — следующая сессия`,
+      `/session 1 ... /session 5`,
       ``,
       `<b>Голоса:</b>`,
-      `/geo — 🗺 Статистика городов участников`,
       `/reset — 🗑 Обнулить все голоса`,
+      ``,
+      `<b>Участники:</b>`,
+      `/geo — 🗺 Статистика городов`,
       ``,
       `/status — текущее состояние`,
     ].join('\n'))
@@ -95,6 +98,48 @@ export async function POST(req: NextRequest) {
         `Режим: ${modeLabel}`,
         `Сессия: ${session}`,
         `Экран зала: ${hb}`,
+      ].join('\n'))
+    } catch (e) {
+      await send(chatId, `❌ ${e}`)
+    }
+    return NextResponse.json({ ok: true })
+  }
+
+  if (text === '/day2') {
+    if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
+    try {
+      const { SESSIONS, SPEAKERS } = await import('@/lib/data')
+      const day2 = SESSIONS.filter(s => s.day === 2 && s.program_card !== 'title_only')
+      if (day2.length === 0) {
+        await send(chatId, `❌ Сессии второго дня не найдены`)
+        return NextResponse.json({ ok: true })
+      }
+      const payload: Record<string, object> = {}
+      for (const s of day2) {
+        const speaker = SPEAKERS.find(sp => sp.id === s.speaker_id)
+        payload[s.id] = {
+          title: s.title ?? '',
+          hall: s.hall ?? '',
+          day: s.day,
+          starts_at: s.starts_at,
+          ends_at: s.ends_at,
+          speakerName: speaker ? speaker.name : (s.speaker_row_note ?? ''),
+          status: 'upcoming',
+        }
+      }
+      await rtdbWrite('sessions', payload)
+      const sorted = day2.sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())
+      const firstId = sorted[0].id
+      await rtdbWrite('event/activeSessionId', firstId)
+      await send(chatId, [
+        `📅 <b>День 2 загружен</b>`,
+        ``,
+        `Сессий: ${day2.length}`,
+        `Первая: <b>${sorted[0].title}</b>`,
+        `ID: <code>${firstId}</code>`,
+        ``,
+        `Дашборд обновится автоматически.`,
+        `Голоса обнулить: /reset`,
       ].join('\n'))
     } catch (e) {
       await send(chatId, `❌ ${e}`)
