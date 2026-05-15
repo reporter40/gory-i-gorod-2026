@@ -108,11 +108,11 @@ export default function ProgramPage() {
                 )}
 
                 {session.speaker_row_note?.trim() ? (
-                  <p style={{ fontSize: 12, color: 'var(--text-3)', paddingTop: 14, borderTop: '1px solid var(--border)', lineHeight: 1.65, whiteSpace: 'pre-line' }}>
+                  <p style={{ fontSize: 12, color: 'var(--text-3)', margin: '0 -20px -20px', padding: '14px 20px 18px', borderTop: '1px solid var(--border)', background: 'rgba(255,255,255,0.04)', borderRadius: '0 0 18px 18px', lineHeight: 1.65, whiteSpace: 'pre-line' }}>
                     {session.speaker_row_note}
                   </p>
                 ) : session.speaker_id !== 'org' || Boolean(session.title?.trim()) ? (
-                  <div className="space-y-2.5" style={{ paddingTop: 14, borderTop: '1px solid var(--border)' }}>
+                  <div className="space-y-2.5" style={{ margin: '0 -20px -20px', padding: '14px 20px 18px', borderTop: '1px solid var(--border)', background: 'rgba(255,255,255,0.04)', borderRadius: '0 0 18px 18px' }}>
                     <div className="flex items-center gap-2.5">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={session.speaker.photo_url} alt={session.speaker.name}
