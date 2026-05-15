@@ -219,11 +219,14 @@ export function createFirebasePulseAdapter(): PulseAdapter {
   const statsUnsub = onValue(statsRef, (snap: DataSnapshot) => {
     const raw = snap.val() as Record<string, unknown> | null
     if (!raw) return
+    const regCount = typeof raw.registeredCount === 'number' ? raw.registeredCount : 0
+    const expectedAud = 1700
+    const regEngagement = regCount > 0 ? Math.min(100, Math.round((regCount / expectedAud) * 100)) : undefined
     remoteStats = {
-      onlineParticipants: typeof raw.onlineParticipants === 'number' ? raw.onlineParticipants : undefined,
+      onlineParticipants: typeof raw.onlineParticipants === 'number' ? raw.onlineParticipants : (regCount > 0 ? regCount : undefined),
       hallActivity: typeof raw.hallActivity === 'number' ? raw.hallActivity : undefined,
-      engagement: typeof raw.engagement === 'number' ? raw.engagement : undefined,
-      overallEngagement: typeof raw.hallActivity === 'number' ? raw.hallActivity : undefined,
+      engagement: typeof raw.engagement === 'number' ? raw.engagement : regEngagement,
+      overallEngagement: regEngagement ?? (typeof raw.hallActivity === 'number' ? raw.hallActivity : undefined),
       hallPulseCurrent: typeof raw.hallPulseCurrent === 'number' ? raw.hallPulseCurrent : undefined,
       hallPulseTimeline: raw.hallPulseTimeline as Record<string, { time: string; value: number }> | undefined,
     }

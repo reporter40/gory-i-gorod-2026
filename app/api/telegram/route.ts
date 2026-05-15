@@ -55,14 +55,17 @@ export async function POST(req: NextRequest) {
       `<b>Сессии:</b>`,
       `/program — 📋 Программа + обновить дашборд`,
       `/day2 — 📅 Переключить на День 2`,
-      `/next — следующая сессия`,
-      `/session 1 ... /session 5`,
       ``,
       `<b>Голоса:</b>`,
       `/reset — 🗑 Обнулить все голоса`,
       ``,
       `<b>Участники:</b>`,
+      `/engage — 🎯 Вовлечённость (статистика)`,
+      `/seteng 72 — ✏️ Установить вручную`,
       `/geo — 🗺 Статистика городов`,
+      ``,
+      `<b>Экстренный режим:</b>`,
+      `/snapshot — 📸 Ссылка на снимок (если экран погас)`,
       ``,
       `/status — текущее состояние`,
     ].join('\n'))
@@ -99,6 +102,41 @@ export async function POST(req: NextRequest) {
         `Сессия: ${session}`,
         `Экран зала: ${hb}`,
       ].join('\n'))
+    } catch (e) {
+      await send(chatId, `❌ ${e}`)
+    }
+    return NextResponse.json({ ok: true })
+  }
+
+  if (text === '/engage') {
+    if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
+    try {
+      const statsRaw = await rtdbRead('event/stats') as Record<string, unknown> | null
+      const regCount = typeof statsRaw?.registeredCount === 'number' ? statsRaw.registeredCount : 0
+      const manualEng = typeof statsRaw?.engagement === 'number' ? statsRaw.engagement : null
+      const autoEng = Math.min(100, Math.round((regCount / 1700) * 100))
+      await send(chatId, [
+        `🎯 <b>Вовлечённость аудитории</b>`,
+        ``,
+        `Зарегистрировано: ${regCount} из 1700`,
+        `Авто (по регистрациям): ${autoEng}%`,
+        manualEng !== null ? `Ручной override: ${manualEng}%` : `Ручной override: не задан`,
+        ``,
+        `Установить вручную: /seteng 72`,
+      ].join('\n'))
+    } catch (e) {
+      await send(chatId, `❌ ${e}`)
+    }
+    return NextResponse.json({ ok: true })
+  }
+
+  const setEngMatch = text.match(/^\/seteng\s+(\d+)$/)
+  if (setEngMatch) {
+    if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
+    const n = Math.min(100, parseInt(setEngMatch[1], 10))
+    try {
+      await rtdbWrite('event/stats/engagement', n)
+      await send(chatId, `🎯 <b>Вовлечённость установлена: ${n}%</b>\nОбновлено на дашборде.`)
     } catch (e) {
       await send(chatId, `❌ ${e}`)
     }
@@ -177,10 +215,13 @@ export async function POST(req: NextRequest) {
       const tags = ['implement', 'discovery', 'partner', 'question', 'applicable']
       const zeros: Record<string, number> = {}
       for (const t of tags) zeros[t] = 0
-      const tasks: Promise<void>[] = [rtdbWrite('speakerVotes', null)]
+      const tasks: Promise<void>[] = [
+        rtdbWrite('speakerVotes', null),
+        rtdbWrite('voteTimeline', null),
+      ]
       if (activeId) tasks.push(rtdbWrite(`votes/${activeId}`, zeros))
       await Promise.all(tasks)
-      await send(chatId, `🗑 <b>Голоса обнулены</b>\nТеги: 0. Рейтинг спикеров: очищен.`)
+      await send(chatId, `🗑 <b>Голоса обнулены</b>\nТеги: 0. Рейтинг спикеров: очищен. Карта: сброшена.`)
     } catch (e) {
       await send(chatId, `❌ ${e}`)
     }
@@ -222,6 +263,20 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       await send(chatId, `❌ ${e}`)
     }
+    return NextResponse.json({ ok: true })
+  }
+
+  if (text === '/snapshot') {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://gory-i-gorod-2026.vercel.app'
+    await send(chatId, [
+      `📸 <b>Снимок дашборда</b>`,
+      ``,
+      `Открой эту ссылку на мониторе зала:`,
+      `<a href="${baseUrl}/pulse/snapshot">${baseUrl}/pulse/snapshot</a>`,
+      ``,
+      `Страница покажет последний сохранённый снимок без подключения к интернету.`,
+      `Когда связь восстановится — открой /live.`,
+    ].join('\n'))
     return NextResponse.json({ ok: true })
   }
 

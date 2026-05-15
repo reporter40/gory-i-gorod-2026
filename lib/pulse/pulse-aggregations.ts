@@ -234,6 +234,60 @@ export function buildHeatmapFromTagStats(input: {
   }
 }
 
+const TIMELINE_SLOTS = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'] as const
+const TIMELINE_TAG_ORDER = ['implement', 'discovery', 'partner', 'question', 'applicable'] as const
+const TIMELINE_TAG_LABELS: Record<string, string> = {
+  implement: 'Хочу внедрить',
+  discovery: 'Открытие',
+  partner: 'Ищу партнёров',
+  question: 'Есть вопрос',
+  applicable: 'Применимо у нас',
+}
+
+/** Builds heatmap grid: rows = reaction tags, columns = hourly slots of the day. */
+export function buildHeatmapFromTimeline(
+  timeline: Record<string, Record<string, number>>,
+): HeatmapData {
+  const empty: HeatmapData = { halls: [], times: [], values: [], highlight: { hallIndex: 0, timeIndex: 0, engagement: 0, label: '' } }
+  if (!timeline || Object.keys(timeline).length === 0) return empty
+
+  const activeTimes = TIMELINE_SLOTS.filter((s) =>
+    TIMELINE_TAG_ORDER.some((tag) => (timeline[tag]?.[s] ?? 0) > 0),
+  )
+  if (activeTimes.length === 0) return empty
+
+  const rawValues = TIMELINE_TAG_ORDER.map((tagId) => {
+    const tagData = timeline[tagId] ?? {}
+    return activeTimes.map((slot) => tagData[slot] ?? 0)
+  })
+
+  const maxVal = Math.max(...rawValues.flat(), 0)
+  if (maxVal === 0) return empty
+
+  const values = rawValues.map((row) => row.map((v) => Math.round((v / maxVal) * 100)))
+
+  let maxHall = 0, maxTime = 0
+  for (let h = 0; h < values.length; h++) {
+    for (let t = 0; t < (values[h]?.length ?? 0); t++) {
+      if ((values[h]?.[t] ?? 0) > (values[maxHall]?.[maxTime] ?? 0)) {
+        maxHall = h; maxTime = t
+      }
+    }
+  }
+
+  return {
+    halls: TIMELINE_TAG_ORDER.map((id) => TIMELINE_TAG_LABELS[id] ?? id),
+    times: activeTimes as unknown as string[],
+    values,
+    highlight: {
+      hallIndex: maxHall,
+      timeIndex: maxTime,
+      engagement: values[maxHall]?.[maxTime] ?? 0,
+      label: TIMELINE_TAG_LABELS[TIMELINE_TAG_ORDER[maxHall]] ?? '',
+    },
+  }
+}
+
 /** PulseState.heatmap flat cells — same numbers as SessionHeatmap grid */
 export function sessionHeatmapToCells(h: HeatmapData): PulseHeatmapCell[] {
   if (!h.halls.length || !h.times.length) return []

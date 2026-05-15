@@ -25,6 +25,14 @@ function Metric({
   )
 }
 
+const HERO_BG =
+  'radial-gradient(circle at 50% 58%, rgba(0, 20, 40, 0.55) 0%, transparent 42%),' +
+  'radial-gradient(ellipse 90% 70% at 50% 52%, rgba(0, 100, 150, 0.34) 0%, transparent 54%),' +
+  'radial-gradient(ellipse 78% 58% at 50% 56%, rgba(0, 120, 170, 0.28) 0%, transparent 58%),' +
+  'radial-gradient(ellipse 42% 36% at 74% 28%, rgba(247, 168, 25, 0.12) 0%, transparent 52%),' +
+  'radial-gradient(ellipse 55% 44% at 22% 72%, rgba(0, 231, 253, 0.16) 0%, transparent 54%),' +
+  'linear-gradient(168deg, rgba(8, 16, 32, 0.62) 0%, rgba(4, 8, 18, 0.28) 38%, rgba(2, 6, 14, 0.72) 100%)'
+
 export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
   const { stats } = state
   const pct = stats.overallEngagement
@@ -33,19 +41,12 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
   const dash = (c * pct) / 100
 
   return (
-    <section className="absolute overflow-hidden" style={{ left: 335, top: 76, width: 994, height: 460 }}>
+    <section className="absolute overflow-hidden" style={{ left: 335, top: 20, width: 994, height: 516 }}>
       <div className="pulse-hero-decor pulse-hero-cinematic-bg pulse-hero-background-glow">
         <div
           className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[18px]"
           style={{
-            background: `
-            radial-gradient(circle at 50% 58%, rgba(0, 20, 40, 0.55) 0%, transparent 42%),
-            radial-gradient(ellipse 90% 70% at 50% 52%, rgba(0, 100, 150, 0.34) 0%, transparent 54%),
-            radial-gradient(ellipse 78% 58% at 50% 56%, rgba(0, 120, 170, 0.28) 0%, transparent 58%),
-            radial-gradient(ellipse 42% 36% at 74% 28%, rgba(247, 168, 25, 0.12) 0%, transparent 52%),
-            radial-gradient(ellipse 55% 44% at 22% 72%, rgba(0, 231, 253, 0.16) 0%, transparent 54%),
-            linear-gradient(168deg, rgba(8, 16, 32, 0.62) 0%, rgba(4, 8, 18, 0.28) 38%, rgba(2, 6, 14, 0.72) 100%)
-          `,
+            background: HERO_BG,
             boxShadow:
               'inset 0 0 140px rgba(0,0,0,0.62), inset 0 -60px 120px rgba(0,50,90,0.38), inset 0 0 80px rgba(0,231,253,0.06)',
           }}
@@ -60,8 +61,8 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
           aria-hidden
         />
       </div>
-      <div className="relative z-10 flex items-start justify-between gap-7 px-1.5">
-        <div>
+      <div className="relative z-40 flex flex-col items-center gap-2">
+        <div className="text-center">
           <h1
             className="text-[38px] font-black uppercase leading-[0.92] tracking-[-0.02em] text-white"
             style={{
@@ -79,13 +80,9 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
           >
             ПУЛЬС КОНФЕРЕНЦИИ
           </h1>
-          <p className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.24em] text-white/36">
-            Интеллектуальная панель конференции
-          </p>
         </div>
-      </div>
 
-      <div className="relative z-10 mt-10 flex items-center justify-center">
+      <div className="relative z-10 mt-36 flex items-center justify-center">
         <div className="pulse-hero-decor pulse-hero-orbits pulse-hero-giant-ring pointer-events-none absolute h-[600px] w-[600px] max-w-[600px]">
           <div
             className="pulse-rotate-slow absolute inset-[-18%] rounded-full border border-cyan-400/32"
@@ -254,6 +251,7 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </section>
   )

@@ -14,7 +14,8 @@ import PulseFooterTicker from '@/components/pulse/PulseFooterTicker'
 import SpeakerVotesPanel from '@/components/pulse/SpeakerVotesPanel'
 import SessionInterestHeatmap from '@/components/pulse/SessionInterestHeatmap'
 import TagVotingMoodPanel from '@/components/pulse/TagVotingMoodPanel'
-import { defaultPulseMock, buildHeatmapFromTagStats } from '@/lib/pulse/pulse-aggregations'
+import { defaultPulseMock } from '@/lib/pulse/pulse-aggregations'
+import { useVoteTimelineHeatmap } from '@/lib/pulse/useVoteTimeline'
 import { MOCK_SPEAKERS } from '@/lib/pulse/pulse-data'
 import { usePulseRealtime } from '@/lib/pulse/usePulseRealtime'
 import { PulseErrorBoundary } from '@/lib/pulse/reliability/errorBoundary'
@@ -48,19 +49,8 @@ function PulseDashboardInner() {
   // Live engine: usePulseRealtime returns mock when ?visualTest=1 or no Firebase config
   const liveState = usePulseRealtime()
 
-  const sessionHeatmap = useMemo(() => {
-    const built = buildHeatmapFromTagStats({
-      sessionId: liveState.event.activeSessionId ?? '',
-      tagStats: liveState.topTags.map((t) => ({
-        tagId: t.id,
-        label: t.name,
-        count: t.votes,
-      })),
-    })
-    // fallback to mock if no real data
-    if (!built.halls.length) return STATIC_MOCK_DASHBOARD.sessionHeatmap
-    return built
-  }, [liveState.event.activeSessionId, liveState.topTags])
+  const timelineHeatmap = useVoteTimelineHeatmap()
+  const sessionHeatmap = timelineHeatmap ?? STATIC_MOCK_DASHBOARD.sessionHeatmap
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return

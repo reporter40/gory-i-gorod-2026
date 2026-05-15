@@ -4,7 +4,6 @@ export default function PulseHeader() {
       className="absolute left-0 top-6 z-30 flex h-[46px] w-full items-center px-6"
       style={{
         background: 'linear-gradient(180deg, rgba(6,12,26,0.55) 0%, transparent 100%)',
-        backdropFilter: 'blur(8px)',
       }}
     >
       <div className="flex items-center gap-3">

@@ -74,6 +74,14 @@ export async function POST(req: NextRequest) {
       return n + 1
     })
 
+    // Timeline: tag × hourly slot (MSK = UTC+3)
+    const mskHour = (new Date().getUTCHours() + 3) % 24
+    const slot = `${String(mskHour).padStart(2, '0')}:00`
+    await db.ref(`voteTimeline/${tagId}/${slot}`).transaction((cur) => {
+      const n = typeof cur === 'number' && Number.isFinite(cur) ? cur : 0
+      return n + 1
+    })
+
     await db.ref('mood').push({
       tagId,
       sessionId,

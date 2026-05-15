@@ -87,6 +87,7 @@ export default function RegistrationGate({ children }: { children: React.ReactNo
         if (city.trim()) {
           await runTransaction(ref(db, `geo/${city.trim()}`), (cur) => (cur ?? 0) + 1)
         }
+        await runTransaction(ref(db, 'event/stats/registeredCount'), (cur) => (cur ?? 0) + 1)
       }
 
       const data: RegData = {
