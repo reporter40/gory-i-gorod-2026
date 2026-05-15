@@ -158,6 +158,18 @@ function PulseDashboardInner() {
         }} />
       )}
 
+      {/* Stale indicator — bottom right, hidden in visualTest */}
+      {!visualTest && isStale && !isFrozen && liveState._meta.staleSince != null && (
+        <div style={{
+          position: 'fixed', bottom: 0, right: 20, zIndex: 9998,
+          background: 'rgba(0,0,0,0.75)', color: '#fbbf24',
+          padding: '6px 14px', borderRadius: '8px 8px 0 0',
+          fontSize: '12px',
+        }}>
+          Обновлено <StaleIndicatorMinutes staleSince={liveState._meta.staleSince} /> мин назад
+        </div>
+      )}
+
       {/* Freeze banner — bottom, amber, silent for audience, hidden in visualTest */}
       {!visualTest && isFrozen && (
         <div style={{
@@ -175,6 +187,9 @@ function PulseDashboardInner() {
           <PulseHeader />
           <PulseErrorBoundary panelName="ProgramNow">
             <ProgramNowPanel sessions={state.sessions} />
+          </PulseErrorBoundary>
+          <PulseErrorBoundary panelName="LiveHallPulse">
+            <LiveHallPulsePanel current={state.hallPulse.current} timeline={state.hallPulse.timeline} />
           </PulseErrorBoundary>
           <PulseErrorBoundary panelName="GeoActivity">
             <GeoActivityPanel regions={state.geoRegions} />
@@ -203,12 +218,6 @@ function PulseDashboardInner() {
           </PulseErrorBoundary>
           <PulseErrorBoundary panelName="TopicNetwork">
             <TopicMoodNetwork nodes={state.topicNetwork} />
-          </PulseErrorBoundary>
-          <PulseErrorBoundary panelName="SpeakerVotes">
-            <SpeakerVotesPanel />
-          </PulseErrorBoundary>
-          <PulseErrorBoundary panelName="AIInsights">
-            <AIInsightsPanel insights={state.aiInsights} />
           </PulseErrorBoundary>
           <VisualOverlay enabled={refOverlay} />
         </PulseStage>
