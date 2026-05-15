@@ -42,9 +42,11 @@ const UNIQUE_SPEAKERS = Array.from(
   session,
 }))
 
-// Group by day
-const DAY1 = UNIQUE_SPEAKERS.filter(e => e.session.day === 1)
-const DAY2 = UNIQUE_SPEAKERS.filter(e => e.session.day === 2)
+const byTime = (a: { session: { starts_at: string } }, b: { session: { starts_at: string } }) =>
+  new Date(a.session.starts_at).getTime() - new Date(b.session.starts_at).getTime()
+
+const DAY1 = UNIQUE_SPEAKERS.filter(e => e.session.day === 1).sort(byTime)
+const DAY2 = UNIQUE_SPEAKERS.filter(e => e.session.day === 2).sort(byTime)
 
 export default function PulsePage() {
   const router = useRouter()
