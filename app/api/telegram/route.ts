@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  const setEngMatch = text.match(/^\/seteng\s+(\d+)$/)
+  const setEngMatch = text.match(/^\/seteng(?:@\S+)?\s+(\d+)/)
   if (setEngMatch) {
     if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
     const n = Math.min(100, parseInt(setEngMatch[1], 10))
@@ -462,7 +462,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  const audienceMatch = text.match(/^\/audience\s+(\d+)$/)
+  const audienceMatch = text.match(/^\/audience(?:@\S+)?\s+(\d+)/)
   if (audienceMatch) {
     if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
     const n = parseInt(audienceMatch[1], 10)
@@ -475,7 +475,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  const activityMatch = text.match(/^\/activity\s+(\d+)$/)
+  const activityMatch = text.match(/^\/activity(?:@\S+)?\s+(\d+)/)
   if (activityMatch) {
     if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
     const n = Math.min(100, parseInt(activityMatch[1], 10))
@@ -488,7 +488,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  const engMatch = text.match(/^\/engagement\s+(\d+)$/)
+  const engMatch = text.match(/^\/engagement(?:@\S+)?\s+(\d+)/)
   if (engMatch) {
     if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
     const n = Math.min(100, parseInt(engMatch[1], 10))
@@ -501,7 +501,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  const pulseMatch = text.match(/^\/pulse\s+(\d+)$/)
+  const pulseMatch = text.match(/^\/pulse(?:@\S+)?\s+(\d+)/)
   if (pulseMatch) {
     if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
     const n = Math.min(100, parseInt(pulseMatch[1], 10))
@@ -651,7 +651,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  const sessionMatch = text.match(/^\/session\s+(\d+)$/)
+  const sessionMatch = text.match(/^\/session(?:@\S+)?\s+(\d+)/)
   if (sessionMatch) {
     if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
     const sessionId = `session-${sessionMatch[1]}`
