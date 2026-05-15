@@ -5,15 +5,14 @@ import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app'
 import { getDatabase, type Database } from 'firebase/database'
 import { getAuth, signInAnonymously, type Auth } from 'firebase/auth'
 
-const REQUIRED_ENV = [
-  'NEXT_PUBLIC_FIREBASE_API_KEY',
-  'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-  'NEXT_PUBLIC_FIREBASE_DATABASE_URL',
-  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-] as const
-
+// Use literal access — Next.js only replaces process.env.NEXT_PUBLIC_* literals, not dynamic keys.
 function hasFirebaseConfig(): boolean {
-  return REQUIRED_ENV.every((k) => !!process.env[k])
+  return !!(
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN &&
+    process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL &&
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+  )
 }
 
 export { hasFirebaseConfig }
