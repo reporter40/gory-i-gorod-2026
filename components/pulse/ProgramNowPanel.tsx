@@ -18,7 +18,7 @@ export default function ProgramNowPanel({ sessions }: { sessions: PulseSession[]
   return (
     <section
       className="pulse-panel absolute flex flex-col overflow-hidden px-[11px] pb-2.5 pt-2.5"
-      style={{ left: 12, top: 76, width: 298, height: 536 }}
+      style={{ left: 12, top: 76, width: 298, height: 536, backgroundImage: "url('/pulse/bg-hallpulse.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}
     >
       <div className="mb-1.5 flex items-center justify-between gap-2">
         <h2 className="pulse-panel-title">Программа сейчас</h2>
