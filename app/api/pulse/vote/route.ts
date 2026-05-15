@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import admin from 'firebase-admin'
-import { getAdminApp } from '@/lib/pulse/firebase/admin-app'
+import { getAdminApp, requireAdminApp } from '@/lib/pulse/firebase/admin-app'
 import { parseVoteRequestBody } from '@/lib/pulse/server/validate-vote-request'
 import { requireAdminDb } from '@/lib/pulse/server/rtdb-admin'
 

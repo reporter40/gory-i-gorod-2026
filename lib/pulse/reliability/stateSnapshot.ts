@@ -46,7 +46,7 @@ export function startSnapshotSaver(getState: () => PulseState | null): () => voi
 
   const interval = setInterval(() => {
     const state = getState()
-    if (state && state._meta.source !== 'snapshot') {
+    if (state && state._meta.source === 'live') {
       saveSnapshot(state)
     }
   }, SAVE_INTERVAL_MS)

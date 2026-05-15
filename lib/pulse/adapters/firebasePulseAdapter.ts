@@ -125,7 +125,6 @@ export function createFirebasePulseAdapter(): PulseAdapter {
         heatmap: [],
         aiInsights: [],
         footer: { quote: '', quoteAuthor: '', trends: [], nextRecommendation: '' },
-        connection: connectionStatus,
         _meta: buildPulseStateMeta({
           mode: 'empty',
           activeSessionId: null,
