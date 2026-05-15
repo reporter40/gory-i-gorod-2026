@@ -29,7 +29,6 @@ export default function SpeakerVotesPanel() {
 
   useEffect(() => {
     if (!hasFirebaseConfig()) {
-      // Mock data for local dev
       setRows(SPEAKERS.slice(0, 6).map((sp, i) => ({
         id: sp.id,
         name: sp.name,
@@ -71,141 +70,104 @@ export default function SpeakerVotesPanel() {
   const maxTotal = rows[0]?.total ?? 1
   const grandTotal = rows.reduce((a, r) => a + r.total, 0)
 
-  if (rows.length === 0) {
-    return (
-      <div style={{
-        background: 'rgba(255,255,255,0.02)',
-        border: '1px solid rgba(255,255,255,0.06)',
-        borderRadius: 20, padding: '20px 24px',
-        color: 'rgba(255,255,255,0.3)', textAlign: 'center', fontSize: 13,
-      }}>
-        <div style={{ fontSize: 32, marginBottom: 8 }}>🗳️</div>
-        Голосов пока нет — участники ещё не оценивали доклады
-      </div>
-    )
-  }
-
   return (
-    <div style={{
-      background: 'rgba(255,255,255,0.02)',
-      border: `1px solid ${pulse ? 'rgba(0,212,255,0.3)' : 'rgba(255,255,255,0.06)'}`,
-      borderRadius: 20, padding: '20px 24px',
-      transition: 'border-color 0.4s',
-      boxShadow: pulse ? '0 0 24px rgba(0,212,255,0.08)' : 'none',
-    }}>
+    <section
+      className="pulse-panel absolute flex flex-col overflow-hidden p-3"
+      style={{
+        left: 1326, top: 76, width: 334, height: 420,
+        borderColor: pulse ? 'rgba(0,212,255,0.35)' : undefined,
+        boxShadow: pulse ? '0 0 32px rgba(0,212,255,0.12)' : undefined,
+        transition: 'border-color 0.4s, box-shadow 0.4s',
+      }}
+    >
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
-            Рейтинг докладов
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 800, color: '#f0f6ff', letterSpacing: '-0.02em' }}>
-            AI‑Пульс аудитории
-          </div>
+      <div className="mb-2 flex items-center justify-between shrink-0">
+        <h2 className="pulse-panel-title">Рейтинг докладов</h2>
+        <div className="text-right">
+          <div className="text-[18px] font-black leading-none text-[#00d4ff]">{grandTotal}</div>
+          <div className="text-[9px] text-white/30">голосов</div>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 24, fontWeight: 800, color: '#00d4ff', letterSpacing: '-0.02em', lineHeight: 1 }}>
-            {grandTotal}
-          </div>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>голосов</div>
-        </div>
-      </div>
-
-      {/* Tag legend */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-        {TAGS.map(t => (
-          <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
-            <span style={{ fontSize: 14 }}>{t.icon}</span>
-          </div>
-        ))}
       </div>
 
       {/* Rows */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {rows.map((row, idx) => {
-          const pct = (row.total / maxTotal) * 100
-          const initials = row.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
-          const topTag = TAGS.reduce((best, t) =>
-            (row.counts[t.id] ?? 0) > (row.counts[best.id] ?? 0) ? t : best, TAGS[0])
+      {rows.length === 0 ? (
+        <div className="flex flex-1 items-center justify-center text-center text-[12px] text-white/30">
+          <div>
+            <div className="mb-2 text-[28px]">🗳️</div>
+            Голосов пока нет
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-1.5 overflow-y-auto min-h-0 flex-1">
+          {rows.map((row, idx) => {
+            const pct = (row.total / maxTotal) * 100
+            const initials = row.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
+            const topTag = TAGS.reduce((best, t) =>
+              (row.counts[t.id] ?? 0) > (row.counts[best.id] ?? 0) ? t : best, TAGS[0])
 
-          return (
-            <div key={row.id} style={{ position: 'relative' }}>
-              {/* Bar background */}
-              <div style={{
-                position: 'absolute', inset: 0, borderRadius: 14,
-                background: 'rgba(255,255,255,0.02)',
-                overflow: 'hidden',
-              }}>
-                <div style={{
-                  height: '100%', borderRadius: 14,
-                  background: idx === 0
-                    ? 'linear-gradient(90deg, rgba(0,212,255,0.12), rgba(0,102,255,0.06))'
-                    : 'rgba(255,255,255,0.015)',
-                  width: `${pct}%`,
-                  transition: 'width 0.8s cubic-bezier(0.4,0,0.2,1)',
-                }} />
-              </div>
-
-              <div style={{
-                position: 'relative', display: 'flex', alignItems: 'center', gap: 12,
-                padding: '12px 14px',
-                border: idx === 0 ? '1px solid rgba(0,212,255,0.2)' : '1px solid rgba(255,255,255,0.05)',
-                borderRadius: 14,
-              }}>
-                {/* Rank */}
-                <div style={{
-                  fontSize: 13, fontWeight: 800, color: idx === 0 ? '#00d4ff' : 'rgba(255,255,255,0.2)',
-                  width: 20, textAlign: 'center', flexShrink: 0,
-                }}>
-                  {idx + 1}
+            return (
+              <div key={row.id} className="relative shrink-0">
+                {/* Bar bg */}
+                <div className="absolute inset-0 overflow-hidden rounded-[12px]">
+                  <div
+                    className="h-full rounded-[12px] transition-all duration-700"
+                    style={{
+                      width: `${pct}%`,
+                      background: idx === 0
+                        ? 'linear-gradient(90deg, rgba(0,212,255,0.14), rgba(0,102,255,0.07))'
+                        : 'rgba(255,255,255,0.02)',
+                    }}
+                  />
                 </div>
-
-                {/* Avatar */}
-                <div style={{
-                  width: 36, height: 36, borderRadius: 12, flexShrink: 0,
-                  background: idx === 0 ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.05)',
-                  border: idx === 0 ? '1px solid rgba(0,212,255,0.3)' : '1px solid rgba(255,255,255,0.08)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 12, fontWeight: 800,
-                  color: idx === 0 ? '#00d4ff' : 'rgba(255,255,255,0.3)',
-                }}>
-                  {initials}
-                </div>
-
-                {/* Name + tags */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#f0f6ff', lineHeight: 1.2, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                    {row.name}
+                <div
+                  className="relative flex items-center gap-2 rounded-[12px] px-2.5 py-2"
+                  style={{
+                    border: idx === 0 ? '1px solid rgba(0,212,255,0.22)' : '1px solid rgba(255,255,255,0.06)',
+                  }}
+                >
+                  {/* Rank */}
+                  <div className="w-4 shrink-0 text-center text-[11px] font-black" style={{ color: idx === 0 ? '#00d4ff' : 'rgba(255,255,255,0.2)' }}>
+                    {idx + 1}
                   </div>
-                  <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-                    {TAGS.map(t => {
-                      const cnt = row.counts[t.id] ?? 0
-                      if (cnt === 0) return null
-                      return (
-                        <div key={t.id} style={{
-                          display: 'flex', alignItems: 'center', gap: 2,
-                          fontSize: 10, color: 'rgba(255,255,255,0.4)',
-                        }}>
-                          <span style={{ fontSize: 12 }}>{t.icon}</span>
-                          <span>{cnt}</span>
-                        </div>
-                      )
-                    })}
+                  {/* Avatar */}
+                  <div
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-[11px] font-black"
+                    style={{
+                      background: idx === 0 ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.05)',
+                      border: idx === 0 ? '1px solid rgba(0,212,255,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                      color: idx === 0 ? '#00d4ff' : 'rgba(255,255,255,0.35)',
+                    }}
+                  >
+                    {initials}
                   </div>
-                </div>
-
-                {/* Total + top tag */}
-                <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: idx === 0 ? '#00d4ff' : '#f0f6ff', lineHeight: 1 }}>
-                    {row.total}
+                  {/* Name + tags */}
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[12px] font-bold text-white">{row.name}</div>
+                    <div className="mt-0.5 flex gap-2">
+                      {TAGS.map(t => {
+                        const cnt = row.counts[t.id] ?? 0
+                        if (cnt === 0) return null
+                        return (
+                          <span key={t.id} className="text-[10px] text-white/40">
+                            {t.icon}{cnt}
+                          </span>
+                        )
+                      })}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 16, marginTop: 2 }}>{topTag.icon}</div>
+                  {/* Total */}
+                  <div className="shrink-0 text-right">
+                    <div className="text-[16px] font-black leading-none" style={{ color: idx === 0 ? '#00d4ff' : '#f0f6ff' }}>
+                      {row.total}
+                    </div>
+                    <div className="text-[13px]">{topTag.icon}</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
+            )
+          })}
+        </div>
+      )}
+    </section>
   )
 }

@@ -9,7 +9,6 @@ import ProgramNowPanel from '@/components/pulse/ProgramNowPanel'
 import GeoActivityPanel from '@/components/pulse/GeoActivityPanel'
 import HeroPulsePanel from '@/components/pulse/HeroPulsePanel'
 import TopTagsPanel from '@/components/pulse/TopTagsPanel'
-import TopicMoodNetwork from '@/components/pulse/TopicMoodNetwork'
 import AIInsightsPanel from '@/components/pulse/AIInsightsPanel'
 import PulseFooterTicker from '@/components/pulse/PulseFooterTicker'
 import SpeakerVotesPanel from '@/components/pulse/SpeakerVotesPanel'
@@ -183,8 +182,8 @@ function PulseDashboardInner() {
           <PulseErrorBoundary panelName="TopTags">
             <TopTagsPanel topTags={state.topTags} filterTabs={state.tagFilterTabs} />
           </PulseErrorBoundary>
-          <PulseErrorBoundary panelName="TopicNetwork">
-            <TopicMoodNetwork nodes={state.topicNetwork} />
+          <PulseErrorBoundary panelName="SpeakerVotes">
+            <SpeakerVotesPanel />
           </PulseErrorBoundary>
           <VisualOverlay enabled={refOverlay} />
         </PulseStage>
