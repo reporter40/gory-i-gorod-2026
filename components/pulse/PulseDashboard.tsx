@@ -15,6 +15,7 @@ import SessionInterestHeatmap from '@/components/pulse/SessionInterestHeatmap'
 import TopicMoodNetwork from '@/components/pulse/TopicMoodNetwork'
 import AIInsightsPanel from '@/components/pulse/AIInsightsPanel'
 import PulseFooterTicker from '@/components/pulse/PulseFooterTicker'
+import SpeakerVotesPanel from '@/components/pulse/SpeakerVotesPanel'
 import { defaultPulseMock, buildHeatmapFromTagStats } from '@/lib/pulse/pulse-aggregations'
 import { MOCK_SPEAKERS } from '@/lib/pulse/pulse-data'
 import { usePulseRealtime } from '@/lib/pulse/usePulseRealtime'
@@ -218,11 +219,8 @@ function PulseDashboardInner() {
           <PulseErrorBoundary panelName="TopicNetwork">
             <TopicMoodNetwork nodes={state.topicNetwork} />
           </PulseErrorBoundary>
-          <PulseErrorBoundary panelName="AIInsights">
-            <AIInsightsPanel insights={state.aiInsights} />
-          </PulseErrorBoundary>
-          <PulseErrorBoundary panelName="Footer">
-            <PulseFooterTicker footer={state.footer} />
+          <PulseErrorBoundary panelName="SpeakerVotes">
+            <SpeakerVotesPanel />
           </PulseErrorBoundary>
           <VisualOverlay enabled={refOverlay} />
         </PulseStage>

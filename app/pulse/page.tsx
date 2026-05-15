@@ -1,127 +1,195 @@
 'use client'
 
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect } from 'react'
-import { useActiveSessionVotes } from '@/lib/pulse/useActiveSessionVotes'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { SPEAKERS, SESSIONS } from '@/lib/data'
+import { ensureAnonymousAuth, hasFirebaseConfig } from '@/lib/pulse/firebase/client'
 
-function PulseLandingInner() {
+const TAGS = [
+  { id: 'implement',  name: 'Хочу внедрить',  icon: '🔥' },
+  { id: 'discovery',  name: 'Открытие',        icon: '💡' },
+  { id: 'partner',    name: 'Ищу партнёров',   icon: '🤝' },
+  { id: 'question',   name: 'Есть вопрос',     icon: '❓' },
+  { id: 'applicable', name: 'Применимо у нас', icon: '📍' },
+]
+
+const STORAGE_PREFIX = 'sv_'
+
+function getLocalVote(speakerId: string, uid: string): string | null {
+  try { return localStorage.getItem(`${STORAGE_PREFIX}${speakerId}_${uid}`) } catch { return null }
+}
+
+// Sessions with real speakers only (skip org/panel)
+const SPEAKER_SESSIONS = SESSIONS.filter(s => {
+  const sp = SPEAKERS.find(sp => sp.id === s.speaker_id)
+  return sp && s.speaker_id !== 'org'
+})
+
+// Dedupe: one entry per speaker
+const UNIQUE_SPEAKERS = Array.from(
+  new Map(SPEAKER_SESSIONS.map(s => [s.speaker_id, s])).entries()
+).map(([speakerId, session]) => ({
+  speaker: SPEAKERS.find(sp => sp.id === speakerId)!,
+  session,
+}))
+
+// Group by day
+const DAY1 = UNIQUE_SPEAKERS.filter(e => e.session.day === 1)
+const DAY2 = UNIQUE_SPEAKERS.filter(e => e.session.day === 2)
+
+export default function PulsePage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const { activeSessionId, session, frozen, eventMode, loading, error } = useActiveSessionVotes()
+  const [uid, setUid] = useState<string | null>(null)
+  const [votes, setVotes] = useState<Record<string, string>>({})
+  const [activeDay, setActiveDay] = useState(1)
 
   useEffect(() => {
-    if (searchParams.get('display') === '1') {
-      router.replace('/pulse/live')
+    async function init() {
+      let resolvedUid: string
+      if (hasFirebaseConfig()) {
+        resolvedUid = await ensureAnonymousAuth()
+      } else {
+        resolvedUid = 'mock-user'
+      }
+      setUid(resolvedUid)
+      // Load all local votes
+      const v: Record<string, string> = {}
+      for (const { speaker } of UNIQUE_SPEAKERS) {
+        const vote = getLocalVote(speaker.id, resolvedUid)
+        if (vote) v[speaker.id] = vote
+      }
+      setVotes(v)
     }
-  }, [router, searchParams])
+    init().catch(console.error)
+  }, [])
 
-  const modeLabel =
-    eventMode === 'vote' ? 'Режим голосования (QR на экране зала)' :
-    eventMode === 'freeze' ? 'Данные зафиксированы' :
-    'Прямой эфир'
+  const dayEntries = activeDay === 1 ? DAY1 : DAY2
+  const votedCount = Object.keys(votes).length
 
   return (
-    <div
-      className="min-h-[100dvh] text-white"
-      style={{
-        background: 'radial-gradient(ellipse 120% 60% at 50% -10%, #0d2a4a 0%, #050b18 65%)',
-      }}
-    >
-      <div className="mx-auto max-w-md px-6 pb-28 pt-10">
-        <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-white/35">
-          AI‑Пульс
-        </div>
-        <h1 className="text-2xl font-extrabold tracking-tight">Горы и Город — 2026</h1>
-        <p className="mt-2 text-sm text-white/40">
-          Реакции аудитории в реальном времени
-        </p>
+    <div style={{
+      minHeight: '100dvh',
+      background: 'radial-gradient(ellipse 120% 60% at 50% -10%, #0d2a4a 0%, #050b18 65%)',
+      color: '#f0f6ff',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif',
+    }}>
+      <div style={{ maxWidth: 430, margin: '0 auto', padding: '0 0 80px' }}>
 
-        <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm">
-          <div className="text-white/50 text-xs uppercase tracking-wide mb-1">Статус зала</div>
-          <div className="font-semibold text-cyan-300">{modeLabel}</div>
-          {frozen && (
-            <div className="mt-1 text-xs text-amber-300/90">Голосование может быть приостановлено</div>
+        {/* Header */}
+        <div style={{ padding: '28px 24px 20px' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#00d4ff', boxShadow: '0 0 10px #00d4ff', display: 'inline-block', flexShrink: 0 }} />
+            AI‑Пульс · Горы и Город 2026
+          </div>
+          <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', margin: 0, lineHeight: 1.2 }}>
+            Оцените доклады
+          </h1>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>
+            Выберите доклад и поставьте одну реакцию
+          </p>
+
+          {votedCount > 0 && (
+            <div style={{ marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 50, background: 'rgba(34,217,122,0.1)', border: '1px solid rgba(34,217,122,0.25)' }}>
+              <span style={{ fontSize: 14 }}>✓</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#22d97a' }}>
+                {votedCount} из {UNIQUE_SPEAKERS.length} оценено
+              </span>
+            </div>
           )}
         </div>
 
-        {loading && (
-          <div className="mt-10 text-center text-white/45 text-sm">Загрузка…</div>
-        )}
+        {/* Day tabs */}
+        <div style={{ padding: '0 24px 16px', display: 'flex', gap: 8 }}>
+          {[1, 2].map(day => (
+            <button
+              key={day}
+              onClick={() => setActiveDay(day)}
+              style={{
+                padding: '9px 20px', borderRadius: 50, fontSize: 13, fontWeight: 700,
+                cursor: 'pointer', transition: 'all 0.2s',
+                background: activeDay === day ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.05)',
+                border: activeDay === day ? '1.5px solid rgba(0,212,255,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                color: activeDay === day ? '#00d4ff' : 'rgba(255,255,255,0.4)',
+              }}
+            >
+              День {day}
+            </button>
+          ))}
+        </div>
 
-        {error && (
-          <div className="mt-10 rounded-xl border border-red-500/30 bg-red-950/40 px-4 py-3 text-sm text-red-200">
-            {error}
-          </div>
-        )}
+        {/* Speaker list */}
+        <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {dayEntries.map(({ speaker, session }) => {
+            const myVote = votes[speaker.id]
+            const tag = myVote ? TAGS.find(t => t.id === myVote) : null
+            const initials = speaker.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
+            const time = new Date(session.starts_at).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })
 
-        {!loading && !error && !activeSessionId && (
-          <div className="mt-10 rounded-2xl border border-white/10 bg-black/20 px-5 py-8 text-center">
-            <div className="text-4xl mb-3">◎</div>
-            <div className="text-lg font-bold text-white/90">Пульс скоро начнётся</div>
-            <p className="mt-2 text-sm text-white/45">
-              Активная сессия появится, когда организатор включит программу.
-            </p>
-          </div>
-        )}
+            return (
+              <button
+                key={speaker.id}
+                onClick={() => router.push(`/pulse/speaker/${speaker.id}`)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  padding: '16px', borderRadius: 18, width: '100%', textAlign: 'left',
+                  background: myVote ? 'rgba(0,212,255,0.05)' : 'rgba(255,255,255,0.03)',
+                  border: myVote ? '1px solid rgba(0,212,255,0.2)' : '1px solid rgba(255,255,255,0.07)',
+                  cursor: 'pointer', transition: 'all 0.18s',
+                }}
+              >
+                {/* Avatar */}
+                <div style={{
+                  width: 44, height: 44, borderRadius: 14, flexShrink: 0,
+                  background: myVote ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.06)',
+                  border: myVote ? '1px solid rgba(0,212,255,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 14, fontWeight: 800,
+                  color: myVote ? '#00d4ff' : 'rgba(238,244,255,0.35)',
+                }}>
+                  {initials}
+                </div>
 
-        {!loading && !error && activeSessionId && session && (
-          <div className="mt-8 rounded-2xl border border-cyan-500/25 bg-cyan-950/20 px-5 py-6">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-cyan-400/80">
-              Сейчас в зале
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#f0f6ff', lineHeight: 1.2 }}>
+                    {speaker.name}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 2, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                    {time} · {session.title}
+                  </div>
+                </div>
+
+                {/* Status */}
+                {tag ? (
+                  <div style={{
+                    flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '6px 10px', borderRadius: 10,
+                    background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.25)',
+                  }}>
+                    <span style={{ fontSize: 16 }}>{tag.icon}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#00d4ff' }}>✓</span>
+                  </div>
+                ) : (
+                  <div style={{
+                    flexShrink: 0, width: 32, height: 32, borderRadius: 10,
+                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'rgba(255,255,255,0.25)', fontSize: 16,
+                  }}>
+                    →
+                  </div>
+                )}
+              </button>
+            )
+          })}
+
+          {dayEntries.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '48px 0', color: 'rgba(255,255,255,0.25)', fontSize: 14 }}>
+              Доклады не запланированы
             </div>
-            <h2 className="mt-2 text-xl font-bold leading-snug">{session.title || 'Сессия'}</h2>
-            {session.speakerName && (
-              <p className="mt-2 text-sm text-white/70">{session.speakerName}</p>
-            )}
-            <div className="mt-3 flex flex-wrap gap-2 text-xs text-white/45">
-              {session.timeLabel && <span>{session.timeLabel}</span>}
-              {session.hall && <span>{session.hall}</span>}
-            </div>
-          </div>
-        )}
-
-        {!loading && !error && activeSessionId && !session && (
-          <div className="mt-8 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/60">
-            Сессия <code className="text-cyan-300/90">{activeSessionId}</code> — данные программы загружаются.
-          </div>
-        )}
-
-        <div className="mt-10 flex flex-col gap-3">
-          <Link
-            href="/pulse/vote"
-            className="block rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-4 text-center text-sm font-bold text-white shadow-lg shadow-cyan-500/20"
-          >
-            Протегировать выступление
-          </Link>
-          <Link
-            href="/pulse/results"
-            className="block rounded-xl border border-white/15 bg-white/[0.06] px-5 py-4 text-center text-sm font-semibold text-white/90"
-          >
-            Смотреть итоги
-          </Link>
-          <p className="text-center text-[11px] text-white/30">
-            Экран зала для организаторов:{' '}
-            <Link href="/pulse/live" className="underline text-white/45 hover:text-white/70">
-              /pulse/live
-            </Link>
-          </p>
+          )}
         </div>
       </div>
     </div>
-  )
-}
-
-export default function PulseLandingPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-[100dvh] bg-[#050b18] text-white flex items-center justify-center text-sm text-white/45">
-          Загрузка…
-        </div>
-      }
-    >
-      <PulseLandingInner />
-    </Suspense>
   )
 }

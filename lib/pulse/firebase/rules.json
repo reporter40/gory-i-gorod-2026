@@ -39,6 +39,25 @@
       ".read": true,
       ".write": false
     },
+    "speakerVotes": {
+      ".read": true,
+      "$speakerId": {
+        "userVotes": {
+          "$uid": {
+            ".read": "auth != null && auth.uid === $uid",
+            ".write": "auth != null && auth.uid === $uid && !data.exists()",
+            ".validate": "newData.isString()"
+          }
+        },
+        "counts": {
+          "$tagId": {
+            ".read": true,
+            ".write": "auth != null",
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000"
+          }
+        }
+      }
+    },
     "participants": {
       ".read": "auth != null",
       "$uid": {
