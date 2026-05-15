@@ -22,6 +22,7 @@ import { PulseErrorBoundary } from '@/lib/pulse/reliability/errorBoundary'
 import { startTabKeepAlive } from '@/lib/pulse/reliability/tabKeepAlive'
 import { startHeartbeat } from '@/lib/pulse/reliability/heartbeat'
 import { startSnapshotSaver } from '@/lib/pulse/reliability/stateSnapshot'
+import QROverlay from '@/components/pulse/QROverlay'
 
 /** Stable mock fixture — avoid new object identity every render */
 const STATIC_MOCK_DASHBOARD = defaultPulseMock()
@@ -187,6 +188,7 @@ function PulseDashboardInner() {
             />
           </PulseErrorBoundary>
           <VisualOverlay enabled={refOverlay} />
+          <QROverlay />
         </PulseStage>
       </div>
     </div>
