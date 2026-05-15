@@ -12,6 +12,7 @@ import TopTagsPanel from '@/components/pulse/TopTagsPanel'
 import AIInsightsPanel from '@/components/pulse/AIInsightsPanel'
 import PulseFooterTicker from '@/components/pulse/PulseFooterTicker'
 import SpeakerVotesPanel from '@/components/pulse/SpeakerVotesPanel'
+import SessionInterestHeatmap from '@/components/pulse/SessionInterestHeatmap'
 import { defaultPulseMock, buildHeatmapFromTagStats } from '@/lib/pulse/pulse-aggregations'
 import { MOCK_SPEAKERS } from '@/lib/pulse/pulse-data'
 import { usePulseRealtime } from '@/lib/pulse/usePulseRealtime'
@@ -184,6 +185,9 @@ function PulseDashboardInner() {
           </PulseErrorBoundary>
           <PulseErrorBoundary panelName="SpeakerVotes">
             <SpeakerVotesPanel />
+          </PulseErrorBoundary>
+          <PulseErrorBoundary panelName="SessionHeatmap">
+            <SessionInterestHeatmap heat={state.sessionHeatmap} speakerDots={heatSpeakers} />
           </PulseErrorBoundary>
           <VisualOverlay enabled={refOverlay} />
         </PulseStage>
