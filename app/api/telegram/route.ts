@@ -65,7 +65,8 @@ export async function POST(req: NextRequest) {
       `/day2 — 📅 Переключить на День 2`,
       ``,
       `<b>Голоса:</b>`,
-      `/reset — 🗑 Обнулить все голоса`,
+      `/reset — 🗑 Обнулить голоса текущей сессии`,
+      `/resetall — 💥 Сбросить ВСЕ голоса (все сессии)`,
       ``,
       `<b>Участники:</b>`,
       `/clearparticipants — 🧹 Очистить всех участников`,
@@ -156,41 +157,27 @@ export async function POST(req: NextRequest) {
   if (text === '/day2') {
     if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
     try {
-      const { SESSIONS, SPEAKERS } = await import('@/lib/data')
-      const day2 = SESSIONS.filter(s => s.day === 2 && s.program_card !== 'title_only')
+      const { SESSIONS } = await import('@/lib/data')
+      const day2 = SESSIONS.filter(s => s.day === 2).sort(
+        (a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
+      )
       if (day2.length === 0) {
         await send(chatId, `❌ Сессии второго дня не найдены`)
         return NextResponse.json({ ok: true })
       }
-      const payload: Record<string, object> = {}
-      for (const s of day2) {
-        const speaker = SPEAKERS.find(sp => sp.id === s.speaker_id)
-        payload[s.id] = {
-          title: s.title ?? '',
-          hall: s.hall ?? '',
-          day: s.day,
-          starts_at: s.starts_at,
-          ends_at: s.ends_at,
-          speakerName: speaker ? speaker.name : (s.speaker_row_note ?? ''),
-          status: 'upcoming',
-        }
-      }
-      await rtdbWrite('sessions', payload)
-      const sorted = day2.sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())
-      const firstId = sorted[0].id
+      const firstId = day2[0].id
       await rtdbWrite('event/activeSessionId', firstId)
       await send(chatId, [
-        `📅 <b>День 2 загружен</b>`,
+        `📅 <b>День 2 активирован</b>`,
         ``,
-        `Сессий: ${day2.length}`,
-        `Первая: <b>${sorted[0].title}</b>`,
+        `Первая сессия: <b>${day2[0].title}</b>`,
         `ID: <code>${firstId}</code>`,
         ``,
-        `Дашборд обновится автоматически.`,
+        `Дашборд переключится автоматически.`,
         `Голоса обнулить: /reset`,
       ].join('\n'))
     } catch (e) {
-      await send(chatId, `❌ ${e}`)
+      await send(chatId, `❌ /day2 ошибка: ${e}`)
     }
     return NextResponse.json({ ok: true })
   }
@@ -228,10 +215,28 @@ export async function POST(req: NextRequest) {
       const tasks: Promise<void>[] = [
         rtdbWrite('speakerVotes', null),
         rtdbWrite('voteTimeline', null),
+        rtdbWrite('userVotes', null),
       ]
       if (activeId) tasks.push(rtdbWrite(`votes/${activeId}`, zeros))
       await Promise.all(tasks)
-      await send(chatId, `🗑 <b>Голоса обнулены</b>\nТеги: 0. Рейтинг спикеров: очищен. Карта: сброшена.`)
+      await send(chatId, `🗑 <b>Голоса обнулены</b>\nТеги: 0. Рейтинг спикеров: очищен. Карта: сброшена. userVotes: очищены.`)
+    } catch (e) {
+      await send(chatId, `❌ ${e}`)
+    }
+    return NextResponse.json({ ok: true })
+  }
+
+  if (text === '/resetall') {
+    if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
+    try {
+      await Promise.all([
+        rtdbWrite('votes', null),
+        rtdbWrite('speakerVotes', null),
+        rtdbWrite('voteTimeline', null),
+        rtdbWrite('userVotes', null),
+        rtdbWrite('mood', null),
+      ])
+      await send(chatId, `💥 <b>Все голоса полностью сброшены</b>\nvotes, speakerVotes, voteTimeline, userVotes, mood — всё очищено.`)
     } catch (e) {
       await send(chatId, `❌ ${e}`)
     }
