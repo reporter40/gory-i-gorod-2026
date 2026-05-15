@@ -4,7 +4,7 @@
       ".read": true,
       "$sessionId": {
         "$tagId": {
-          ".write": false,
+          ".write": "auth != null",
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000"
         }
       }
@@ -40,6 +40,15 @@
       ".write": false,
       "stats": {
         "registeredCount": {
+          ".write": "auth != null",
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        }
+      }
+    },
+    "voteTimeline": {
+      ".read": true,
+      "$tagId": {
+        "$slot": {
           ".write": "auth != null",
           ".validate": "newData.isNumber() && newData.val() >= 0"
         }

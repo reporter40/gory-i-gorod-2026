@@ -112,12 +112,30 @@ export default function SpeakerVotePage() {
       // Write user marker (write-once enforced by rules)
       await set(userVoteRef, tagId)
 
-      // Increment counter atomically
+      // Increment speaker counter atomically
       const countRef = ref(db, `speakerVotes/${id}/counts/${tagId}`)
       await runTransaction(countRef, cur => {
         const n = typeof cur === 'number' && Number.isFinite(cur) ? cur : 0
         return n + 1
       })
+
+      // Also write to global votes + timeline (feeds dashboard panels)
+      try {
+        const activeSnap = await get(ref(db, 'event/activeSessionId'))
+        const activeSessionId = activeSnap.val() as string | null
+        if (activeSessionId) {
+          await runTransaction(ref(db, `votes/${activeSessionId}/${tagId}`), cur => {
+            const n = typeof cur === 'number' && Number.isFinite(cur) ? cur : 0
+            return n + 1
+          })
+          const mskHour = (new Date().getUTCHours() + 3) % 24
+          const slot = `${String(mskHour).padStart(2, '0')}:00`
+          await runTransaction(ref(db, `voteTimeline/${tagId}/${slot}`), cur => {
+            const n = typeof cur === 'number' && Number.isFinite(cur) ? cur : 0
+            return n + 1
+          })
+        }
+      } catch {}
 
       setLocalVote(id, uid, tagId)
       setMyVote(tagId)
