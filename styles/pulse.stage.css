@@ -20,8 +20,8 @@ main.flex-1.pb-nav:has(.pulse-shell) {
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
   overflow: hidden;
   background: #03080f;
   z-index: 60;
@@ -37,7 +37,7 @@ main.flex-1.pb-nav:has(.pulse-shell) {
   isolation: isolate;
   background: #03080f;
   transform: scaleX(var(--pulse-stage-scale-x, 1)) scaleY(var(--pulse-stage-scale-y, 1));
-  transform-origin: center center;
+  transform-origin: top left;
 }
 
 .pulse-background-image {

@@ -57,6 +57,8 @@ export async function POST(req: NextRequest) {
       ``,
       `<b>Режимы экрана:</b>`,
       `/live — ▶ LIVE, данные в реальном времени`,
+      `/screen1 — 🖥 Главный экран (5120×1792)`,
+      `/screen2 — 📺 Боковые экраны (1920×1152)`,
       `/freeze — ⏸ Заморозить (тихо, зрители не видят)`,
       ``,
       `<b>Сессии:</b>`,
@@ -116,6 +118,30 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       await send(chatId, `❌ ${e}`)
     }
+    return NextResponse.json({ ok: true })
+  }
+
+  if (text === '/screen1') {
+    await send(chatId, [
+      `🖥 <b>Главный экран (5120×1792)</b>`,
+      ``,
+      `Открой в браузере в полноэкранном режиме (F11):`,
+      `<code>https://gory-i-gorod-2026.vercel.app/pulse/live</code>`,
+      ``,
+      `Дашборд автоматически растянется на весь экран.`,
+    ].join('\n'))
+    return NextResponse.json({ ok: true })
+  }
+
+  if (text === '/screen2') {
+    await send(chatId, [
+      `📺 <b>Боковые экраны (1920×1152)</b>`,
+      ``,
+      `Открой в браузере в полноэкранном режиме (F11):`,
+      `<code>https://gory-i-gorod-2026.vercel.app/pulse/live</code>`,
+      ``,
+      `Дашборд автоматически растянется на весь экран.`,
+    ].join('\n'))
     return NextResponse.json({ ok: true })
   }
 
