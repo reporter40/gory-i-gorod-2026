@@ -92,7 +92,11 @@ export function createFirebasePulseAdapter(): PulseAdapter {
   }
 
   function buildSessions(): PulseSession[] {
-    return Object.entries(sessionsCache).map(([id, s]) => ({
+    return Object.entries(sessionsCache).sort(([, a], [, b]) => {
+      const ta = new Date((a as any).starts_at ?? a.start).getTime()
+      const tb = new Date((b as any).starts_at ?? b.start).getTime()
+      return (isNaN(ta) ? 0 : ta) - (isNaN(tb) ? 0 : tb)
+    }).map(([id, s]) => ({
       id,
       time: (() => { const d = new Date((s as any).starts_at ?? s.start); return isNaN(d.getTime()) ? '—:—' : d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) })(),
       type: 'Сессия',
@@ -191,6 +195,22 @@ export function createFirebasePulseAdapter(): PulseAdapter {
     speakersCache = (snap.val() as Record<string, FirebaseSpeaker>) ?? {}
   }, { onlyOnce: true })
   unsubscribers.push(() => off(speakersRef, 'value', speakersUnsub as Parameters<typeof off>[2]))
+
+  // geo — participant city counts, written by RegistrationGate
+  let geoRegionsCache: import('../pulse-data').PulseGeoRegion[] = []
+  const geoRef = ref(db, 'geo')
+  const geoUnsub = onValue(geoRef, (snap: DataSnapshot) => {
+    const data = snap.val() as Record<string, number> | null
+    if (!data) { geoRegionsCache = []; return }
+    const entries = Object.entries(data).sort(([, a], [, b]) => b - a)
+    const total = entries.reduce((s, [, c]) => s + c, 0)
+    geoRegionsCache = entries.slice(0, 6).map(([name, count]) => ({
+      name,
+      percent: total ? Math.round((count / total) * 100) : 0,
+    }))
+    if (currentState) emit(mergeFirebaseUpdate({ geoRegions: geoRegionsCache }))
+  })
+  unsubscribers.push(() => off(geoRef, 'value', geoUnsub as Parameters<typeof off>[2]))
 
   // event/stats — operator-updated stats (audience, hall activity, engagement, pulse)
   let remoteStats: Partial<PulseState['stats']> & { hallPulseCurrent?: number; hallPulseTimeline?: Record<string, { time: string; value: number }> } = {}
@@ -310,6 +330,7 @@ export function createFirebasePulseAdapter(): PulseAdapter {
         topTags,
         sessions,
         heatmap,
+        geoRegions: geoRegionsCache,
         _meta: buildPulseStateMeta({ mode: 'live', activeSessionId, topTags }),
         ...buildStatsUpdate(topTags),
       }))

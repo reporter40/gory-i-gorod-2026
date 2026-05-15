@@ -243,6 +243,11 @@ export default function AdminPage() {
     }
   }
 
+  async function resetVotes() {
+    if (!confirm('Обнулить все голоса? Это нельзя отменить.')) return
+    await callOperator({ resetVotes: true })
+  }
+
   async function applyFrozen(value: boolean) {
     const ok = await callOperator({
       frozen: value,
@@ -389,6 +394,13 @@ export default function AdminPage() {
                 {seedResult}
               </div>
             )}
+          </div>
+
+          {/* Reset votes */}
+          <div style={{ marginBottom: 12 }}>
+            <button className="btn btn-sm btn-red" onClick={resetVotes} style={{ width: '100%' }}>
+              🗑 Обнулить все голоса
+            </button>
           </div>
 
           {loading && <div style={{ color: '#475569', fontSize: '0.85rem' }}>Загрузка...</div>}

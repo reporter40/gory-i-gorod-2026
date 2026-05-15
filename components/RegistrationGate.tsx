@@ -72,7 +72,7 @@ export default function RegistrationGate({ children }: { children: React.ReactNo
 
       if (hasFirebaseConfig()) {
         uid = await ensureAnonymousAuth()
-        const { ref, set } = await import('firebase/database')
+        const { ref, set, runTransaction } = await import('firebase/database')
         const db = getFirebaseDb()
         await set(ref(db, `participants/${uid}`), {
           name: name.trim(),
@@ -84,6 +84,9 @@ export default function RegistrationGate({ children }: { children: React.ReactNo
           consent: true,
           ts: Date.now(),
         })
+        if (city.trim()) {
+          await runTransaction(ref(db, `geo/${city.trim()}`), (cur) => (cur ?? 0) + 1)
+        }
       }
 
       const data: RegData = {

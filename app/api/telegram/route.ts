@@ -52,16 +52,14 @@ export async function POST(req: NextRequest) {
       `/vote — 📱 Показать QR-код на экране зала`,
       `/freeze — ⏸ Заморозить (тихо, зрители не видят)`,
       ``,
-      `<b>Сессии (авто):</b>`,
-      `/sync — 🔄 Авто-синхронизация по текущему времени`,
-      `/next — ⏭ Переключить на следующую сессию`,
-      `/session ID — переключить вручную по ID`,
+      `<b>Сессии:</b>`,
+      `/program — 📋 показать программу + обновить дашборд`,
+      `/session 1 ... /session 5`,
+      `/next — следующая сессия`,
       ``,
-      `<b>Статистика зала:</b>`,
-      `/audience 450 — участников онлайн`,
-      `/activity 67 — активность зала %`,
-      `/engagement 72 — вовлечённость %`,
-      `/pulse 58 — пульс зала (Live-график)`,
+      `<b>Голоса:</b>`,
+      `/geo — 🗺 Статистика городов участников`,
+      `/reset — 🗑 Обнулить все голоса`,
       ``,
       `/status — текущее состояние`,
     ].join('\n'))
@@ -98,6 +96,84 @@ export async function POST(req: NextRequest) {
         `Сессия: ${session}`,
         `Экран зала: ${hb}`,
       ].join('\n'))
+    } catch (e) {
+      await send(chatId, `❌ ${e}`)
+    }
+    return NextResponse.json({ ok: true })
+  }
+
+  if (text === '/geo') {
+    if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
+    try {
+      const geoRaw = await rtdbRead('geo') as Record<string, number> | null
+      if (!geoRaw || Object.keys(geoRaw).length === 0) {
+        await send(chatId, `🗺 Геоданных пока нет. Участники появятся после регистрации.`)
+        return NextResponse.json({ ok: true })
+      }
+      const entries = Object.entries(geoRaw).sort(([, a], [, b]) => b - a)
+      const total = entries.reduce((s, [, c]) => s + c, 0)
+      const lines = [`🗺 <b>Геоактивность участников</b>`, `Всего городов: ${entries.length} · Регистраций: ${total}`, ``]
+      for (const [city, count] of entries.slice(0, 15)) {
+        const pct = Math.round((count / total) * 100)
+        lines.push(`${city} — ${count} (${pct}%)`)
+      }
+      if (entries.length > 15) lines.push(`...ещё ${entries.length - 15} городов`)
+      await send(chatId, lines.join('\n'))
+    } catch (e) {
+      await send(chatId, `❌ ${e}`)
+    }
+    return NextResponse.json({ ok: true })
+  }
+
+  if (text === '/reset') {
+    if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
+    try {
+      const activeId = await rtdbRead('event/activeSessionId') as string | null
+      const tags = ['implement', 'discovery', 'partner', 'question', 'applicable']
+      const zeros: Record<string, number> = {}
+      for (const t of tags) zeros[t] = 0
+      const tasks: Promise<void>[] = [rtdbWrite('speakerVotes', null)]
+      if (activeId) tasks.push(rtdbWrite(`votes/${activeId}`, zeros))
+      await Promise.all(tasks)
+      await send(chatId, `🗑 <b>Голоса обнулены</b>\nТеги: 0. Рейтинг спикеров: очищен.`)
+    } catch (e) {
+      await send(chatId, `❌ ${e}`)
+    }
+    return NextResponse.json({ ok: true })
+  }
+
+  if (text === '/program') {
+    if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
+    try {
+      const sessionsRaw = await rtdbRead('sessions')
+      if (!sessionsRaw) {
+        await send(chatId, `❌ Сессии не найдены. Загрузи через /pulse/admin → "Загрузить программу"`)
+        return NextResponse.json({ ok: true })
+      }
+      const now = Date.now()
+      type FbSession = { title: string; starts_at?: string; ends_at?: string; status?: string }
+      const sessions = Object.entries(sessionsRaw as Record<string, FbSession>)
+        .filter(([, s]) => s.starts_at)
+        .sort(([, a], [, b]) => new Date(a.starts_at!).getTime() - new Date(b.starts_at!).getTime())
+      let liveId: string | null = null
+      const updates: Promise<void>[] = []
+      const lines: string[] = [`📋 <b>Программа сейчас</b>`, ``]
+      for (const [id, s] of sessions) {
+        const start = new Date(s.starts_at!).getTime()
+        const end = s.ends_at ? new Date(s.ends_at).getTime() : start + 3600000
+        const isLive = now >= start && now < end
+        const isEnded = now >= end
+        const newStatus = isLive ? 'live' : isEnded ? 'ended' : 'upcoming'
+        if (newStatus !== s.status) updates.push(rtdbWrite(`sessions/${id}/status`, newStatus))
+        if (isLive) liveId = id
+        const time = new Date(s.starts_at!).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow' })
+        const icon = isLive ? '▶' : isEnded ? '✓' : '○'
+        lines.push(`${icon} ${time} ${isLive ? `<b>${s.title}</b>` : s.title}`)
+      }
+      await Promise.all(updates)
+      if (liveId) await rtdbWrite('event/activeSessionId', liveId)
+      lines.push(``, liveId ? `✅ Дашборд обновлён` : `⏳ Активных сессий нет`)
+      await send(chatId, lines.join('\n'))
     } catch (e) {
       await send(chatId, `❌ ${e}`)
     }

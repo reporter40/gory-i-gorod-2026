@@ -1,20 +1,22 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import type { PulseSession } from '@/lib/pulse/pulse-data'
 
-function AvatarBubble({ initials, color }: { initials: string; color: string }) {
-  return (
-    <div
-      className="flex h-6 w-6 items-center justify-center rounded-full border border-white/20 text-[9px] font-bold text-white"
-      style={{ background: color }}
-      title=""
-    >
-      {initials}
-    </div>
-  )
-}
-
 export default function ProgramNowPanel({ sessions }: { sessions: PulseSession[] }) {
+  const scrollRef = useRef<HTMLUListElement>(null)
+  const liveRef = useRef<HTMLLIElement>(null)
+
+  // Auto-scroll to live session (or first upcoming) whenever sessions update
+  useEffect(() => {
+    if (!liveRef.current || !scrollRef.current) return
+    liveRef.current.scrollIntoView({ block: 'start', behavior: 'smooth' })
+  }, [sessions])
+
+  const liveIdx = sessions.findIndex(s => s.isLive)
+  // Scroll target: live session, or first upcoming after current time
+  const scrollTargetIdx = liveIdx >= 0 ? liveIdx : 0
+
   return (
     <section
       className="pulse-panel absolute flex flex-col overflow-hidden px-[11px] pb-2.5 pt-2.5"
@@ -26,11 +28,15 @@ export default function ProgramNowPanel({ sessions }: { sessions: PulseSession[]
           LIVE
         </span>
       </div>
-      <div className="relative flex-1 overflow-hidden pr-0.5">
+      <div className="relative flex-1 overflow-y-auto overflow-x-hidden pr-0.5" style={{ scrollbarWidth: 'none' }}>
         <div className="absolute bottom-2 left-[6px] top-1.5 w-px bg-gradient-to-b from-cyan-400/55 via-white/18 to-transparent" />
-        <ul className="relative space-y-2 pl-[19px]">
-          {sessions.map(sess => (
-            <li key={sess.id} className="relative">
+        <ul ref={scrollRef} className="relative space-y-2 pl-[19px]">
+          {sessions.map((sess, idx) => (
+            <li
+              key={sess.id}
+              ref={idx === scrollTargetIdx ? liveRef : undefined}
+              className="relative"
+            >
               <span
                 className="absolute left-[-19px] top-[5px] h-2 w-2 rounded-full border-2 border-cyan-300/55"
                 style={{

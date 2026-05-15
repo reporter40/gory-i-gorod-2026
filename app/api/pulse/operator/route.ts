@@ -42,6 +42,17 @@ export async function POST(req: NextRequest) {
   if (typeof body.mode === 'string') {
     await db.ref('event/mode').set(body.mode)
   }
+  if (body.resetVotes === true) {
+    const tags = ['implement', 'discovery', 'partner', 'question', 'applicable']
+    const activeSnap = await db.ref('event/activeSessionId').once('value')
+    const activeId = activeSnap.val() as string | null
+    if (activeId) {
+      const zeros: Record<string, number> = {}
+      for (const t of tags) zeros[t] = 0
+      await db.ref(`votes/${activeId}`).set(zeros)
+    }
+    await db.ref('speakerVotes').remove()
+  }
 
   return NextResponse.json({ ok: true })
 }
