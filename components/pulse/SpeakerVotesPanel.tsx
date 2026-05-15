@@ -46,7 +46,7 @@ export default function SpeakerVotesPanel() {
         const allData = (snap.val() ?? {}) as SpeakerCounts
         const result: SpeakerRow[] = []
         for (const sp of SPEAKERS) {
-          const counts = (allData[sp.id] ?? {}) as Record<string, number>
+          const counts = ((allData[sp.id] as any)?.counts ?? allData[sp.id] ?? {}) as Record<string, number>
           const total = Object.values(counts).reduce((a, b) => a + b, 0)
           if (total > 0) {
             result.push({ id: sp.id, name: sp.name, role: sp.role ?? '', counts, total })

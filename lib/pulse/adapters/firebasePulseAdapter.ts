@@ -94,7 +94,7 @@ export function createFirebasePulseAdapter(): PulseAdapter {
   function buildSessions(): PulseSession[] {
     return Object.entries(sessionsCache).map(([id, s]) => ({
       id,
-      time: new Date(s.start).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+      time: (() => { const d = new Date((s as any).starts_at ?? s.start); return isNaN(d.getTime()) ? '—:—' : d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) })(),
       type: 'Сессия',
       title: s.title,
       hall: s.hall,
