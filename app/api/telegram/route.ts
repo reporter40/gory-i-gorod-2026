@@ -214,69 +214,59 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  if (text === '/day1') {
+  if (text === '/day1' || text === '/day2') {
     if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
     try {
-      const { SESSIONS } = await import('@/lib/data')
-      const day2Ids = SESSIONS.filter(s => s.day === 2).map(s => s.id)
-      const day1 = SESSIONS.filter(s => s.day === 1).sort(
-        (a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
-      )
-      if (day1.length === 0) {
-        await send(chatId, `❌ Сессии первого дня не найдены`)
-        return NextResponse.json({ ok: true })
-      }
-      const firstId = day1[0].id
-      await Promise.all([
-        rtdbWrite('event/activeSessionId', firstId),
-        rtdbWrite(`sessions/${firstId}/status`, 'live'),
-        ...day2Ids.map(id => rtdbWrite(`sessions/${id}/status`, 'upcoming')),
-      ])
-      await send(chatId, [
-        `📅 <b>День 1 активирован</b>`,
-        ``,
-        `▶ LIVE: <b>${day1[0].title}</b>`,
-        `ID: <code>${firstId}</code>`,
-        ``,
-        `День 2 сброшен в upcoming.`,
-        `Голоса обнулить: /reset`,
-      ].join('\n'))
-    } catch (e) {
-      await send(chatId, `❌ /day1 ошибка: ${e}`)
-    }
-    return NextResponse.json({ ok: true })
-  }
+      const { SESSIONS, SPEAKERS } = await import('@/lib/data')
+      const targetDay = text === '/day1' ? 1 : 2
+      const otherDay  = targetDay === 1 ? 2 : 1
 
-  if (text === '/day2') {
-    if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
-    try {
-      const { SESSIONS } = await import('@/lib/data')
-      const day1Ids = SESSIONS.filter(s => s.day === 1).map(s => s.id)
-      const day2 = SESSIONS.filter(s => s.day === 2).sort(
-        (a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
-      )
-      if (day2.length === 0) {
-        await send(chatId, `❌ Сессии второго дня не найдены`)
+      // Build full session payload for ALL sessions (mirrors seed-sessions logic)
+      const allPayload: Record<string, object> = {}
+      for (const s of SESSIONS) {
+        if (s.program_card === 'title_only') continue
+        const speaker = (SPEAKERS as {id:string;name:string}[]).find(sp => sp.id === s.speaker_id)
+        allPayload[s.id] = {
+          title: s.title ?? '',
+          hall: s.hall ?? '',
+          day: s.day,
+          starts_at: s.starts_at,
+          ends_at: s.ends_at,
+          speakerName: speaker ? speaker.name : ((s as any).speaker_row_note ?? ''),
+          status: s.day === otherDay ? (targetDay === 1 ? 'upcoming' : 'ended') : 'upcoming',
+        }
+      }
+
+      const sorted = SESSIONS
+        .filter(s => s.day === targetDay && s.program_card !== 'title_only')
+        .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())
+
+      if (sorted.length === 0) {
+        await send(chatId, `❌ Сессии дня ${targetDay} не найдены`)
         return NextResponse.json({ ok: true })
       }
-      const firstId = day2[0].id
-      // Mark all Day 1 sessions ended, first Day 2 session live
+
+      const firstId = sorted[0].id
+      // Set first session of target day as live
+      ;(allPayload[firstId] as Record<string, unknown>).status = 'live'
+
+      // Write everything in one shot — fixes any corrupt/partial session objects
       await Promise.all([
+        rtdbWrite('sessions', allPayload),
         rtdbWrite('event/activeSessionId', firstId),
-        rtdbWrite(`sessions/${firstId}/status`, 'live'),
-        ...day1Ids.map(id => rtdbWrite(`sessions/${id}/status`, 'ended')),
       ])
+
       await send(chatId, [
-        `📅 <b>День 2 активирован</b>`,
+        `📅 <b>День ${targetDay} активирован</b>`,
         ``,
-        `▶ LIVE: <b>${day2[0].title}</b>`,
+        `▶ LIVE: <b>${sorted[0].title}</b>`,
         `ID: <code>${firstId}</code>`,
         ``,
-        `День 1 помечен завершённым.`,
+        `Все сессии перезаписаны (данные восстановлены).`,
         `Голоса обнулить: /reset`,
       ].join('\n'))
     } catch (e) {
-      await send(chatId, `❌ /day2 ошибка: ${e}`)
+      await send(chatId, `❌ /day${text === '/day1' ? 1 : 2} ошибка: ${e}`)
     }
     return NextResponse.json({ ok: true })
   }
