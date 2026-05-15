@@ -196,7 +196,7 @@ function PulseDashboardInner() {
             <TagVotingMoodPanel
               left={{ label: voting.leftDonut.label, percent: voting.leftDonut.percent, votes: voting.leftDonut.votes, trend: voting.leftDonut.trend }}
               right={{ label: voting.rightDonut.label, percent: voting.rightDonut.percent, votes: voting.rightDonut.votes, trend: voting.rightDonut.trend }}
-              bars={state.tagMoodBars}
+              bars={state.topTags.map(t => ({ name: t.name, value: t.votes > 0 ? Math.round((t.votes / Math.max(...state.topTags.map(x => x.votes), 1)) * 100) : 0 }))}
               avatarSlices={avatarsForVote}
             />
           </PulseErrorBoundary>
