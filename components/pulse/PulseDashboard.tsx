@@ -155,17 +155,6 @@ function PulseDashboardInner() {
         }} />
       )}
 
-      {/* Stale indicator — bottom right, hidden in visualTest */}
-      {!visualTest && isStale && !isFrozen && liveState._meta.staleSince != null && (
-        <div style={{
-          position: 'fixed', bottom: 0, right: 20, zIndex: 9998,
-          background: 'rgba(0,0,0,0.75)', color: '#fbbf24',
-          padding: '6px 14px', borderRadius: '8px 8px 0 0',
-          fontSize: '12px',
-        }}>
-          Обновлено <StaleIndicatorMinutes staleSince={liveState._meta.staleSince} /> мин назад
-        </div>
-      )}
 
       {/* Freeze banner — bottom, amber, silent for audience, hidden in visualTest */}
       {!visualTest && isFrozen && (
