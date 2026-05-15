@@ -48,6 +48,7 @@ export default function PulseStage({
 
   return (
     <div className="pulse-stage" data-visual-test={vt ? '1' : '0'} data-bg-mode={bgMode}>
+      <div className="pulse-background-image" aria-hidden />
       <div className="pulse-stage-content">{children}</div>
     </div>
   )
