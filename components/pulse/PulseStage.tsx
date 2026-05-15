@@ -10,8 +10,12 @@ const STAGE_H = 941
 function useStageScale() {
   useEffect(() => {
     function update() {
-      const scale = Math.min(window.innerWidth / STAGE_W, window.innerHeight / STAGE_H)
-      document.documentElement.style.setProperty('--pulse-stage-scale', String(scale))
+      const sx = window.innerWidth / STAGE_W
+      const sy = window.innerHeight / STAGE_H
+      document.documentElement.style.setProperty('--pulse-stage-scale-x', String(sx))
+      document.documentElement.style.setProperty('--pulse-stage-scale-y', String(sy))
+      // keep legacy var for any other consumers
+      document.documentElement.style.setProperty('--pulse-stage-scale', String(Math.min(sx, sy)))
     }
     update()
     window.addEventListener('resize', update)

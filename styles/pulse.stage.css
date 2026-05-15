@@ -24,7 +24,7 @@ main.flex-1.pb-nav:has(.pulse-shell) {
   justify-content: center;
   overflow: hidden;
   background: #03080f;
-  z-index: 50;
+  z-index: 60;
 }
 
 .pulse-stage {
@@ -36,7 +36,7 @@ main.flex-1.pb-nav:has(.pulse-shell) {
   font-size: var(--pulse-font-body);
   isolation: isolate;
   background: #03080f;
-  transform: scale(var(--pulse-stage-scale, 1));
+  transform: scaleX(var(--pulse-stage-scale-x, 1)) scaleY(var(--pulse-stage-scale-y, 1));
   transform-origin: center center;
 }
 
