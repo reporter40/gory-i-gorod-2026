@@ -6,12 +6,9 @@ import PulseStage from '@/components/pulse/PulseStage'
 import VisualOverlay from '@/components/pulse/VisualOverlay'
 import PulseHeader from '@/components/pulse/PulseHeader'
 import ProgramNowPanel from '@/components/pulse/ProgramNowPanel'
-import LiveHallPulsePanel from '@/components/pulse/LiveHallPulsePanel'
 import GeoActivityPanel from '@/components/pulse/GeoActivityPanel'
 import HeroPulsePanel from '@/components/pulse/HeroPulsePanel'
 import TopTagsPanel from '@/components/pulse/TopTagsPanel'
-import TagVotingMoodPanel from '@/components/pulse/TagVotingMoodPanel'
-import SessionInterestHeatmap from '@/components/pulse/SessionInterestHeatmap'
 import TopicMoodNetwork from '@/components/pulse/TopicMoodNetwork'
 import AIInsightsPanel from '@/components/pulse/AIInsightsPanel'
 import PulseFooterTicker from '@/components/pulse/PulseFooterTicker'
@@ -188,9 +185,6 @@ function PulseDashboardInner() {
           <PulseErrorBoundary panelName="ProgramNow">
             <ProgramNowPanel sessions={state.sessions} />
           </PulseErrorBoundary>
-          <PulseErrorBoundary panelName="LiveHallPulse">
-            <LiveHallPulsePanel current={state.hallPulse.current} timeline={state.hallPulse.timeline} />
-          </PulseErrorBoundary>
           <PulseErrorBoundary panelName="GeoActivity">
             <GeoActivityPanel regions={state.geoRegions} />
           </PulseErrorBoundary>
@@ -199,22 +193,6 @@ function PulseDashboardInner() {
           </PulseErrorBoundary>
           <PulseErrorBoundary panelName="TopTags">
             <TopTagsPanel topTags={state.topTags} filterTabs={state.tagFilterTabs} />
-          </PulseErrorBoundary>
-          <PulseErrorBoundary panelName="TagVotingMood">
-            <TagVotingMoodPanel
-              left={{ label: voting.leftDonut.label, percent: voting.leftDonut.percent, votes: voting.leftDonut.votes, trend: voting.leftDonut.trend }}
-              right={{
-                label: voting.rightDonut.label,
-                percent: voting.rightDonut.percent,
-                votes: voting.rightDonut.votes,
-                trend: voting.rightDonut.trend,
-              }}
-              bars={state.tagMoodBars}
-              avatarSlices={avatarsForVote}
-            />
-          </PulseErrorBoundary>
-          <PulseErrorBoundary panelName="SessionHeatmap">
-            <SessionInterestHeatmap heat={state.sessionHeatmap} speakerDots={heatSpeakers} />
           </PulseErrorBoundary>
           <PulseErrorBoundary panelName="TopicNetwork">
             <TopicMoodNetwork nodes={state.topicNetwork} />
