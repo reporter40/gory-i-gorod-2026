@@ -159,7 +159,7 @@ function PulseDashboardInner() {
 
       <div className="pulse-page-outer">
         <PulseStage visualTest={visualTest} bgDebug={bgDebug}>
-          <PulseHeader />
+          {/* <PulseHeader /> */}
           <PulseErrorBoundary panelName="ProgramNow">
             <ProgramNowPanel sessions={state.sessions} />
           </PulseErrorBoundary>

@@ -41,7 +41,7 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
   const dash = (c * pct) / 100
 
   return (
-    <section className="absolute" style={{ left: 335, top: 20, width: 994, height: 516 }}>
+    <section className="absolute" style={{ left: 335, top: 0, width: 994, height: 536 }}>
       <div className="pulse-hero-decor pulse-hero-cinematic-bg pulse-hero-background-glow">
         <div
           className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[18px]"
