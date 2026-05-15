@@ -219,9 +219,6 @@ function PulseDashboardInner() {
           <PulseErrorBoundary panelName="TopicNetwork">
             <TopicMoodNetwork nodes={state.topicNetwork} />
           </PulseErrorBoundary>
-          <PulseErrorBoundary panelName="SpeakerVotes">
-            <SpeakerVotesPanel />
-          </PulseErrorBoundary>
           <VisualOverlay enabled={refOverlay} />
         </PulseStage>
       </div>

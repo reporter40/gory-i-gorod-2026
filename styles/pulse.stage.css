@@ -46,8 +46,8 @@ main.flex-1.pb-nav:has(.pulse-shell) {
   z-index: 0;
   pointer-events: none;
   background-image: url('/pulse/pulse-bg-atmosphere-approved-v1.png');
-  background-size: cover;
-  background-position: center center;
+  background-size: 75% auto;
+  background-position: center bottom;
   background-repeat: no-repeat;
 }
 

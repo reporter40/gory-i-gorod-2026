@@ -66,6 +66,9 @@ export default function SessionInterestHeatmap({
 
   return (
     <section className="pulse-panel absolute flex flex-col overflow-hidden p-3" style={{ left: 804, top: 538, width: 508, height: 319 }}>
+      <div className="pointer-events-none absolute inset-0 z-0 rounded-[inherit] overflow-hidden">
+        <div style={{ backgroundImage: "url('/pulse/bg-heatmap.png')", backgroundSize: 'cover', backgroundPosition: 'center', width: '100%', height: '100%', opacity: 0.15 }} />
+      </div>
       <h2 className="pulse-panel-title mb-2 shrink-0">Карта интереса к сессиям</h2>
       <div className="relative min-h-0 flex-1">
         <svg width="100%" height="210" viewBox={`0 0 ${cw} ${ch}`} preserveAspectRatio="xMinYMin meet">

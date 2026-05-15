@@ -5,7 +5,7 @@ import type { PulseAIInsight } from '@/lib/pulse/pulse-data'
 export default function AIInsightsPanel({ insights }: { insights: PulseAIInsight[] }) {
   return (
     <section className="pulse-panel absolute flex flex-col p-3 pb-4" style={{ left: 1326, top: 502, width: 334, height: 353 }}>
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <div className="mb-2 flex items-center justify-between gap-2 relative z-10">
         <h2 className="pulse-panel-title text-white/90">
           AI-Инсайты
           <span className="ml-2 align-top text-[10px] text-cyan-500/55">◇</span>

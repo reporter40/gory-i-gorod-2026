@@ -107,7 +107,7 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
           <div className="absolute inset-[18%] rounded-full bg-[radial-gradient(ellipse_80%_80%,rgba(0,40,80,0.35)_0%,transparent_70%)] blur-lg" />
         </div>
 
-        <div className="relative z-10 flex flex-col items-center">
+        <div className="relative z-10 flex flex-col items-center" style={{ width: 220, height: 220 }}>
           <div
             className="pulse-hero-decor pulse-hero-energy-field pointer-events-none absolute -inset-8 rounded-full bg-[radial-gradient(circle,rgba(0,231,253,0.14)_0%,rgba(247,168,25,0.06)_38%,transparent_68%)] blur-2xl"
             aria-hidden
@@ -241,7 +241,7 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
             <circle cx="110" cy="110" r={ringR} fill="none" stroke="rgba(0,231,253,0.28)" strokeWidth="2.4" />
             <circle cx="110" cy="110" r={ringR} fill="none" stroke="rgba(255,255,255,0.09)" strokeWidth="1.1" />
           </svg>
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-0">
+          <div className="pointer-events-none absolute flex flex-col items-center justify-center gap-0" style={{ width: 220, height: 220, top: 0, left: 0 }}>
             <div className="text-[54px] font-black leading-none text-white">
               {pct}
               <span className="align-top text-[24px] font-extrabold text-cyan-100/95">%</span>

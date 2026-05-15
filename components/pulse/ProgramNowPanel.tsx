@@ -48,11 +48,6 @@ export default function ProgramNowPanel({ sessions }: { sessions: PulseSession[]
               </div>
               <p className="text-[10px] font-medium uppercase tracking-wide text-white/38">{sess.type}</p>
               <p className="line-clamp-2 text-[12px] font-semibold leading-[1.35] text-white/96">{sess.title}</p>
-              <div className="mt-1 flex -space-x-1.5">
-                {sess.speakers.slice(0, 4).map(s => (
-                  <AvatarBubble key={s.id} initials={s.initials} color={s.color} />
-                ))}
-              </div>
             </li>
           ))}
         </ul>

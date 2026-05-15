@@ -1,14 +1,10 @@
 export default function PulseHeader() {
   return (
     <header
-      className="absolute left-0 top-0 z-30 flex h-[70px] w-full items-center border-b border-white/[0.06] px-6"
+      className="absolute left-0 top-6 z-30 flex h-[46px] w-full items-center px-6"
       style={{
-        background: `
-          linear-gradient(180deg, rgba(0,231,253,0.06) 0%, transparent 22%),
-          linear-gradient(180deg, rgba(6,12,26,0.98) 0%, rgba(8,16,30,0.72) 55%, rgba(6,10,22,0.55) 100%)
-        `,
-        backdropFilter: 'blur(18px) saturate(120%)',
-        boxShadow: '0 12px 36px rgba(0,0,0,0.42), inset 0 -1px 0 rgba(0,231,253,0.1), inset 0 1px 0 rgba(247,168,25,0.04)',
+        background: 'linear-gradient(180deg, rgba(6,12,26,0.55) 0%, transparent 100%)',
+        backdropFilter: 'blur(8px)',
       }}
     >
       <div className="flex items-center gap-3">

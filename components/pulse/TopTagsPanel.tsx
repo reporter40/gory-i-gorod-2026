@@ -15,19 +15,19 @@ export default function TopTagsPanel({
         <h2 className="pulse-panel-title">Топ-теги сейчас</h2>
         <p className="text-[11px] text-white/42">по вовлечённости</p>
       </div>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1.5">
         {topTags.slice(0, 5).map(tag => (
           <div
             key={tag.id}
-            className="flex items-center gap-3 rounded-[10px] border border-white/[0.08] bg-gradient-to-br from-white/[0.07] to-transparent px-3 py-2"
+            className="flex items-center gap-3 rounded-[10px] border border-white/[0.08] bg-gradient-to-br from-white/[0.07] to-transparent px-3 py-1.5"
           >
-            <span className="text-[20px] shrink-0" aria-hidden>{tag.icon}</span>
+            <span className="text-[18px] shrink-0" aria-hidden>{tag.icon}</span>
             <div className="min-w-0 flex-1">
               <div className="truncate text-[12px] font-semibold text-white">{tag.name}</div>
               <div className={`text-[10px] text-white/45 tabular-nums transition-opacity ${tag.votes > 0 ? 'opacity-100' : 'opacity-0'}`}>{tag.votes || '—'} голосов</div>
             </div>
             <div className="flex flex-col items-end gap-0.5 shrink-0">
-              <div className={`text-[16px] font-bold tabular-nums text-white transition-opacity ${tag.votes > 0 ? 'opacity-100' : 'opacity-0'}`}>{tag.votes || '—'}</div>
+              <div className={`text-[15px] font-bold tabular-nums text-white transition-opacity ${tag.votes > 0 ? 'opacity-100' : 'opacity-0'}`}>{tag.votes || '—'}</div>
               <span className={`text-[10px] font-semibold text-green-400 transition-opacity ${tag.growth > 0 ? 'opacity-100' : 'opacity-0'}`}>▲ {tag.growth}%</span>
             </div>
           </div>
