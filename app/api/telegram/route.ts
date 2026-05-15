@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
       `/vote — 📱 Показать QR-код на экране зала`,
       `/screen1 — 🖥 Главный экран (5120×1792)`,
       `/screen2 — 📺 Боковые экраны (1920×1152)`,
+      `/kiosk — 💻 Команда запуска Chrome Kiosk`,
       `/freeze — ⏸ Заморозить (тихо, зрители не видят)`,
       ``,
       `<b>Сессии:</b>`,
@@ -119,6 +120,23 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       await send(chatId, `❌ ${e}`)
     }
+    return NextResponse.json({ ok: true })
+  }
+
+  if (text === '/kiosk') {
+    await send(chatId, [
+      `💻 <b>Chrome Kiosk — запуск</b>`,
+      ``,
+      `Скопируй и запусти в Terminal на каждом Mac:`,
+      ``,
+      `<code>/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome \\`,
+      `  --kiosk \\`,
+      `  --noerrdialogs \\`,
+      `  --disable-infobars \\`,
+      `  "https://gory-i-gorod-2026.vercel.app/pulse/live"</code>`,
+      ``,
+      `Выход из киоска: <b>Cmd+Q</b>`,
+    ].join('\n'))
     return NextResponse.json({ ok: true })
   }
 
