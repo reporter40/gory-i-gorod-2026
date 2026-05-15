@@ -48,8 +48,7 @@ function PulseDashboardInner() {
   const liveState = usePulseRealtime()
 
   const sessionHeatmap = useMemo(() => {
-    if (liveState._meta.heatmapSource === 'mock') return STATIC_MOCK_DASHBOARD.sessionHeatmap
-    return buildHeatmapFromTagStats({
+    const built = buildHeatmapFromTagStats({
       sessionId: liveState.event.activeSessionId ?? '',
       tagStats: liveState.topTags.map((t) => ({
         tagId: t.id,
@@ -57,7 +56,10 @@ function PulseDashboardInner() {
         count: t.votes,
       })),
     })
-  }, [liveState._meta.heatmapSource, liveState.event.activeSessionId, liveState.topTags])
+    // fallback to mock if no real data
+    if (!built.halls.length) return STATIC_MOCK_DASHBOARD.sessionHeatmap
+    return built
+  }, [liveState.event.activeSessionId, liveState.topTags])
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return
