@@ -1,8 +1,15 @@
 .pulse-shell {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: var(--pulse-bg-primary);
   color: var(--pulse-text-primary);
   font-family: var(--pulse-font-family);
+}
+
+/* Prevent body scroll when dashboard is mounted */
+body:has(.pulse-shell) {
+  overflow: hidden;
+  height: 100vh;
 }
 
 main.flex-1.pb-nav:has(.pulse-shell) {
