@@ -112,7 +112,7 @@ function PulseDashboardInner() {
     stats: liveState.stats,
     sessions: liveState.sessions,
     topTags: liveState.topTags,
-    tagMoodBars: liveState.tagMoodBars,
+    tagMoodBars: liveState.tagMoodBars?.length ? liveState.tagMoodBars : STATIC_MOCK_DASHBOARD.tagMoodBars,
     topicNetwork: liveState.topicNetwork,
     geoRegions: liveState.geoRegions,
     hallPulse: liveState.hallPulse,
