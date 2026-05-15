@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import BottomNav from '@/components/BottomNav'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
+import RegistrationGate from '@/components/RegistrationGate'
 
 export const metadata: Metadata = {
   title: 'Горы и Город 2026',
@@ -30,8 +31,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ru" className="h-full">
       <body className="min-h-full flex flex-col" style={{ background: '#07101f' }}>
         <ServiceWorkerRegister />
-        <main className="flex-1 pb-nav">{children}</main>
-        <BottomNav />
+        <RegistrationGate>
+          <main className="flex-1 pb-nav">{children}</main>
+          <BottomNav />
+        </RegistrationGate>
       </body>
     </html>
   )
