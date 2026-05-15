@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
       `/day2 — 📅 Переключить на День 2`,
       ``,
       `<b>Голоса:</b>`,
+      `/resetdata — 🔄 Сбросить все данные (кроме программы и участников)`,
       `/reset — 🗑 Обнулить голоса текущей сессии`,
       `/resetall — 💥 Сбросить ВСЕ голоса (все сессии)`,
       ``,
@@ -201,6 +202,35 @@ export async function POST(req: NextRequest) {
       await send(chatId, lines.join('\n'))
     } catch (e) {
       await send(chatId, `❌ ${e}`)
+    }
+    return NextResponse.json({ ok: true })
+  }
+
+  if (text === '/resetdata') {
+    if (!(await ensureAdmin(chatId))) return NextResponse.json({ ok: true })
+    try {
+      await Promise.all([
+        rtdbWrite('votes', null),
+        rtdbWrite('speakerVotes', null),
+        rtdbWrite('voteTimeline', null),
+        rtdbWrite('userVotes', null),
+        rtdbWrite('mood', null),
+        rtdbWrite('geo', null),
+        rtdbWrite('event/stats', null),
+      ])
+      await send(chatId, [
+        `🔄 <b>Данные сброшены</b>`,
+        ``,
+        `✅ Голоса тегов — 0`,
+        `✅ Рейтинг докладов — очищен`,
+        `✅ Карта интереса — сброшена`,
+        `✅ Геоактивность — очищена`,
+        `✅ Общая вовлечённость — 0`,
+        ``,
+        `🔒 Программа и участники — <b>не тронуты</b>`,
+      ].join('\n'))
+    } catch (e) {
+      await send(chatId, `❌ /resetdata ошибка: ${e}`)
     }
     return NextResponse.json({ ok: true })
   }
