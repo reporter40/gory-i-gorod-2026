@@ -34,31 +34,12 @@ export default function GeoActivityPanel({ regions }: { regions: PulseGeoRegion[
         <div
           className="relative min-w-0 flex-1 overflow-hidden rounded-lg border border-cyan-400/12"
           style={{
-            background:
-              'radial-gradient(ellipse 80% 70% at 45% 40%, rgba(0,231,253,0.08) 0%, transparent 55%), linear-gradient(165deg, #040a14 0%, #03060e 100%)',
-            boxShadow: 'inset 0 0 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(0,231,253,0.08)',
+            backgroundImage: 'url(/pulse/geo-map-bg.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center center',
+            boxShadow: 'inset 0 0 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(0,231,253,0.08)',
           }}
-        >
-          <svg viewBox="0 0 440 210" className="h-full w-full opacity-95" preserveAspectRatio="xMidYMid meet">
-            <defs>
-              <linearGradient id="ru-fill" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#15304a" stopOpacity={0.5} />
-                <stop offset="100%" stopColor="#0c1828" stopOpacity={0.9} />
-              </linearGradient>
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="5.2" result="b" />
-                <feMerge>
-                  <feMergeNode in="b" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-            <path d={RUSSIA_PATH} fill="url(#ru-fill)" stroke="rgba(0,229,255,0.35)" strokeWidth="1.2" />
-            {DOTS.map((d, i) => (
-              <circle key={i} cx={d.cx} cy={d.cy} r={d.r} fill="#00e5ff" filter="url(#glow)" opacity={0.85} />
-            ))}
-          </svg>
-        </div>
+        />
       </div>
     </section>
   )
