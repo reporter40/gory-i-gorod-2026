@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'react-qr-code'
 
-const VOTE_URL = 'https://gory-i-gorod-2026.vercel.app/pulse/vote'
+const VOTE_URL = 'https://gory-i-gorod-2026.vercel.app/join'
 
 const css = `
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -187,8 +187,8 @@ export default function QRPage() {
           />
         </div>
 
-        <div className="qr-cta">Сканируй и участвуй</div>
-        <div className="qr-url">{VOTE_URL}</div>
+        <div className="qr-cta">Сканируй → регистрация → приложение</div>
+        <div className="qr-url">gory-i-gorod-2026.vercel.app/join</div>
 
         <div className="qr-divider" />
         <div className="qr-organizer">ООО «Горы и Город» · hello@gory-i-gorod.ru</div>
