@@ -159,7 +159,26 @@ export default function SessionInterestHeatmap({
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
+            <filter id="activeGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2.5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
           </defs>
+          <style>{`
+            @keyframes heatPulse {
+              0%,100% { opacity: 1; }
+              50%      { opacity: 0.62; }
+            }
+            @keyframes heatPulseHigh {
+              0%,100% { opacity: 1; }
+              50%      { opacity: 0.55; }
+            }
+            .heat-active      { animation: heatPulse     2.8s ease-in-out infinite; }
+            .heat-active-high { animation: heatPulseHigh 1.6s ease-in-out infinite; }
+          `}</style>
 
           {/* Time labels */}
           {heat.times.map((t, j) => (
@@ -196,6 +215,9 @@ export default function SessionInterestHeatmap({
             row.map((v, j) => {
               const key = `${i}-${j}`
               const flashing = flashCells.has(key)
+              const active = v > 0
+              const high = v >= 60
+              const cls = flashing ? undefined : active ? (high ? 'heat-active-high' : 'heat-active') : undefined
               return (
                 <rect
                   key={key}
@@ -204,11 +226,12 @@ export default function SessionInterestHeatmap({
                   width={56}
                   height={22}
                   rx={6}
-                  fill={flashing ? 'rgba(0,229,255,0.55)' : intensityColor(v)}
-                  stroke={flashing ? 'rgba(0,229,255,0.9)' : 'rgba(255,255,255,0.06)'}
-                  strokeWidth={flashing ? 2 : 1}
-                  filter={flashing ? 'url(#cellGlow)' : undefined}
-                  style={{ transition: 'fill 0.6s ease, stroke 0.6s ease' }}
+                  fill={flashing ? 'rgba(0,229,255,0.72)' : intensityColor(v)}
+                  stroke={flashing ? 'rgba(0,229,255,0.95)' : active ? `rgba(0,180,255,${0.15 + (v/100)*0.5})` : 'rgba(255,255,255,0.04)'}
+                  strokeWidth={flashing ? 2 : active ? 1.5 : 1}
+                  filter={flashing ? 'url(#cellGlow)' : active ? 'url(#activeGlow)' : undefined}
+                  className={cls}
+                  style={{ transition: 'fill 0.8s ease, stroke 0.8s ease' }}
                 />
               )
             })
