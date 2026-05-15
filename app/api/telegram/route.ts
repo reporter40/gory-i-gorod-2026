@@ -123,6 +123,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
+  if (text === '/kiosk2') {
+    await send(chatId, [
+      `🪟 <b>Chrome Kiosk — Windows</b>`,
+      ``,
+      `1. Закрой Chrome полностью`,
+      `2. Нажми <b>Win+R</b>, вставь строку ниже и нажми Enter:`,
+      ``,
+      `<code>chrome.exe --kiosk --noerrdialogs --disable-infobars "https://gory-i-gorod-2026.vercel.app/pulse/live"</code>`,
+      ``,
+      `Если не сработало — открой <b>cmd.exe</b> и вставь:`,
+      `<code>"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --kiosk --noerrdialogs --disable-infobars "https://gory-i-gorod-2026.vercel.app/pulse/live"</code>`,
+      ``,
+      `Выход: <b>Alt+F4</b>`,
+    ].join('\n'))
+    return NextResponse.json({ ok: true })
+  }
+
   if (text === '/kiosk') {
     await send(chatId, [
       `💻 <b>Chrome Kiosk — запуск</b>`,
