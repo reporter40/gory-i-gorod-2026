@@ -13,6 +13,7 @@ import AIInsightsPanel from '@/components/pulse/AIInsightsPanel'
 import PulseFooterTicker from '@/components/pulse/PulseFooterTicker'
 import SpeakerVotesPanel from '@/components/pulse/SpeakerVotesPanel'
 import SessionInterestHeatmap from '@/components/pulse/SessionInterestHeatmap'
+import TagVotingMoodPanel from '@/components/pulse/TagVotingMoodPanel'
 import { defaultPulseMock, buildHeatmapFromTagStats } from '@/lib/pulse/pulse-aggregations'
 import { MOCK_SPEAKERS } from '@/lib/pulse/pulse-data'
 import { usePulseRealtime } from '@/lib/pulse/usePulseRealtime'
@@ -190,6 +191,14 @@ function PulseDashboardInner() {
           </PulseErrorBoundary>
           <PulseErrorBoundary panelName="SessionHeatmap">
             <SessionInterestHeatmap heat={state.sessionHeatmap} speakerDots={heatSpeakers} />
+          </PulseErrorBoundary>
+          <PulseErrorBoundary panelName="TagVotingMood">
+            <TagVotingMoodPanel
+              left={{ label: voting.leftDonut.label, percent: voting.leftDonut.percent, votes: voting.leftDonut.votes, trend: voting.leftDonut.trend }}
+              right={{ label: voting.rightDonut.label, percent: voting.rightDonut.percent, votes: voting.rightDonut.votes, trend: voting.rightDonut.trend }}
+              bars={state.tagMoodBars}
+              avatarSlices={avatarsForVote}
+            />
           </PulseErrorBoundary>
           <VisualOverlay enabled={refOverlay} />
         </PulseStage>
