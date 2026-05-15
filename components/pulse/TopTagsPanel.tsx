@@ -10,7 +10,7 @@ export default function TopTagsPanel({
   filterTabs: readonly string[]
 }) {
   return (
-    <section className="absolute overflow-hidden px-3 pb-3 pt-2.5" style={{ left: 1326, top: 502, width: 334, height: 353, backgroundImage: "url('/pulse/bg-network.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
+    <section className="absolute overflow-hidden px-3 pb-3 pt-2.5" style={{ left: 1326, top: 502, width: 334, height: 353, backgroundImage: "url('/pulse/bg-network.png')", backgroundSize: '110%', backgroundPosition: 'center 30%' }}>
       <div className="mb-2">
         <h2 className="pulse-panel-title">Топ-теги сейчас</h2>
         <p className="text-[11px] text-white/42">по вовлечённости</p>
@@ -19,7 +19,8 @@ export default function TopTagsPanel({
         {topTags.slice(0, 5).map(tag => (
           <div
             key={tag.id}
-            className="flex items-center gap-3 rounded-[10px] border border-white/[0.18] bg-gradient-to-br from-white/[0.14] to-white/[0.06] px-3 py-1.5 backdrop-blur-sm"
+            className="flex items-center gap-3 rounded-[10px] border border-white/[0.22] bg-gradient-to-b from-white/[0.18] to-white/[0.06] px-3 py-1.5 backdrop-blur-sm"
+            style={{ boxShadow: '0 6px 20px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.35)' }}
           >
             <span className="text-[18px] shrink-0" aria-hidden>{tag.icon}</span>
             <div className="min-w-0 flex-1">
