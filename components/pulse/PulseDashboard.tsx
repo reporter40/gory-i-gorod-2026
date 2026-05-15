@@ -148,8 +148,8 @@ function PulseDashboardInner() {
 
   return (
     <div className="pulse-shell">
-      {/* Connection dot — top right, only when disconnected, hidden in visualTest */}
-      {!visualTest && (isOffline || isReconnecting) && (
+      {/* Connection dot — hidden when frozen so audience sees clean screen */}
+      {!visualTest && !isFrozen && (isOffline || isReconnecting) && (
         <div style={{
           position: 'fixed', top: 12, right: 12, zIndex: 9999,
           width: 10, height: 10, borderRadius: '50%',
@@ -158,17 +158,13 @@ function PulseDashboardInner() {
         }} />
       )}
 
-
-      {/* Freeze banner — bottom, amber, silent for audience, hidden in visualTest */}
+      {/* Freeze: tiny amber dot for operator only — invisible from distance */}
       {!visualTest && isFrozen && (
         <div style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
-          background: 'rgba(245,158,11,0.92)', color: '#000',
-          textAlign: 'center', padding: '8px',
-          fontSize: '13px', fontWeight: 600,
-        }}>
-          Данные зафиксированы
-        </div>
+          position: 'fixed', top: 12, right: 12, zIndex: 9999,
+          width: 8, height: 8, borderRadius: '50%',
+          background: '#fbbf24', opacity: 0.5,
+        }} title="Заморожено" />
       )}
 
       <div className="pulse-page-outer">
@@ -190,7 +186,7 @@ function PulseDashboardInner() {
             <SpeakerVotesPanel />
           </PulseErrorBoundary>
           <PulseErrorBoundary panelName="SessionHeatmap">
-            <SessionInterestHeatmap heat={state.sessionHeatmap} speakerDots={heatSpeakers} />
+            <SessionInterestHeatmap heat={state.sessionHeatmap} speakerDots={heatSpeakers} activeSessionId={liveState.event.activeSessionId} />
           </PulseErrorBoundary>
           <PulseErrorBoundary panelName="TagVotingMood">
             <TagVotingMoodPanel

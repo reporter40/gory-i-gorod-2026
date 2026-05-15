@@ -1,32 +1,29 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import type { SessionHeatmap as SessionHeatmapT } from '@/lib/pulse/pulse-data'
+import { hasFirebaseConfig, getFirebaseDb } from '@/lib/pulse/firebase/client'
 
 function intensityColor(v: number): string {
   if (v <= 0) return 'rgba(10,16,32,0.4)'
   const t = v / 100
-  // dark → teal → green → amber → yellow  (matches reference warm heatmap)
   let r: number, g: number, b: number
   if (t < 0.35) {
-    // dark → teal
     const s = t / 0.35
     r = Math.round(10 + s * (0 - 10))
     g = Math.round(16 + s * (160 - 16))
     b = Math.round(32 + s * (140 - 32))
   } else if (t < 0.65) {
-    // teal → green
     const s = (t - 0.35) / 0.30
     r = Math.round(0 + s * (30 - 0))
     g = Math.round(160 + s * (210 - 160))
     b = Math.round(140 + s * (80 - 140))
   } else if (t < 0.85) {
-    // green → amber
     const s = (t - 0.65) / 0.20
     r = Math.round(30 + s * (240 - 30))
     g = Math.round(210 + s * (180 - 210))
     b = Math.round(80 + s * (20 - 80))
   } else {
-    // amber → bright yellow
     const s = (t - 0.85) / 0.15
     r = Math.round(240 + s * (255 - 240))
     g = Math.round(180 + s * (220 - 180))
@@ -36,13 +33,88 @@ function intensityColor(v: number): string {
   return `rgba(${r},${g},${b},${a})`
 }
 
+function useRecentVoters(activeSessionId: string | null, limit = 6) {
+  const [voters, setVoters] = useState<string[]>([])
+  const prevKeys = useRef<Set<string>>(new Set())
+  const seeded = useRef(false)
+
+  useEffect(() => {
+    if (!activeSessionId || !hasFirebaseConfig()) return
+    let cancelled = false
+
+    import('firebase/database').then(({ ref, onValue }) => {
+      const db = getFirebaseDb()
+      const r = ref(db, `userVotes/${activeSessionId}`)
+      const unsub = onValue(r, snap => {
+        if (cancelled) return
+        const data = snap.val() as Record<string, unknown> | null
+        if (!data) return
+        const keys = Object.keys(data)
+        if (!seeded.current) {
+          seeded.current = true
+          setVoters(keys.slice(-limit).reverse())
+          keys.forEach(k => prevKeys.current.add(k))
+          return
+        }
+        const newKeys = keys.filter(k => !prevKeys.current.has(k))
+        if (newKeys.length > 0) {
+          setVoters(prev => [...newKeys.reverse(), ...prev].slice(0, limit))
+          newKeys.forEach(k => prevKeys.current.add(k))
+        }
+      })
+      return () => { cancelled = true; unsub() }
+    }).catch(console.error)
+
+    return () => { cancelled = true }
+  }, [activeSessionId, limit])
+
+  return voters
+}
+
+/** Detect which cells increased vs previous render and return their keys */
+function useFlashCells(values: number[][]): Set<string> {
+  const [flashCells, setFlashCells] = useState<Set<string>>(new Set())
+  const prevValues = useRef<number[][]>([])
+
+  useEffect(() => {
+    const prev = prevValues.current
+    if (!prev.length) {
+      prevValues.current = values
+      return
+    }
+
+    const newFlash = new Set<string>()
+    for (let i = 0; i < values.length; i++) {
+      for (let j = 0; j < (values[i]?.length ?? 0); j++) {
+        const cur = values[i][j] ?? 0
+        const old = prev[i]?.[j] ?? 0
+        if (cur > old) newFlash.add(`${i}-${j}`)
+      }
+    }
+    prevValues.current = values
+
+    if (newFlash.size === 0) return
+
+    setFlashCells(newFlash)
+    const timer = setTimeout(() => setFlashCells(new Set()), 700)
+    return () => clearTimeout(timer)
+  }, [values])
+
+  return flashCells
+}
+
 export default function SessionInterestHeatmap({
   heat,
   speakerDots,
+  activeSessionId,
 }: {
   heat: SessionHeatmapT
   speakerDots: { initials: string; color: string }[]
+  activeSessionId?: string | null
 }) {
+  const voters = useRecentVoters(activeSessionId ?? null)
+  const flashCells = useFlashCells(heat.values)
+
   if (!heat.halls.length || !heat.times.length) {
     return (
       <section className="pulse-panel absolute flex flex-col overflow-hidden p-3" style={{ left: 804, top: 538, width: 508, height: 319 }}>
@@ -54,95 +126,117 @@ export default function SessionInterestHeatmap({
     )
   }
 
-  const cellW = 54
-  const cellH = 22
-  const ox = 86
-  const oy = 30
-  const cw = heat.times.length * cellW + ox + 8
-  const ch = heat.halls.length * cellH + oy + 24
-
-  const { hallIndex: hi, timeIndex: ti, engagement, label } = heat.highlight
-  const cx = ox + ti * cellW + cellW / 2
+  const cols = heat.times.length
+  const rows = heat.halls.length
+  const ox = 24
+  const oy = 22
+  const pad = 4
+  const vw = ox + cols * 60 + pad
+  const vh = oy + rows * 26 + pad
 
   return (
     <section className="pulse-panel absolute flex flex-col overflow-hidden p-3" style={{ left: 804, top: 538, width: 508, height: 319 }}>
       <div className="pointer-events-none absolute inset-0 z-0 rounded-[inherit] overflow-hidden">
         <div style={{ backgroundImage: "url('/pulse/bg-heatmap.png')", backgroundSize: 'cover', backgroundPosition: 'center', width: '100%', height: '100%', opacity: 0.15 }} />
       </div>
-      <h2 className="pulse-panel-title mb-2 shrink-0">Карта интереса к сессиям</h2>
-      <div className="relative min-h-0 flex-1">
-        <svg width="100%" height="210" viewBox={`0 0 ${cw} ${ch}`} preserveAspectRatio="xMinYMin meet">
+
+      <h2 className="pulse-panel-title mb-1 shrink-0">Карта интереса к сессиям</h2>
+
+      <div className="relative min-h-0 flex-1 flex flex-col">
+        <svg
+          width="100%"
+          height="100%"
+          viewBox={`0 0 ${vw} ${vh}`}
+          preserveAspectRatio="none"
+          style={{ flex: 1 }}
+        >
           <defs>
-            <filter id="pulseTipShadow" x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.45" />
+            <filter id="cellGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
             </filter>
           </defs>
+
+          {/* Time labels */}
           {heat.times.map((t, j) => (
             <text
               key={t}
-              x={ox + j * cellW + cellW / 2}
-              y={16}
+              x={ox + j * 60 + 30}
+              y={14}
               fill="rgba(255,255,255,0.42)"
-              fontSize={10}
+              fontSize={9}
               textAnchor="middle"
               fontFamily="system-ui, sans-serif"
             >
               {t}
             </text>
           ))}
-          {heat.halls.map((hall, i) => (
+
+          {/* Row numbers */}
+          {heat.halls.map((_, i) => (
             <text
-              key={hall}
-              x={4}
-              y={oy + i * cellH + cellH / 2 + 4}
-              fill="rgba(255,255,255,0.55)"
-              fontSize={10}
+              key={i}
+              x={11}
+              y={oy + i * 26 + 16}
+              fill="rgba(255,255,255,0.32)"
+              fontSize={9}
+              textAnchor="middle"
               fontFamily="system-ui, sans-serif"
             >
-              {hall.length > 18 ? `${hall.slice(0, 16)}…` : hall}
+              {i + 1}
             </text>
           ))}
+
+          {/* Cells */}
           {heat.values.map((row, i) =>
             row.map((v, j) => {
-              const isHi = hi === i && ti === j
+              const key = `${i}-${j}`
+              const flashing = flashCells.has(key)
               return (
                 <rect
-                  key={`${i}-${j}`}
-                  x={ox + j * cellW + 2}
-                  y={oy + i * cellH + 2}
-                  width={cellW - 4}
-                  height={cellH - 4}
+                  key={key}
+                  x={ox + j * 60 + 2}
+                  y={oy + i * 26 + 2}
+                  width={56}
+                  height={22}
                   rx={6}
-                  fill={intensityColor(v)}
-                  stroke={isHi ? 'rgba(0,229,255,0.68)' : 'rgba(255,255,255,0.06)'}
-                  strokeWidth={isHi ? 1.8 : 1}
+                  fill={flashing ? 'rgba(0,229,255,0.55)' : intensityColor(v)}
+                  stroke={flashing ? 'rgba(0,229,255,0.9)' : 'rgba(255,255,255,0.06)'}
+                  strokeWidth={flashing ? 2 : 1}
+                  filter={flashing ? 'url(#cellGlow)' : undefined}
+                  style={{ transition: 'fill 0.6s ease, stroke 0.6s ease' }}
                 />
               )
-            }),
+            })
           )}
-          <g transform={`translate(${cx - 146}, ${oy + hi * cellH - 44})`} filter="url(#pulseTipShadow)">
-            <rect x={0} y={0} width={292} height={58} rx={12} fill="rgba(6,11,22,0.97)" stroke="rgba(0,229,255,0.42)" strokeWidth={1} />
-            {speakerDots.slice(0, 3).map((s, idx) => (
-              <g key={`${s.initials}-${idx}`} transform={`translate(${14 + idx * 18}, ${15})`}>
-                <circle r={11} cx={11} cy={11} fill={s.color} stroke="#081018" strokeWidth={1} />
-                <text x={11} y={15} fill="#fff" fontSize={9} fontWeight={700} textAnchor="middle" fontFamily="system-ui, sans-serif">
-                  {s.initials.slice(0, 2)}
-                </text>
-              </g>
-            ))}
-            <text x={74} y={22} fill="#ffffff" fontSize={11} fontWeight={700} fontFamily="system-ui, sans-serif">
-              {label.slice(0, 44)}
-              {label.length > 44 ? '…' : ''}
-            </text>
-            <text x={74} y={40} fill="rgba(255,255,255,0.6)" fontSize={10} fontFamily="system-ui, sans-serif">
-              {`${engagement}% · вовлечённость · +218`}
-            </text>
-          </g>
         </svg>
-        <div className="pointer-events-none absolute bottom-2 left-0 right-0 flex items-center gap-3 px-2 text-[10px] text-white/45">
-          <span className="shrink-0">Низкий интерес</span>
-          <span className="h-2 flex-1 rounded-full bg-gradient-to-r from-[#0a1020] via-[#00a078] via-[#1ed760] to-[#ffdc00]" />
-          <span className="shrink-0">Высокий интерес</span>
+
+        {/* Recent voters */}
+        {voters.length > 0 && (
+          <div className="shrink-0 flex items-center gap-1.5 pt-1 overflow-hidden">
+            <span className="shrink-0 text-[9px] text-white/30 uppercase tracking-wider">Голосуют:</span>
+            <div className="flex gap-1.5 overflow-hidden">
+              {voters.map((v, i) => (
+                <span
+                  key={`${v}-${i}`}
+                  className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold"
+                  style={{ background: 'rgba(0,212,255,0.12)', color: '#00d4ff', border: '1px solid rgba(0,212,255,0.25)' }}
+                >
+                  {v.startsWith('@') ? v : `@${v}`}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Legend */}
+        <div className="shrink-0 flex items-center gap-3 pt-1 text-[9px] text-white/40">
+          <span className="shrink-0">Низкий</span>
+          <span className="h-1.5 flex-1 rounded-full bg-gradient-to-r from-[#0a1020] via-[#00a078] via-[#1ed760] to-[#ffdc00]" />
+          <span className="shrink-0">Высокий</span>
         </div>
       </div>
     </section>
