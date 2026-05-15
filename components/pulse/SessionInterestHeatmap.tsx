@@ -113,7 +113,7 @@ export default function SessionInterestHeatmap({
   activeSessionId?: string | null
 }) {
   const voters = useRecentVoters(activeSessionId ?? null)
-  const flashCells = useFlashCells(heat.values)
+  const flashCells = useFlashCells(heat.values as number[][])
 
   if (!heat.halls.length || !heat.times.length) {
     return (

@@ -77,7 +77,7 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
               ].join(', '),
             }}
           >
-            AI-ПУЛЬС
+            ПУЛЬС КОНФЕРЕНЦИИ
           </h1>
           <p className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.24em] text-white/36">
             Интеллектуальная панель конференции
