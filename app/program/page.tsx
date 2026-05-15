@@ -117,9 +117,9 @@ export default function ProgramPage() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={session.speaker.photo_url} alt={session.speaker.name}
                         className="w-7 h-7 rounded-full object-cover"
-                        style={{ filter: 'grayscale(30%) brightness(1.05)' }} />
+                        style={{ filter: 'grayscale(60%) brightness(0.85) opacity(0.7)' }} />
                       <div>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>{session.speaker.name}</div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>{session.speaker.name}</div>
                         {[session.speaker.role, session.speaker.city].filter(Boolean).length > 0 && (
                           <div style={{ fontSize: 10, color: 'var(--text-3)' }}>
                             {[session.speaker.role, session.speaker.city].filter(Boolean).join(' · ')}
@@ -135,7 +135,7 @@ export default function ProgramPage() {
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={sp.photo_url} alt={sp.name}
                             className="w-7 h-7 rounded-full object-cover"
-                            style={{ filter: 'grayscale(30%) brightness(1.05)' }} />
+                            style={{ filter: 'grayscale(60%) brightness(0.85) opacity(0.7)' }} />
                           <div>
                             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>{sp.name}</div>
                             {[sp.role, sp.city].filter(Boolean).length > 0 && (

@@ -2,8 +2,8 @@
 import { useState } from 'react'
 import { SPEAKERS, SESSIONS } from '@/lib/data'
 
-const AVATAR_COLORS = ['#0f2a4a', '#0a2a1a', '#1a1a4a', '#2a0a3a', '#2a180a', '#0a2a2a']
-const AVATAR_TEXT   = ['#4a9eca', '#22c55e', '#818cf8', '#a855f7', '#f97316', '#06b6d4']
+const AVATAR_COLORS = Array(6).fill('rgba(255,255,255,0.06)')
+const AVATAR_TEXT   = Array(6).fill('rgba(238,244,255,0.35)')
 
 export default function SpeakersPage() {
   const [search, setSearch] = useState('')
@@ -100,7 +100,7 @@ export default function SpeakersPage() {
                   fontSize: 22, fontWeight: 800,
                   background: AVATAR_COLORS[openIdx % AVATAR_COLORS.length],
                   color: AVATAR_TEXT[openIdx % AVATAR_TEXT.length],
-                  boxShadow: `0 0 24px ${AVATAR_TEXT[openIdx % AVATAR_TEXT.length]}33`,
+                  boxShadow: 'none',
                 }}>
                   {openSp.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </div>
