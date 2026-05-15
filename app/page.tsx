@@ -116,7 +116,7 @@ export default function Home() {
       <div className="max-w-md mx-auto px-4 py-5 flex-1 space-y-6 relative z-10 w-full">
         {/* Opening session card */}
         <Link href="/program">
-          <div className="card p-4 cursor-pointer" style={{ borderColor: 'rgba(74,158,202,0.2)' }}>
+          <div className="card hero-card p-4 cursor-pointer" style={{ borderColor: 'rgba(74,158,202,0.2)' }}>
             <div className="glow-chip mb-3" style={{ display: 'inline-flex' }}>Открывает форум</div>
             <h2 style={{ fontWeight: 700, color: 'var(--text)', lineHeight: 1.35, marginBottom: 14, fontSize: 16 }}>
               {nextSession.title}
@@ -140,10 +140,10 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-3" style={{ marginTop: 12 }}>
           {quickLinks.map(({ href, icon, title, desc, color, live }) => (
             <Link key={href} href={href}>
-              <div className="card h-full cursor-pointer active:scale-95 transition-transform"
-                style={{ borderColor: `${color}22`, padding: '18px 16px 16px' }}>
+              <div className="card ql-card h-full cursor-pointer transition-all"
+                style={{ '--c': color, borderColor: `${color}22`, padding: '18px 16px 16px' } as React.CSSProperties}>
                 <div className="flex items-start justify-between mb-4">
-                  <span style={{ fontSize: 22, color: color, fontFamily: 'monospace', lineHeight: 1 }}>
+                  <span className="ql-icon" style={{ fontSize: 22, color: color, fontFamily: 'monospace', lineHeight: 1 }}>
                     {icon}
                   </span>
                   {live && (
@@ -159,15 +159,41 @@ export default function Home() {
           ))}
         </div>
 
+        <style dangerouslySetInnerHTML={{ __html: `
+          .ql-card {
+            transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease, border-color 0.2s ease;
+          }
+          .ql-card:hover {
+            transform: scale(1.03);
+            border-color: color-mix(in srgb, var(--c) 50%, transparent) !important;
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 40%, transparent),
+                        0 0 24px color-mix(in srgb, var(--c) 20%, transparent),
+                        0 8px 32px rgba(0,0,0,0.3);
+          }
+          .ql-card:hover .ql-icon {
+            filter: drop-shadow(0 0 8px var(--c));
+            transition: filter 0.2s ease;
+          }
+        `}} />
+
         {/* About */}
-        <div className="card-flat p-5">
+        <div className="card-flat about-block p-5">
           <p className="subhead mb-3">О форуме</p>
-          <p style={{ color: 'var(--text-2)', fontSize: 14, lineHeight: 1.7 }}>
+          <p className="about-text" style={{ fontSize: 14, lineHeight: 1.7 }}>
             Разговор об урбанистике начинается с разбора конкретных мест
             и готовых решений. Устойчивое развитие, креативная экономика,
             инфраструктура и лучшие практики городского развития.
           </p>
         </div>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .about-text { color: rgba(238,244,255,0.55); transition: color 0.25s ease; }
+          .about-block:hover .about-text { color: rgba(238,244,255,0.92); }
+          .hero-card { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+          .hero-card:hover {
+            border-color: rgba(74,158,202,0.55) !important;
+            box-shadow: 0 0 0 1px rgba(74,158,202,0.2), 0 0 24px rgba(74,158,202,0.15);
+          }
+        `}} />
 
         {/* Partners */}
         <div className="card-flat overflow-hidden">
@@ -179,15 +205,15 @@ export default function Home() {
               <p style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>
                 Организаторы
               </p>
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-4">
+                <div className="partner-chip flex items-center gap-2.5">
                   <LogoInnopolis size={26} />
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>Иннополис</div>
                     <div style={{ fontSize: 10, color: 'var(--text-3)' }}>Технополис</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2.5">
+                <div className="partner-chip flex items-center gap-2.5">
                   <LogoGelendzhikArena size={26} />
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>Геленджик Арена</div>
@@ -197,7 +223,7 @@ export default function Home() {
               </div>
             </div>
             <div className="divider" />
-            <div className="flex items-center gap-2.5">
+            <div className="partner-chip flex items-center gap-2.5" style={{ display: 'inline-flex' }}>
               <LogoIIntegration size={24} />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>ИИнтеграция</div>
@@ -206,6 +232,20 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        <style dangerouslySetInnerHTML={{ __html: `
+          .partner-chip {
+            padding: 8px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            cursor: default;
+          }
+          .partner-chip:hover {
+            border-color: rgba(255,255,255,0.22);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 0 18px rgba(255,255,255,0.07);
+          }
+        `}} />
       </div>
     </div>
   )

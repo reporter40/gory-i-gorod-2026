@@ -22,6 +22,7 @@ export default function ProgramPage() {
     : sessions
 
   return (
+    <>
     <div className="min-h-screen">
       {/* Header */}
       <div className="forum-gradient text-white px-5 pt-10 pb-6">
@@ -76,11 +77,11 @@ export default function ProgramPage() {
         <div className="space-y-4 pb-6">
           {filtered.map(session =>
             session.program_card === 'title_only' ? (
-              <div key={session.id} className="card" style={{ padding: '18px 20px' }}>
+              <div key={session.id} className="card program-card" style={{ padding: '18px 20px' }}>
                 <h3 style={{ fontWeight: 700, color: 'var(--text)', lineHeight: 1.4, fontSize: 15 }}>{session.title}</h3>
               </div>
             ) : (
-              <div key={session.id} className="card" style={{ padding: '18px 20px 20px' }}>
+              <div key={session.id} className="card program-card" style={{ padding: '18px 20px 20px' }}>
                 {/* Time + block */}
                 <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
                   <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-3)', letterSpacing: '0.02em' }}>
@@ -119,7 +120,7 @@ export default function ProgramPage() {
                         className="w-7 h-7 rounded-full object-cover"
                         style={{ filter: 'grayscale(60%) brightness(0.85) opacity(0.7)' }} />
                       <div>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>{session.speaker.name}</div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{session.speaker.name}</div>
                         {[session.speaker.role, session.speaker.city].filter(Boolean).length > 0 && (
                           <div style={{ fontSize: 10, color: 'var(--text-3)' }}>
                             {[session.speaker.role, session.speaker.city].filter(Boolean).join(' · ')}
@@ -155,5 +156,17 @@ export default function ProgramPage() {
         </div>
       </div>
     </div>
+
+    <style dangerouslySetInnerHTML={{__html: `
+      .program-card {
+        transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease;
+        cursor: pointer;
+      }
+      .program-card:hover {
+        transform: scale(1.025);
+        box-shadow: 0 0 0 1.5px rgba(255,255,255,0.55), 0 0 20px rgba(255,255,255,0.12), 0 8px 32px rgba(0,0,0,0.3) !important;
+      }
+    `}} />
+    </>
   )
 }

@@ -36,6 +36,7 @@ export default function NetworkPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState<Participant | null>(null)
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -130,9 +131,16 @@ export default function NetworkPage() {
             const roleIcon = p.role ? (ROLE_ICONS[p.role] ?? '') : ''
             return (
               <div key={p.uid} className="card p-3.5 flex items-center gap-3" style={{ cursor: 'pointer' }}
-                onClick={() => setOpen(p)}>
+                onClick={() => setOpen(p)}
+                onMouseEnter={() => setHoveredId(p.uid)}
+                onMouseLeave={() => setHoveredId(null)}>
                 <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-sm"
-                  style={{ background: c.bg, color: c.text, border: `1px solid ${c.border}` }}>
+                  style={{
+                    background: c.bg, color: c.text,
+                    border: hoveredId === p.uid ? `1.5px solid ${c.text}` : `1px solid ${c.border}`,
+                    boxShadow: hoveredId === p.uid ? `0 0 18px ${c.text}88, 0 0 6px ${c.text}55` : 'none',
+                    transition: 'box-shadow 0.25s ease, border-color 0.25s ease',
+                  }}>
                   {initials(p.name)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -174,13 +182,6 @@ export default function NetworkPage() {
 
               {/* Hero section — sits on top of glow bg */}
               <div style={{ position: 'relative', padding: '24px 24px 22px', textAlign: 'center', zIndex: 2 }}>
-                {/* Forum badge */}
-                <div style={{
-                  position: 'absolute', top: 16, right: 20,
-                  fontSize: 9, fontWeight: 800, letterSpacing: '0.14em',
-                  color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase',
-                }}>ГиГ 2026</div>
-
                 {/* Avatar squircle */}
                 <div style={{
                   width: 88, height: 88, borderRadius: 28, margin: '0 auto 18px',
@@ -308,7 +309,7 @@ export default function NetworkPage() {
           overflow: hidden;
           animation: slideUp 0.35s cubic-bezier(0.34,1.4,0.64,1) both;
           box-shadow: 0 24px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06) inset;
-          background: url('/card-bg.png') center bottom / cover no-repeat;
+          background: linear-gradient(180deg, rgba(4,12,30,0.45) 0%, rgba(4,12,30,0.3) 100%), url('/card-bg.png') center bottom / cover no-repeat;
         }
         @keyframes slideUp {
           from { opacity: 0; transform: translateY(60px); }

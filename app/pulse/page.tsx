@@ -15,6 +15,15 @@ const TAGS = [
 
 const STORAGE_PREFIX = 'sv_'
 
+const AVATAR_PALETTE = [
+  { bg: 'rgba(0,212,255,0.15)',   border: 'rgba(0,212,255,0.35)',   text: '#00d4ff' },
+  { bg: 'rgba(34,217,122,0.15)',  border: 'rgba(34,217,122,0.35)',  text: '#22d97a' },
+  { bg: 'rgba(167,139,250,0.15)', border: 'rgba(167,139,250,0.35)', text: '#a78bfa' },
+  { bg: 'rgba(249,115,22,0.15)',  border: 'rgba(249,115,22,0.35)',  text: '#f97316' },
+  { bg: 'rgba(236,72,153,0.15)',  border: 'rgba(236,72,153,0.35)',  text: '#ec4899' },
+  { bg: 'rgba(234,179,8,0.15)',   border: 'rgba(234,179,8,0.35)',   text: '#eab308' },
+]
+
 function getLocalVote(speakerId: string, uid: string): string | null {
   try { return localStorage.getItem(`${STORAGE_PREFIX}${speakerId}_${uid}`) } catch { return null }
 }
@@ -42,6 +51,7 @@ export default function PulsePage() {
   const [uid, setUid] = useState<string | null>(null)
   const [votes, setVotes] = useState<Record<string, string>>({})
   const [activeDay, setActiveDay] = useState(1)
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -119,16 +129,19 @@ export default function PulsePage() {
 
         {/* Speaker list */}
         <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {dayEntries.map(({ speaker, session }) => {
+          {dayEntries.map(({ speaker, session }, idx) => {
             const myVote = votes[speaker.id]
             const tag = myVote ? TAGS.find(t => t.id === myVote) : null
             const initials = speaker.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
             const time = new Date(session.starts_at).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })
+            const c = AVATAR_PALETTE[idx % AVATAR_PALETTE.length]
 
             return (
               <button
                 key={speaker.id}
                 onClick={() => router.push(`/pulse/speaker/${speaker.id}`)}
+                onMouseEnter={() => setHoveredId(speaker.id)}
+                onMouseLeave={() => setHoveredId(null)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 14,
                   padding: '16px', borderRadius: 18, width: '100%', textAlign: 'left',
@@ -140,11 +153,11 @@ export default function PulsePage() {
                 {/* Avatar */}
                 <div style={{
                   width: 44, height: 44, borderRadius: 14, flexShrink: 0,
-                  background: myVote ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.06)',
-                  border: myVote ? '1px solid rgba(0,212,255,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                  background: c.bg, border: `1px solid ${c.border}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 14, fontWeight: 800,
-                  color: myVote ? '#00d4ff' : 'rgba(238,244,255,0.35)',
+                  fontSize: 14, fontWeight: 800, color: c.text,
+                  boxShadow: hoveredId === speaker.id ? `0 0 20px ${c.text}88, 0 0 8px ${c.text}55` : `0 0 8px ${c.text}22`,
+                  transition: 'box-shadow 0.25s ease',
                 }}>
                   {initials}
                 </div>

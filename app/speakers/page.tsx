@@ -2,8 +2,14 @@
 import { useState } from 'react'
 import { SPEAKERS, SESSIONS } from '@/lib/data'
 
-const AVATAR_COLORS = Array(6).fill('rgba(255,255,255,0.06)')
-const AVATAR_TEXT   = Array(6).fill('rgba(238,244,255,0.35)')
+const AVATAR_PALETTE = [
+  { bg: 'rgba(0,212,255,0.15)',   border: 'rgba(0,212,255,0.35)',   text: '#00d4ff',  glow: 'rgba(0,212,255,0.45)'  },
+  { bg: 'rgba(34,217,122,0.15)',  border: 'rgba(34,217,122,0.35)',  text: '#22d97a',  glow: 'rgba(34,217,122,0.45)' },
+  { bg: 'rgba(167,139,250,0.15)', border: 'rgba(167,139,250,0.35)', text: '#a78bfa',  glow: 'rgba(167,139,250,0.45)'},
+  { bg: 'rgba(249,115,22,0.15)',  border: 'rgba(249,115,22,0.35)',  text: '#f97316',  glow: 'rgba(249,115,22,0.45)' },
+  { bg: 'rgba(236,72,153,0.15)',  border: 'rgba(236,72,153,0.35)',  text: '#ec4899',  glow: 'rgba(236,72,153,0.45)' },
+  { bg: 'rgba(234,179,8,0.15)',   border: 'rgba(234,179,8,0.35)',   text: '#eab308',  glow: 'rgba(234,179,8,0.45)'  },
+]
 
 export default function SpeakersPage() {
   const [search, setSearch] = useState('')
@@ -15,6 +21,7 @@ export default function SpeakersPage() {
     return `${sp.name} ${sp.role} ${sp.city}`.toLowerCase().includes(q)
   })
 
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
   const openSp = SPEAKERS.find(sp => sp.id === open)
   const openIdx = openSp ? SPEAKERS.indexOf(openSp) : 0
   const openSessions = open ? SESSIONS.filter(s => s.speaker_id === open) : []
@@ -44,10 +51,22 @@ export default function SpeakersPage() {
         </div>
 
         <div className="space-y-2">
-          {filtered.map((sp, i) => (
-            <div key={sp.id} className="card p-3.5 flex items-center gap-3">
+          {filtered.map((sp, i) => {
+            const c = AVATAR_PALETTE[i % AVATAR_PALETTE.length]
+            const isHovered = hoveredId === sp.id
+            return (
+            <div key={sp.id} className="card p-3.5 flex items-center gap-3"
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => setHoveredId(sp.id)}
+              onMouseLeave={() => setHoveredId(null)}>
               <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-sm"
-                style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length], color: AVATAR_TEXT[i % AVATAR_TEXT.length] }}>
+                style={{
+                  background: c.bg,
+                  border: `1px solid ${isHovered ? c.text : c.border}`,
+                  color: c.text,
+                  boxShadow: isHovered ? `0 0 18px ${c.glow}, 0 0 6px ${c.glow}` : `0 0 8px ${c.bg}`,
+                  transition: 'box-shadow 0.25s ease, border-color 0.25s ease',
+                }}>
                 {sp.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
               </div>
               <div className="flex-1 min-w-0">
@@ -64,7 +83,8 @@ export default function SpeakersPage() {
                 </svg>
               </button>
             </div>
-          ))}
+            )
+          })}
           {filtered.length === 0 && (
             <div className="text-center py-10 text-sm" style={{ color: 'var(--text-3)' }}>Никого не найдено</div>
           )}
@@ -88,7 +108,7 @@ export default function SpeakersPage() {
             {/* Accent top bar */}
             <div style={{
               height: 3,
-              background: `linear-gradient(90deg, ${AVATAR_TEXT[openIdx % AVATAR_TEXT.length]}, transparent)`,
+              background: `linear-gradient(90deg, ${AVATAR_PALETTE[openIdx % AVATAR_PALETTE.length].text}, transparent)`,
             }} />
 
             <div style={{ padding: '28px 24px 0' }}>
@@ -98,9 +118,10 @@ export default function SpeakersPage() {
                   width: 64, height: 64, borderRadius: 20, flexShrink: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 22, fontWeight: 800,
-                  background: AVATAR_COLORS[openIdx % AVATAR_COLORS.length],
-                  color: AVATAR_TEXT[openIdx % AVATAR_TEXT.length],
-                  boxShadow: 'none',
+                  background: AVATAR_PALETTE[openIdx % AVATAR_PALETTE.length].bg,
+                  border: `1.5px solid ${AVATAR_PALETTE[openIdx % AVATAR_PALETTE.length].border}`,
+                  color: AVATAR_PALETTE[openIdx % AVATAR_PALETTE.length].text,
+                  boxShadow: `0 0 24px ${AVATAR_PALETTE[openIdx % AVATAR_PALETTE.length].glow}`,
                 }}>
                   {openSp.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </div>
@@ -142,9 +163,9 @@ export default function SpeakersPage() {
                       <div className="flex items-center gap-2">
                         <span style={{
                           fontSize: 10, fontWeight: 700, fontFamily: 'monospace',
-                          color: AVATAR_TEXT[openIdx % AVATAR_TEXT.length],
-                          background: `${AVATAR_TEXT[openIdx % AVATAR_TEXT.length]}15`,
-                          border: `1px solid ${AVATAR_TEXT[openIdx % AVATAR_TEXT.length]}30`,
+                          color: AVATAR_PALETTE[openIdx % AVATAR_PALETTE.length].text,
+                          background: `${AVATAR_PALETTE[openIdx % AVATAR_PALETTE.length].text}15`,
+                          border: `1px solid ${AVATAR_PALETTE[openIdx % AVATAR_PALETTE.length].text}30`,
                           borderRadius: 6, padding: '3px 8px', letterSpacing: '0.04em',
                         }}>
                           {new Date(s.starts_at).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })}
