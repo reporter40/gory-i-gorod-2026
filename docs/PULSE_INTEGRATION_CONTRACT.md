@@ -156,13 +156,15 @@ Visual tests use `?visualTest=1` → mock adapter → deterministic output.
 
 ## Smoke Test
 
-1. Open **`/pulse/live`** without `?visualTest` → live data (or mock if no Firebase)
-2. Open **`/pulse/live?visualTest=1`** → mock data, Playwright snapshot matches
-3. Open `/pulse/vote` → vote → count on **`/pulse/live`** updates within 2s
-4. In `/pulse/admin` → freeze → dashboard shows "Данные зафиксированы"
-5. In `/pulse/admin` → unfreeze → dashboard resumes live updates
-6. Kill network → `/pulse/vote` shows offline toast, queues vote
-7. Restore network → queued vote is sent
+**Release target:** deploy **`master`** at commit **`60d5afc` or newer**. Full operator checklist (participant flows + monitor + security gate + evidence rules) — **`docs/PULSE_RTD_ACCESS_MODEL.md`** → **Production smoke (manual)**.
+
+1. **`/pulse`** → participant landing (not dashboard); active session or empty state; CTAs **«Протегировать выступление»** and **«Смотреть итоги»**.
+2. **`/pulse/live`** without `?visualTest` → live AI Pulse dashboard for monitor (or mock if no Firebase).
+3. **`/pulse/live?visualTest=1`** → mock data; Playwright snapshot matches.
+4. **`/pulse/vote`** → registration → vote **`implement`** via **`POST /api/pulse/vote`** → **`/pulse/live`** Audience Reactions + heatmap update within ~2s; **`_meta.source === "live"`**, **`_meta.heatmapSource === "votes"`** where applicable.
+5. **`/pulse/results`** → live counts from **`votes/{activeSessionId}`**; cross-check RTDB when Firebase is configured.
+6. In **`/pulse/admin`** → freeze → dashboard shows "Данные зафиксированы"; unfreeze → live updates resume.
+7. Kill network → **`/pulse/vote`** offline toast, queues vote; restore network → queued vote sent.
 
 ---
 

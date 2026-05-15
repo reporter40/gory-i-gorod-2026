@@ -33,12 +33,12 @@
 ## Deployment Order
 
 1. Set **all** Vercel env vars from the table above (Production + Preview if needed).
-2. Deploy **`master`** at or after commit **`aa78925`** (`feat(pulse): harden Firebase RTDB access model`).
+2. Deploy **`master`** at or after commit **`60d5afc`** (`fix(pulse): separate participant flow from live dashboard`).
 3. In Firebase Console → Realtime Database → **Rules**, publish contents of `lib/pulse/firebase/rules.json`.
 4. Verify `POST /api/pulse/vote` returns **not** `503` when `FIREBASE_SERVICE_ACCOUNT_JSON` is set (e.g. missing body still yields `400`, not missing-config `503`).
 5. Verify `POST /api/pulse/operator` **without** `x-pulse-operator-key` returns **401** (`unauthorized`).
 6. Set `event/activeSessionId` via operator API (or Telegram `/session`, `/sync`, etc.).
-7. Run **production smoke** (participant registration, one vote, dashboard reactions + heatmap, `_meta` fields).
+7. Run **production smoke** per **Production smoke (manual)** below (participant routes `/pulse`, `/pulse/vote`, `/pulse/results`, monitor `/pulse/live`, security gate).
 
 ## Operator — manual `curl` recipes
 
@@ -127,7 +127,57 @@ Vitest rule **structure** tests live in `tests/pulse/firebase-rules.test.ts`; th
 
 ## Production smoke (manual)
 
-After deploy: note **git commit hash**, **Vercel URL**, confirm env vars; set `activeSessionId` via Telegram or `/api/pulse/operator`; register participant; vote once; confirm dashboard Audience Reactions +1 and heatmap updates; confirm `_meta.source === "live"` and `_meta.heatmapSource === "votes"` where applicable; confirm no `PERMISSION_DENIED` on legal paths.
+### Release target
+
+- **Required git commit:** **`60d5afc` or newer** on deployed **`master`** (verify Vercel deployment revision / `git rev-parse HEAD` on the release artifact).
+
+After deploy, record **git commit hash**, **production URL** (Vercel), and confirm env vars; set `event/activeSessionId` via Telegram or `POST /api/pulse/operator` before exercising participant flows.
+
+### 1. `/pulse` (participant landing)
+
+- Opens **participant landing** (not the conference dashboard).
+- Shows **active session** card when `event/activeSessionId` is set (theme + speaker when present), or **empty state** («Пульс скоро начнётся») when there is no active session.
+- Visible CTA **«Протегировать выступление»** → `/pulse/vote`.
+- Visible CTA **«Смотреть итоги»** → `/pulse/results`.
+
+### 2. `/pulse/vote`
+
+- Header shows **theme / speaker / time / hall** when session data is available from RTDB.
+- **Registration** completes successfully.
+- Vote **`implement`** is sent **only** via **`POST /api/pulse/vote`** (Strategy A — no direct client writes to `votes` / `userVotes` / `mood`).
+- After a **successful** vote, CTA **«Смотреть итоги»** → `/pulse/results` is visible.
+
+### 3. `/pulse/results`
+
+- Shows **live** aggregates from **`votes/{activeSessionId}/{tagId}`** for canonical tag IDs (`implement`, `discovery`, `partner`, `question`, `applicable`).
+- **Must not** treat dashboard mocks as the primary source when Firebase is configured — compare counts with RTDB (Firebase Console or Admin read) for the same `activeSessionId`.
+
+### 4. `/pulse/live` (conference AI Pulse dashboard)
+
+- Renders the **AI Pulse dashboard** for the hall monitor / projector.
+- After the same vote as in §2: **Audience Reactions** updates (e.g. +1 on the chosen reaction).
+- **Heatmap** updates after that same vote.
+- Client/live adapter state: **`_meta.source === "live"`** and **`_meta.heatmapSource === "votes"`** where applicable (devtools / debug trace per release).
+
+### 5. Security gate (unchanged)
+
+- Firebase **rules** from `lib/pulse/firebase/rules.json` are **published** in Console.
+- **`POST /api/pulse/operator`** without `x-pulse-operator-key` → **401** / **403** (as deployed).
+- **`POST /api/pulse/vote`** without **`Authorization: Bearer …`** → **401**.
+- **Illegal** client writes under **`event/*`** are **denied** (`PERMISSION_DENIED`).
+- **No** direct client writes to **`votes`**, **`userVotes`**, or **`mood`** as product behavior (votes only through **`POST /api/pulse/vote`**).
+
+### Operator evidence → Sprint Report outcome
+
+When operators send evidence:
+
+| Evidence | Sprint Report |
+|----------|----------------|
+| All checks **PASSED** | **SPRINT-PULSE-04 + hotfix — final GO** |
+| Any check **FAILED** | **SPRINT-PULSE-04-hotfix-failed — \<blocker\>** (name the failing step) |
+| **NOT RUN** / **BLOCKED** | **Pending evidence** (do not claim GO) |
+
+Do **not** start **SPRINT-PULSE-05** until there is a **full GO** with completed smoke evidence.
 
 ## Git / Cursor note (commit tooling)
 

@@ -8,6 +8,14 @@
 
 ---
 
+## Release target (код)
+
+- **Минимальный коммит на проде:** **`60d5afc`** или новее (`master`).
+- **Production smoke** (маршруты `/pulse`, `/pulse/vote`, `/pulse/results`, `/pulse/live`, security gate) и правила эвиденса для Sprint Report — в **`docs/PULSE_RTD_ACCESS_MODEL.md`** → раздел **Production smoke (manual)**.
+- **SPRINT-PULSE-05** не начинать до **полного GO** по этому smoke.
+
+---
+
 ## За день до форума — Репетиция
 
 ```bash
@@ -27,8 +35,9 @@ npx tsx scripts/pulse-rehearsal.ts
 3. Проверить: **зелёная точка "Connected"** в admin
 4. Проверить: **heartbeat dashboard < 5 сек** (зелёный)
 5. Открыть `/pulse/health` в отдельном табе — должен быть `"status": "ok"`
-6. Положить рядом телефон с `/pulse/vote` — сделать тестовый голос
-7. Убедиться что QR-код ведёт на `/pulse/vote`
+6. На телефоне открыть **`/pulse`** — лендинг участника; проверить блок активной сессии или empty state и оба CTA (**«Протегировать выступление»**, **«Смотреть итоги»**).
+7. Пройти **`/pulse/vote`** → регистрация → тестовый голос **`implement`**; убедиться, что после успеха есть CTA **«Смотреть итоги»**; проверить **`/pulse/results`** и что монитор **`/pulse/live`** обновил реакции и heatmap (полный чеклист — в `docs/PULSE_RTD_ACCESS_MODEL.md`).
+8. Убедиться что QR-код ведёт на **`/pulse/vote`** (или на **`/pulse`**, если так задумано сценарием).
 
 ---
 
