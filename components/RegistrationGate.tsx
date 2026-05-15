@@ -53,10 +53,27 @@ export default function RegistrationGate({ children }: { children: React.ReactNo
   useEffect(() => {
     if (bypass || isRegistered()) {
       setReady(true)
-    } else {
+      return
+    }
+    // Check Firebase — user may have registered on another device
+    ;(async () => {
+      try {
+        const { ensureAnonymousAuth, hasFirebaseConfig, getFirebaseDb } = await import('@/lib/pulse/firebase/client')
+        if (hasFirebaseConfig()) {
+          const uid = await ensureAnonymousAuth()
+          const { ref, get } = await import('firebase/database')
+          const snap = await get(ref(getFirebaseDb(), `participants/${uid}`))
+          if (snap.exists()) {
+            const val = snap.val() as Record<string, unknown>
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...val, uid, consent: true }))
+            setReady(true)
+            return
+          }
+        }
+      } catch {}
       setShow(true)
       setTimeout(() => setVisible(true), 50)
-    }
+    })()
   }, [bypass])
 
   async function handleSubmit() {
@@ -74,20 +91,24 @@ export default function RegistrationGate({ children }: { children: React.ReactNo
         uid = await ensureAnonymousAuth()
         const { ref, set, runTransaction } = await import('firebase/database')
         const db = getFirebaseDb()
-        await set(ref(db, `participants/${uid}`), {
-          name: name.trim(),
-          role,
-          company: company.trim() || null,
-          city: city.trim() || null,
-          phone: phone.trim() || null,
-          telegram: telegram.trim() || null,
-          consent: true,
-          ts: Date.now(),
-        })
-        if (city.trim()) {
-          await runTransaction(ref(db, `geo/${city.trim()}`), (cur) => (cur ?? 0) + 1)
+        const { get } = await import('firebase/database')
+        const existing = await get(ref(db, `participants/${uid}`))
+        if (!existing.exists()) {
+          await set(ref(db, `participants/${uid}`), {
+            name: name.trim(),
+            role,
+            company: company.trim() || null,
+            city: city.trim() || null,
+            phone: phone.trim() || null,
+            telegram: telegram.trim() || null,
+            consent: true,
+            ts: Date.now(),
+          })
+          if (city.trim()) {
+            await runTransaction(ref(db, `geo/${city.trim()}`), (cur) => (cur ?? 0) + 1)
+          }
+          await runTransaction(ref(db, 'event/stats/registeredCount'), (cur) => (cur ?? 0) + 1)
         }
-        await runTransaction(ref(db, 'event/stats/registeredCount'), (cur) => (cur ?? 0) + 1)
       }
 
       const data: RegData = {
