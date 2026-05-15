@@ -248,6 +248,16 @@ export default function AdminPage() {
     await callOperator({ resetVotes: true })
   }
 
+  function downloadExport(format: 'json' | 'csv') {
+    const key = operatorKey.trim()
+    if (!key) { setOperatorMsg('❌ Введите operator key для экспорта'); return }
+    const url = `/api/admin/export?format=${format}&key=${encodeURIComponent(key)}`
+    const a = document.createElement('a')
+    a.href = url
+    a.download = format === 'csv' ? `participants-${Date.now()}.csv` : `export-${Date.now()}.json`
+    a.click()
+  }
+
   async function applyFrozen(value: boolean) {
     const ok = await callOperator({
       frozen: value,
@@ -450,6 +460,22 @@ export default function AdminPage() {
               </div>
             ))
           }
+        </div>
+
+        {/* Export */}
+        <div className="card">
+          <h2>Экспорт данных участников</h2>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-sm btn-green" style={{ flex: 1 }} onClick={() => downloadExport('csv')}>
+              📥 CSV (участники)
+            </button>
+            <button className="btn btn-sm btn-cyan" style={{ flex: 1 }} onClick={() => downloadExport('json')}>
+              📦 JSON (всё)
+            </button>
+          </div>
+          <div style={{ marginTop: 8, fontSize: '0.75rem', color: '#475569' }}>
+            Требует Operator Key выше. CSV — только участники. JSON — все данные (голоса, гео).
+          </div>
         </div>
 
         {/* Fallback instructions */}
