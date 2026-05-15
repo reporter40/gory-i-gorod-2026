@@ -10,7 +10,7 @@ export default function TopTagsPanel({
   filterTabs: readonly string[]
 }) {
   return (
-    <section className="absolute overflow-hidden px-3 pb-3 pt-2.5" style={{ left: 1326, top: 502, width: 334, height: 353 }}>
+    <section className="pulse-panel absolute overflow-hidden px-3 pb-3 pt-2.5" style={{ left: 1326, top: 502, width: 334, height: 353 }}>
       <div className="mb-2">
         <h2 className="pulse-panel-title">Топ-теги сейчас</h2>
         <p className="text-[11px] text-white/42">по вовлечённости</p>
