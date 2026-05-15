@@ -127,15 +127,12 @@ export async function POST(req: NextRequest) {
     await send(chatId, [
       `💻 <b>Chrome Kiosk — запуск</b>`,
       ``,
-      `Скопируй и запусти в Terminal на каждом Mac:`,
+      `1. Закрой Chrome полностью (Cmd+Q)`,
+      `2. Скопируй строку ниже целиком и вставь в Terminal:`,
       ``,
-      `<code>/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome \\`,
-      `  --kiosk \\`,
-      `  --noerrdialogs \\`,
-      `  --disable-infobars \\`,
-      `  "https://gory-i-gorod-2026.vercel.app/pulse/live"</code>`,
+      `<code>/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --kiosk --noerrdialogs --disable-infobars "https://gory-i-gorod-2026.vercel.app/pulse/live"</code>`,
       ``,
-      `Выход из киоска: <b>Cmd+Q</b>`,
+      `Выход: <b>Cmd+Q</b>`,
     ].join('\n'))
     return NextResponse.json({ ok: true })
   }
