@@ -33,7 +33,7 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
   const dash = (c * pct) / 100
 
   return (
-    <section className="absolute overflow-hidden" style={{ left: 318, top: 76, width: 994, height: 460 }}>
+    <section className="absolute overflow-hidden" style={{ left: 360, top: 76, width: 994, height: 460 }}>
       <div className="pulse-hero-decor pulse-hero-cinematic-bg pulse-hero-background-glow">
         <div
           className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[18px]"
@@ -85,7 +85,7 @@ export default function HeroPulsePanel({ state }: { state: MockPulseState }) {
         </div>
       </div>
 
-      <div className="relative z-10 mt-20 flex items-center justify-center">
+      <div className="relative z-10 mt-10 flex items-center justify-center">
         <div className="pulse-hero-decor pulse-hero-orbits pulse-hero-giant-ring pointer-events-none absolute h-[600px] w-[600px] max-w-[600px]">
           <div
             className="pulse-rotate-slow absolute inset-[-18%] rounded-full border border-cyan-400/32"
