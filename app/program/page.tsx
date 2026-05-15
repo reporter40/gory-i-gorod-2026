@@ -42,7 +42,7 @@ export default function ProgramPage() {
               className="flex-1 py-2.5 rounded-2xl text-sm font-semibold transition-all"
               style={day === d
                 ? { background: 'var(--accent)', color: '#07101f', border: '1px solid transparent' }
-                : { background: 'var(--surface)', color: 'var(--text-2)', border: '1px solid var(--border)' }
+                : { background: 'var(--surface)', color: 'rgba(238,244,255,0.35)', border: '1px solid var(--border)' }
               }>
               День {d} · {label}
             </button>
@@ -63,8 +63,8 @@ export default function ProgramPage() {
             <button key={key} onClick={() => setActiveBlock(activeBlock === key ? null : key)}
               className="flex-shrink-0 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-semibold transition-all"
               style={activeBlock === key
-                ? { background: `${BLOCK_COLOR[key]}22`, color: BLOCK_COLOR[key], border: `1px solid ${BLOCK_COLOR[key]}55` }
-                : { background: 'var(--surface)', color: 'var(--text-2)', border: '1px solid var(--border)' }
+                ? { background: `${BLOCK_COLOR[key]}18`, color: 'rgba(238,244,255,0.75)', border: `1px solid ${BLOCK_COLOR[key]}40` }
+                : { background: 'var(--surface)', color: 'rgba(238,244,255,0.35)', border: '1px solid var(--border)' }
               }>
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: BLOCK_COLOR[key] }} />
               {label}
