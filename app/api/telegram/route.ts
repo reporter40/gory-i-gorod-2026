@@ -3,7 +3,17 @@ import { getAdminApp } from '@/lib/pulse/firebase/admin-app'
 import { rtdbRead, rtdbWrite } from '@/lib/pulse/server/rtdb-admin'
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN
-const ADMIN_CHAT_ID = process.env.TELEGRAM_ADMIN_CHAT_ID
+// Supports multiple admins: comma-separated in TELEGRAM_ADMIN_CHAT_ID, e.g. "310813480,987654321"
+// Extra IDs via TELEGRAM_ADMIN_CHAT_ID_2 (no redeploy needed for the second slot)
+const ADMIN_IDS: Set<string> = new Set(
+  [
+    process.env.TELEGRAM_ADMIN_CHAT_ID,
+    process.env.TELEGRAM_ADMIN_CHAT_ID_2,
+  ]
+    .flatMap(v => (v ?? '').split(','))
+    .map(s => s.trim())
+    .filter(Boolean)
+)
 
 type TgUpdate = {
   message?: { chat: { id: number }; text?: string }
@@ -46,7 +56,7 @@ export async function POST(req: NextRequest) {
   const chatId = msg.chat.id
   const text = (msg.text ?? '').trim()
 
-  if (ADMIN_CHAT_ID && String(chatId) !== ADMIN_CHAT_ID) {
+  if (ADMIN_IDS.size > 0 && !ADMIN_IDS.has(String(chatId))) {
     await send(chatId, `⛔ Доступ запрещён. Твой chat_id: <code>${chatId}</code>`)
     return NextResponse.json({ ok: true })
   }
