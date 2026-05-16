@@ -34,9 +34,13 @@ const SPEAKER_SESSIONS = SESSIONS.filter(s => {
   return sp && s.speaker_id !== 'org'
 })
 
-// Dedupe: one entry per speaker
+// Dedupe: one entry per speaker — keep the EARLIEST session (Map last-write wins, so sort descending first)
 const UNIQUE_SPEAKERS = Array.from(
-  new Map(SPEAKER_SESSIONS.map(s => [s.speaker_id, s])).entries()
+  new Map(
+    [...SPEAKER_SESSIONS]
+      .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime())
+      .map(s => [s.speaker_id, s])
+  ).entries()
 ).map(([speakerId, session]) => ({
   speaker: SPEAKERS.find(sp => sp.id === speakerId)!,
   session,
